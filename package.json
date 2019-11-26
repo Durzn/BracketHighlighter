@@ -1,8 +1,14 @@
 {
 	"name": "brackethighlighter",
-	"displayName": "brackethighlighter",
-	"description": "",
-	"version": "0.0.1",
+	"displayName": "Bracket Highlighter",
+	"publisher": "Durzn",
+	"repository": {
+		"url": "https://github.com/Durzn/BracketHighlighter"
+	},
+	"readme": "README.md",
+	"license": "SEE LICENSE IN LICENSE",
+	"description": "Decorates text inbetween brackets.",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
