@@ -1,4 +1,4 @@
-## About this extension
+## About this Visual Studio Code extension
 
 This extension is for people that want a more "in the face" approach on highlighting bracket content. \
 It provides a very configurable CSS style markup for the whole text between brackets.
@@ -11,11 +11,11 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 - **bold text with increased letter spacing**
 
-![](assets/bold.gif)
+![](https://raw.githubusercontent.com/Durzn/BracketHighlighter/master/assets/bold.gif)
 
 - **red border around bold text**
 
-![](assets/border.gif)
+![](https://raw.githubusercontent.com/Durzn/BracketHighlighter/master/assets/border.gif)
 
 - **... Lots of additional possibilities. Just configure it the way you like it.**
 
