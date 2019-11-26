@@ -1,0 +1,121 @@
+{
+	"name": "brackethighlighter",
+	"displayName": "brackethighlighter",
+	"description": "",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.40.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"configuration": [
+			{
+				"title": "BracketHighlighter",
+				"properties": {
+					"BracketHighlighter.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enable this the extension.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.reverseSearchEnabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enables a backwards search by selecting a closing symbol.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.useParentheses": {
+						"type": "boolean",
+						"default": true,
+						"description": "Use extension for parentheses. '()'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.useBraces": {
+						"type": "boolean",
+						"default": true,
+						"description": "Use extension for braces. '{}'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.useBrackets": {
+						"type": "boolean",
+						"default": true,
+						"description": "Use extension for brackets. '[]'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.useAngularBrackets": {
+						"type": "boolean",
+						"default": true,
+						"description": "Use extension for angular brackets. '<>'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.fontWeight": {
+						"type": "string",
+						"default": "bold",
+						"description": "fontWeight in CSS style. E.g. 'bold'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.fontStyle": {
+						"type": "string",
+						"default": "oblique",
+						"description": "fontStyle in CSS style. E.g. 'oblique'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.letterSpacing": {
+						"type": "string",
+						"default": "1px",
+						"description": "letterSpacing in CSS style. E.g. '1px'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.outline": {
+						"type": "string",
+						"default": "",
+						"description": "outline in CSS style. E.g. '2px dashed blue'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.border": {
+						"type": "string",
+						"default": "",
+						"description": "border in CSS style. E.g. '4px dotted blue'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.backgroundColor": {
+						"type": "string",
+						"default": "",
+						"description": "backgroundColor in CSS style. E.g. 'coral'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.textDecoration": {
+						"type": "string",
+						"default": "underline",
+						"description": "textDecoration in CSS style. E.g. 'underline'",
+						"scope": "resource"
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.6",
+		"@types/node": "^10.12.21",
+		"@types/vscode": "^1.40.0",
+		"glob": "^7.1.4",
+		"mocha": "^6.1.4",
+		"typescript": "^3.3.1",
+		"tslint": "^5.12.1",
+		"vscode-test": "^1.0.2"
+	}
+}
