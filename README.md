@@ -56,12 +56,3 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 ## Planned improvements
 
 - Add option to add custom symbols between which text shall be marked up.
-
------------------------------------------------------------------------------------------------------------
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
