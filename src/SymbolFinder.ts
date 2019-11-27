@@ -64,6 +64,10 @@ export default class SymbolFinder {
                     {
                         index = -index;
                     }
+                    if(direction===Direction.Forward && index === 0)
+                    {
+                        return startPosition.with(startPosition.line, 0);
+                    }
                     return startPosition.translate(0, index);
                 }
             }
