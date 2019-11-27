@@ -24,8 +24,8 @@ export default class SymbolFinder {
     private getFirstLetterPosition(startPosition: vscode.Position, textLine: string): vscode.Position {
         let regExp = /[^\s]+/g;
         let lineOffset = textLine.search(regExp);
-        if (lineOffset !== -1) {
-            return startPosition.translate(0, lineOffset);
+        if ( lineOffset > 0) {
+            return startPosition.with(startPosition.line, lineOffset);
         }
         return startPosition;
     }
@@ -44,48 +44,39 @@ export default class SymbolFinder {
     }
 
     private handleLine(textLine: string, symbol: string, counterPartSymbol: string, direction: Direction, startPosition: vscode.Position): vscode.Position {
-        let stepDirection;
         let startIndices = this.findIndicesOfSymbol(textLine, symbol);
         let counterPartIndices = this.findIndicesOfSymbol(textLine, counterPartSymbol);
-        let tempPosition = startPosition;
-        let startIndicesCount = startIndices.length;
-        let counterPartIndicesCount = counterPartIndices.length;
-        let lastIndex = Math.min(startIndicesCount, counterPartIndicesCount);
-        let startSymbolIndex = 0;
-        let counterPartIndex = 0;
-        let counterPartSymbolIndex = 0;
 
-        for (; startSymbolIndex < lastIndex;) {
-            if (startIndices[startSymbolIndex] < counterPartIndices[counterPartSymbolIndex]) {
+        let allIndices = startIndices.concat(counterPartIndices);
+        allIndices = allIndices.sort(function(a,b){return a-b;});
+        for(let index of allIndices)
+        {
+            if(startIndices.includes(index))
+            {
                 this.depth++;
-                startSymbolIndex++;
             }
-            else {
+            else
+            {
                 this.depth--;
-                if (this.depth === 0) {
-                    counterPartIndex = counterPartIndices[counterPartSymbolIndex];
-                    if (direction === Direction.Backward) {
-                        counterPartIndex = -counterPartIndex;
+                if(this.depth === 0)
+                {
+                    if(direction === Direction.Backward)
+                    {
+                        index = -index;
                     }
-                    return tempPosition.with(tempPosition.line, startPosition.character + counterPartIndex);
+                    return startPosition.translate(0, index);
                 }
-                counterPartSymbolIndex++;
             }
         }
-        for (; startSymbolIndex < startIndicesCount; startSymbolIndex++) {
-            this.depth++;
-        }
-        for (; counterPartSymbolIndex < counterPartIndicesCount; counterPartSymbolIndex++) {
-            this.depth--;
-            if (this.depth === 0) {
-                counterPartIndex = counterPartIndices[counterPartSymbolIndex];
-                if (direction === Direction.Backward) {
-                    counterPartIndex = -counterPartIndex;
-                }
-                return tempPosition.with(tempPosition.line, startPosition.character + counterPartIndex);
+        let characterOffset = textLine.length;
+        if(direction === Direction.Backward)
+        {
+            if(characterOffset > startPosition.character) {
+                characterOffset = startPosition.character;
             }
+            characterOffset = -characterOffset;
         }
-        return tempPosition.with(tempPosition.line, textLine.length);
+        return startPosition.translate(0, characterOffset);
     }
 
     private iterateLines(textLines: Array<string>, validSymbol: string, counterPartSymbol: string, startPosition: vscode.Position, direction: Direction): Array<vscode.Range> {
@@ -101,6 +92,7 @@ export default class SymbolFinder {
         for (let textLine of textLines) {
             if (direction === Direction.Backward) {
                 textLine = this.reverseString(textLine);
+                tempPosition = tempPosition.with(tempPosition.line, textLine.length);
             }
             else {
                 tempPosition = this.getFirstLetterPosition(tempPosition, textLine);
@@ -113,8 +105,12 @@ export default class SymbolFinder {
                 ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, lineMove)));
                 return ranges;
             }
+            if(direction === Direction.Backward){
+                textLine = this.reverseString(textLine);
+                endPosition = this.getFirstLetterPosition(endPosition, textLine);
+            }
             ranges.push(new vscode.Range(tempPosition, endPosition));
-            tempPosition = tempPosition.with(tempPosition.line + lineMove, 0);
+            tempPosition = tempPosition.with(tempPosition.line + lineMove, tempPosition.character);
         }
         return ranges;
     }
