@@ -11,11 +11,19 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 - **bold text with increased letter spacing**
 
-![](https://raw.githubusercontent.com/Durzn/BracketHighlighter/master/assets/bold.gif)
+![](assets/bold.gif)
 
-- **red border around bold text**
+- **red border around text**
 
-![](https://raw.githubusercontent.com/Durzn/BracketHighlighter/master/assets/border.gif)
+![](assets/border.gif)
+
+- **underlined text**
+
+![](assets/underline.gif)
+
+- **changed background color**
+
+![](assets/background.gif)
 
 - **... Lots of additional possibilities. Just configure it the way you like it.**
 
@@ -40,18 +48,20 @@ This extension contributes the following settings:
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
 
 ## Known Issues
+- Currently no known issues.
 
-- Behavior between opening and closing brackets can behave differently. (E.g. brackets can be excluded in the marked up text.)
-- When searching from a closing bracket the white space preceding code will also be highlighted.
 
 ### Workarounds
-- Disable reverse search in the settings or live with it for now.
+- Currently empty.
 
 ## Release Notes
 
-### 1.0.0
+### [1.0.1]
+- Fixed inconsistency between reverse and forward search
 
-- Initial release of the extension.
+### [1.0.0]
+
+- Initial release
 
 ## Planned improvements
 
