@@ -55,6 +55,9 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 
 ## Release Notes
 
+## [1.0.3] 
+- Removed a check if the extension was activated
+
 ## [1.0.2]
 - When using a background color, the highlighted text will now be shown on the left lane in the overview ruler
 - Removed the enable/disable switch, just disable the extension in the extension tab if you want to disable it

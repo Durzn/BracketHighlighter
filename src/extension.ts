@@ -11,34 +11,30 @@ import * as ConfigHandler from './ConfigHandler';
 var globals: GlobalsHandler.GlobalsHandler;
 
 function handleTextSelectionEvent() {
-	let configHandler = new ConfigHandler.ConfigHandler();
-	if (configHandler.isExtensionActivated() === true) {
-		let activeEditor = vscode.window.activeTextEditor;
-		if (!activeEditor) {
-			return;
-		}
-		if (globals.decorationStatus === true) {
-			let highlighter = new Highlighter.Highlighter();
-			highlighter.removeHighlights(globals.decorationTypes);
-			globals.decorationStatus = false;
-		}
-		let selection = activeEditor.selection;
-		let selectionText = getTextAroundSelection(activeEditor, selection);
-		let startSymbol = extractStartSymbol(selectionText);
-		if (startSymbol !== "" && selectionText.length <= 2) {
-			let startPosition = getStartPosition(selection, selectionText, startSymbol);
-			let symbolHandler = new SymbolHandler.SymbolHandler();
-			let highlighter = new Highlighter.Highlighter();
-			let decorationHandler = new DecorationHandler.DecorationHandler();
-			let symbolFinder = new SymbolFinder.SymbolFinder();
-			let counterPartSymbol = symbolHandler.getCounterPart(startSymbol);
-			let textRanges: Array<vscode.Range> = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, counterPartSymbol, startPosition);
-			let decorationTypes = highlighter.highlightRanges(activeEditor, decorationHandler, textRanges);
-			globals.decorationStatus = true;
-			for (let decorationType of decorationTypes) {
-
-				globals.decorationTypes.push(decorationType);
-			}
+	let activeEditor = vscode.window.activeTextEditor;
+	if (!activeEditor) {
+		return;
+	}
+	if (globals.decorationStatus === true) {
+		let highlighter = new Highlighter.Highlighter();
+		highlighter.removeHighlights(globals.decorationTypes);
+		globals.decorationStatus = false;
+	}
+	let selection = activeEditor.selection;
+	let selectionText = getTextAroundSelection(activeEditor, selection);
+	let startSymbol = extractStartSymbol(selectionText);
+	if (startSymbol !== "" && selectionText.length <= 2) {
+		let startPosition = getStartPosition(selection, selectionText, startSymbol);
+		let symbolHandler = new SymbolHandler.SymbolHandler();
+		let highlighter = new Highlighter.Highlighter();
+		let decorationHandler = new DecorationHandler.DecorationHandler();
+		let symbolFinder = new SymbolFinder.SymbolFinder();
+		let counterPartSymbol = symbolHandler.getCounterPart(startSymbol);
+		let textRanges: Array<vscode.Range> = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, counterPartSymbol, startPosition);
+		let decorationTypes = highlighter.highlightRanges(activeEditor, decorationHandler, textRanges);
+		globals.decorationStatus = true;
+		for (let decorationType of decorationTypes) {
+			globals.decorationTypes.push(decorationType);
 		}
 	}
 }
