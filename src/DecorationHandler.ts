@@ -13,6 +13,8 @@ export default class DecorationHandler {
             border: decorationOptions.border,
             textDecoration: decorationOptions.textDecoration,
             backgroundColor: decorationOptions.backgroundColor,
+            overviewRulerLane: vscode.OverviewRulerLane.Left,
+            overviewRulerColor: decorationOptions.backgroundColor,
         });
         return decorationType;
     }
@@ -26,6 +28,7 @@ export class DecorationOptions {
     public readonly border?: string;
     public readonly backgroundColor?: string;
     public readonly textDecoration?: string;
+    public readonly overviewColor?: string;
 
     constructor(fontWeight?: string, fontStyle?: string, letterSpacing?: string, outline?: string, border?: string, textDecoration?: string, backgroundColor?: string) {
         this.fontWeight = fontWeight;
