@@ -32,7 +32,6 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 This extension contributes the following settings:
 
-* `BracketHighlighter.enabled`: enable/disable this extension
 * `BracketHighlighter.useParentheses`: enables highlighting between parentheses '()'.
 * `BracketHighlighter.useBrackets`: enables highlighting between brackets '[]'.
 * `BracketHighlighter.useBraces`: enables highlighting between braces '{}'.
@@ -55,6 +54,11 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 - Currently empty.
 
 ## Release Notes
+
+## [1.0.2]
+- When using a background color, the highlighted text will now be shown on the left lane in the overview ruler
+- Removed the enable/disable switch, just disable the extension in the extension tab if you want to disable it
+- Added a link to the CSS reference in the settings menu
 
 ### [1.0.1]
 - Fixed inconsistency between reverse and forward search
