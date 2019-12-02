@@ -25,6 +25,10 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 ![](assets/background.gif)
 
+- **blurred out text**
+
+![](assets/blur.gif)
+
 - **... Lots of additional possibilities. Just configure it the way you like it.**
 
 
