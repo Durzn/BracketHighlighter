@@ -44,6 +44,7 @@ This extension contributes the following settings:
 * `BracketHighlighter.backgroundColor`: CSS-style setting specifying the color in the background of the text. E.g. 'coral'
 * `BracketHighlighter.textDecoration`: CSS-style setting specifying additional decorations around the text. E.g. 'underline' 
 * `BracketHighlighter.activeInDebugMode`: Enables the extension when debugging. 
+* `BracketHighlighter.reverseSearchEnabled`: Enables searching from closing symbols.
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
 
