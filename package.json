@@ -8,7 +8,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween brackets.",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -24,7 +24,7 @@
 			{
 				"title": "BracketHighlighter",
 				"properties": {
-					"BracketHighlighter.text":{
+					"BracketHighlighter.text": {
 						"type": "null",
 						"description": "For a good overview over CSS options for the possibilities look at the following link: https://www.w3schools.com/cssref/"
 					},
@@ -101,9 +101,21 @@
 						"scope": "resource"
 					},
 					"BracketHighlighter.activeInDebugMode": {
-						"type":"boolean",
+						"type": "boolean",
 						"default": true,
 						"description": "Activates the extension when debugging.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.blurOutOfScopeText": {
+						"type": "boolean",
+						"default": false,
+						"description": "Blurs text that isn't part of the block.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.blurOpacity": {
+						"type": "string",
+						"default": "0.5",
+						"description": "Sets the opacity value for blurred out text.",
 						"scope": "resource"
 					}
 				}

@@ -13,8 +13,7 @@ var globals: GlobalsHandler.GlobalsHandler;
 function handleTextSelectionEvent() {
 	let debugMode = vscode.debug.activeDebugSession;
 	let configHandler = new ConfigHandler.ConfigHandler();
-	if(debugMode !== undefined && configHandler.activeWhenDebugging() === false)
-	{
+	if (debugMode !== undefined && configHandler.activeWhenDebugging() === false) {
 		removePreviousDecorations();
 		return;
 	}
@@ -34,10 +33,34 @@ function handleTextSelectionEvent() {
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let counterPartSymbol = symbolHandler.getCounterPart(startSymbol);
 		let textRanges: Array<vscode.Range> = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, counterPartSymbol, startPosition);
+
 		let decorationTypes = highlighter.highlightRanges(activeEditor, decorationHandler, textRanges);
 		globals.decorationStatus = true;
 		for (let decorationType of decorationTypes) {
 			globals.decorationTypes.push(decorationType);
+		}
+
+		if (configHandler.blurOutOfScopeText() === true) {
+			let textRangeBegin;
+			let textRangeEnd;
+			if (symbolHandler.isValidStartSymbol(startSymbol) === true) {
+				let rangeStart = activeEditor.document.positionAt(0);
+				let rangeEnd = textRanges[0].start;
+				textRangeBegin = new vscode.Range(rangeStart, rangeEnd);
+				rangeStart = textRanges[textRanges.length - 1].end;
+				rangeEnd = activeEditor.document.positionAt(activeEditor.document.getText().length);
+				textRangeEnd = new vscode.Range(rangeStart, rangeEnd);
+			}
+			else {
+				let rangeStart = textRanges[0].end;
+				let rangeEnd = activeEditor.document.positionAt(activeEditor.document.getText().length);
+				textRangeEnd = new vscode.Range(rangeStart, rangeEnd);
+				rangeStart = activeEditor.document.positionAt(0);
+				rangeEnd = textRanges[textRanges.length - 1].start;
+				textRangeBegin = new vscode.Range(rangeStart, rangeEnd);
+			}
+			changeOpacityForRange(activeEditor, textRangeBegin);
+			changeOpacityForRange(activeEditor, textRangeEnd);
 		}
 	}
 }
@@ -51,6 +74,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
+
+function changeOpacityForRange(activeEditor: vscode.TextEditor, textRange: vscode.Range): void {
+	let configHandler = new ConfigHandler.ConfigHandler();
+	let decorationType: vscode.TextEditorDecorationType = vscode.window.createTextEditorDecorationType({
+		opacity: configHandler.getOpacity()
+	});
+	let highlighter = new Highlighter.Highlighter();
+	highlighter.highlightRange(activeEditor, decorationType, textRange);
+	globals.decorationTypes.push(decorationType);
+}
 
 function removePreviousDecorations() {
 	if (globals.decorationStatus === true) {

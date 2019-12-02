@@ -45,6 +45,8 @@ This extension contributes the following settings:
 * `BracketHighlighter.textDecoration`: CSS-style setting specifying additional decorations around the text. E.g. 'underline' 
 * `BracketHighlighter.activeInDebugMode`: Enables the extension when debugging. 
 * `BracketHighlighter.reverseSearchEnabled`: Enables searching from closing symbols.
+* `BracketHighlighter.blurOutOfScopeText`: Enables a blur effect on non-highlighted text. (Opacity depends on blurOpacity value)
+* `BracketHighlighter.blurOpacity`: Sets the opacity of the blurred out text. E.g. 0.5
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
 
@@ -56,6 +58,11 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 - Currently empty.
 
 ## Release Notes
+
+## [1.0.5]
+- Added option to blur out non-highlighted text (Thanks @VSCode Dimmer Block for the idea)
+    -> can be enabled/disabled in the options, opacity value can also be configured
+- Fixed case where text behind a closing bracket would wrongly be highlighted
 
 ## [1.0.4]
 - Added option to enable the extension in debug mode (that way the closing bracket from a function return won't highlight everything when debugging) (default: On)

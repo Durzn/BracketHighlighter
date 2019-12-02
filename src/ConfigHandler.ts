@@ -8,6 +8,16 @@ export default class ConfigHandler {
         return vscode.workspace.getConfiguration("BracketHighlighter", null);
     }
 
+    public blurOutOfScopeText(): boolean {
+        const config = this.getConfiguration();
+        return config.get("blurOutOfScopeText");
+    }
+
+    public getOpacity(): string {
+        const config = this.getConfiguration();
+        return config.get("blurOpacity");
+    }
+
     public activeWhenDebugging(): boolean {
         const config = this.getConfiguration();
         return config.get("activeInDebugMode");
