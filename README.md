@@ -43,6 +43,7 @@ This extension contributes the following settings:
 * `BracketHighlighter.border`: CSS-style setting specifying the border around the text. E.g. '4px dotted blue'
 * `BracketHighlighter.backgroundColor`: CSS-style setting specifying the color in the background of the text. E.g. 'coral'
 * `BracketHighlighter.textDecoration`: CSS-style setting specifying additional decorations around the text. E.g. 'underline' 
+* `BracketHighlighter.activeInDebugMode`: Enables the extension when debugging. 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
 
@@ -54,6 +55,9 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 - Currently empty.
 
 ## Release Notes
+
+## [1.0.4]
+- Added option to enable the extension in debug mode (that way the closing bracket from a function return won't highlight everything when debugging) (default: On)
 
 ## [1.0.3] 
 - Removed a check if the extension was activated

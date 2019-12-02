@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.4]
+- Added option to enable the extension in debug mode (that way the closing bracket from a function return won't highlight everything when debugging) (default: On)
+
 ## [1.0.3] 
 - Removed a check if the extension was activated
 

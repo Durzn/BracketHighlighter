@@ -8,7 +8,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween brackets.",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -98,6 +98,12 @@
 						"type": "string",
 						"default": "underline",
 						"description": "textDecoration in CSS style. E.g. 'underline'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.activeInDebugMode": {
+						"type":"boolean",
+						"default": true,
+						"description": "Activates the extension when debugging.",
 						"scope": "resource"
 					}
 				}

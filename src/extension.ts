@@ -11,15 +11,18 @@ import * as ConfigHandler from './ConfigHandler';
 var globals: GlobalsHandler.GlobalsHandler;
 
 function handleTextSelectionEvent() {
+	let debugMode = vscode.debug.activeDebugSession;
+	let configHandler = new ConfigHandler.ConfigHandler();
+	if(debugMode !== undefined && configHandler.activeWhenDebugging() === false)
+	{
+		removePreviousDecorations();
+		return;
+	}
 	let activeEditor = vscode.window.activeTextEditor;
 	if (!activeEditor) {
 		return;
 	}
-	if (globals.decorationStatus === true) {
-		let highlighter = new Highlighter.Highlighter();
-		highlighter.removeHighlights(globals.decorationTypes);
-		globals.decorationStatus = false;
-	}
+	removePreviousDecorations();
 	let selection = activeEditor.selection;
 	let selectionText = getTextAroundSelection(activeEditor, selection);
 	let startSymbol = extractStartSymbol(selectionText);
@@ -48,6 +51,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
+
+function removePreviousDecorations() {
+	if (globals.decorationStatus === true) {
+		let highlighter = new Highlighter.Highlighter();
+		highlighter.removeHighlights(globals.decorationTypes);
+		globals.decorationStatus = false;
+	}
+}
 
 function extractStartSymbol(selectionText: string): string {
 	let symbolHandler = new SymbolHandler.SymbolHandler();

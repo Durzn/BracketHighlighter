@@ -8,6 +8,11 @@ export default class ConfigHandler {
         return vscode.workspace.getConfiguration("BracketHighlighter", null);
     }
 
+    public activeWhenDebugging(): boolean {
+        const config = this.getConfiguration();
+        return config.get("activeInDebugMode");
+    }
+
     public getDecorationOptions() {
         const config = this.getConfiguration();
         let fontWeight = config.get("fontWeight");
@@ -23,11 +28,6 @@ export default class ConfigHandler {
     public reverseSearchEnabled(): boolean {
         const config = this.getConfiguration();
         return config.get("reverseSearchEnabled");
-    }
-
-    public isExtensionActivated(): boolean {
-        const config = this.getConfiguration();
-        return config.get("enabled");
     }
 
     public getAllowedStartSymbols(): Array<string> {
