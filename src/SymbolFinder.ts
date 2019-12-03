@@ -19,7 +19,7 @@ export default class SymbolFinder {
     }
 
     private getFirstLetterPosition(startPosition: vscode.Position, textLine: string): vscode.Position {
-        let regExp = /[^\s]+/g;
+        let regExp = /[^\s]*[\S]+/g;
         let lineOffset = textLine.search(regExp);
         if (lineOffset > 0) {
             return startPosition.with(startPosition.line, lineOffset);
@@ -76,8 +76,7 @@ export default class SymbolFinder {
             else {
                 this.depth--;
                 if (this.depth === 0) {
-                    index = -index;
-                    return startPosition.translate(0, index);
+                    return startPosition.translate(0, -index);
                 }
             }
         }
@@ -124,11 +123,11 @@ export default class SymbolFinder {
                 if (endPosition.character === 0) {
                     lineMove = 0;
                 }
-                ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, lineMove)));
+                ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, 1)));
                 return ranges;
             }
             ranges.push(new vscode.Range(tempPosition, endPosition));
-            tempPosition = tempPosition.with(tempPosition.line + lineMove, tempPosition.character);
+            tempPosition = tempPosition.with(tempPosition.line + lineMove, 0);
             this.lineCounter++;
         }
         return ranges;
