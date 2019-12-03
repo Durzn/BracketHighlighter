@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.6]
+- Fixed case where text that spans over exactly 2 lines wouldn't correctly be highlighted when searching forwards
+
 ## [1.0.5]
 - Added option to blur out non-highlighted text (Thanks @VSCode Dimmer Block for the idea)
     -> can be enabled/disabled in the options, opacity value can also be configured

@@ -63,13 +63,16 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 
 ## Release Notes
 
+## [1.0.6]
+- Fixed case where text that spans over exactly 2 lines wouldn't correctly be highlighted when searching forwards
+
 ## [1.0.5]
 - Added option to blur out non-highlighted text (Thanks @VSCode Dimmer Block for the idea)
     -> can be enabled/disabled in the options, opacity value can also be configured
 - Fixed case where text behind a closing bracket would wrongly be highlighted
 
 ## [1.0.4]
-- Added option to enable the extension in debug mode (that way the closing bracket from a function return won't highlight everything when debugging) (default: On)
+- Feature request: Added option to enable the extension in debug mode (that way the closing bracket from a function return won't highlight everything when debugging) (default: On)
 
 ## [1.0.3] 
 - Removed a check if the extension was activated
@@ -89,3 +92,6 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 ## Planned improvements
 
 - Add option to add custom symbols between which text shall be marked up.
+
+## Feature requests and bug reports
+Please mail them to me at dev@durzn.com or create an open issue at https://github.com/Durzn/BracketHighlighter
