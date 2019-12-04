@@ -35,6 +35,17 @@ export default class ConfigHandler {
         return new DecorationOptions.DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor);
     }
 
+    public isLanguageEnabled(languageId: string): boolean {
+        const config = this.getConfiguration();
+        let allowedLanguageIdString: string = config.get("allowedLanguageIds");
+        allowedLanguageIdString = allowedLanguageIdString.replace(/\s/g, "");
+        let allowedLanguageIds: Array<string> = allowedLanguageIdString.split(",");
+        if (allowedLanguageIds.includes(languageId) || allowedLanguageIdString === "") {
+            return true;
+        }
+        return false;
+    }
+
     public reverseSearchEnabled(): boolean {
         const config = this.getConfiguration();
         return config.get("reverseSearchEnabled");

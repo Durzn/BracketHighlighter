@@ -21,6 +21,10 @@ function handleTextSelectionEvent() {
 	if (!activeEditor) {
 		return;
 	}
+	let fileLanguageId: string = activeEditor.document.languageId;
+	if (configHandler.isLanguageEnabled(fileLanguageId) === false) {
+		return;
+	}
 	removePreviousDecorations();
 	let selection = activeEditor.selection;
 	let selectionText = getTextAroundSelection(activeEditor, selection);
