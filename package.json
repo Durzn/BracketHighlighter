@@ -8,7 +8,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween brackets.",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -26,7 +26,12 @@
 				"properties": {
 					"BracketHighlighter.text": {
 						"type": "null",
-						"description": "For a good overview over CSS options for the possibilities look at the following link: https://www.w3schools.com/cssref/"
+						"description": "For a good overview over CSS options for the possibilities look at the following link: https://www.w3schools.com/cssref/ \n For available language IDs please refer to the following link: https: //code.visualstudio.com/docs/languages/identifiers/ \n Note: for *.txt files use plaintext as the language identifier."
+					},
+					"BracketHighlighter.allowedLanguageIds": {
+						"type": "string",
+						"description": "IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java",
+						"scope": "resource"
 					},
 					"BracketHighlighter.reverseSearchEnabled": {
 						"type": "boolean",

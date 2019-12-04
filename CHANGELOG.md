@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.0.7]
+- Added support to explicitly only support configured languages. Once this setting has one or more entries, the plugin will ONLY work for the given entry/entries.
+For language identifiers please refer to https://code.visualstudio.com/docs/languages/identifiers
+Leaving the option blank will enable it globally.
+
 ## [1.0.6]
 - Fixed case where text that spans over exactly 2 lines wouldn't correctly be highlighted when searching forwards
 

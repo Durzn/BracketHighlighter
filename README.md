@@ -51,8 +51,11 @@ This extension contributes the following settings:
 * `BracketHighlighter.reverseSearchEnabled`: Enables searching from closing symbols.
 * `BracketHighlighter.blurOutOfScopeText`: Enables a blur effect on non-highlighted text. (Opacity depends on blurOpacity value)
 * `BracketHighlighter.blurOpacity`: Sets the opacity of the blurred out text. E.g. 0.5
+* `BracketHighlighter.allowedLanguageIds`: IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java
+
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
+Refer to https://code.visualstudio.com/docs/languages/identifiers for available language identifiers.
 
 ## Known Issues
 - Currently no known issues.
@@ -62,6 +65,11 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 - Currently empty.
 
 ## Release Notes
+
+## [1.0.7]
+- Added support to explicitly only support configured languages. Once this setting has one or more entries, the plugin will ONLY work for the given entry/entries.
+For language identifiers please refer to https://code.visualstudio.com/docs/languages/identifiers
+Leaving the option blank will enable it globally.
 
 ## [1.0.6]
 - Fixed case where text that spans over exactly 2 lines wouldn't correctly be highlighted when searching forwards
