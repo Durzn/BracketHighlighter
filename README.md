@@ -66,6 +66,9 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 
 ## Release Notes
 
+## [1.0.8]
+- Changed default value of language identifiers to an empty field. (I.e. it is enabled globally)
+
 ## [1.0.7]
 - Added support to explicitly only support configured languages. Once this setting has one or more entries, the plugin will ONLY work for the given entry/entries.
 For language identifiers please refer to https://code.visualstudio.com/docs/languages/identifiers
