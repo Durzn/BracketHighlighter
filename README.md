@@ -65,40 +65,21 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 - Currently empty.
 
 ## Release Notes
+For all notes please refer to the changelog.
+Only the latest 3 releases will be shown here.
+
+
+## [1.0.9]
+- Added an icon for the extension
 
 ## [1.0.8]
 - Changed default value of language identifiers to an empty field. (I.e. it is enabled globally)
 
 ## [1.0.7]
-- Added support to explicitly only support configured languages. Once this setting has one or more entries, the plugin will ONLY work for the given entry/entries.
+- Added support to explicitly only support configured languages. Once this setting has one or more entries, the extension will ONLY work for the given entry/entries.
 For language identifiers please refer to https://code.visualstudio.com/docs/languages/identifiers
 Leaving the option blank will enable it globally.
 
-## [1.0.6]
-- Fixed case where text that spans over exactly 2 lines wouldn't correctly be highlighted when searching forwards
-
-## [1.0.5]
-- Added option to blur out non-highlighted text (Thanks @VSCode Dimmer Block for the idea)
-    -> can be enabled/disabled in the options, opacity value can also be configured
-- Fixed case where text behind a closing bracket would wrongly be highlighted
-
-## [1.0.4]
-- Feature request: Added option to enable the extension in debug mode (that way the closing bracket from a function return won't highlight everything when debugging) (default: On)
-
-## [1.0.3] 
-- Removed a check if the extension was activated
-
-## [1.0.2]
-- When using a background color, the highlighted text will now be shown on the left lane in the overview ruler
-- Removed the enable/disable switch, just disable the extension in the extension tab if you want to disable it
-- Added a link to the CSS reference in the settings menu
-
-### [1.0.1]
-- Fixed inconsistency between reverse and forward search
-
-### [1.0.0]
-
-- Initial release
 
 ## Planned improvements
 
@@ -106,3 +87,7 @@ Leaving the option blank will enable it globally.
 
 ## Feature requests and bug reports
 Please mail them to me at dev@durzn.com or create an open issue at https://github.com/Durzn/BracketHighlighter
+
+# Special thanks
+## Art_of_bini 
+for the great extension icon. See more from her on her instagram page https://www.instagram.com/art_of_bini/
