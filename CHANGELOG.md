@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.1.0]
+- Changed the extension to only highlight text lines that are currently visible. That way the extension will not take ages/freeze the editor when highlighting huge files. If this causes trouble for anyone please use version 1.0.8 and tell me about the problems!
+
 ## [1.0.9]
 - Added an icon for the extension. 
 

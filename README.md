@@ -58,7 +58,7 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 Refer to https://code.visualstudio.com/docs/languages/identifiers for available language identifiers.
 
 ## Known Issues
-- Currently no known issues.
+- Please do not use version 1.0.9! Use either 1.1.0 or 1.0.8
 
 
 ### Workarounds
@@ -69,16 +69,14 @@ For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
 
+## [1.1.0]
+- Changed the extension to only highlight text lines that are currently visible. That way the extension will not take ages/freeze the editor when highlighting huge files. If this causes trouble for anyone please use version 1.0.8 and tell me about the problems!
+
 ## [1.0.9]
 - Added an icon for the extension
 
 ## [1.0.8]
 - Changed default value of language identifiers to an empty field. (I.e. it is enabled globally)
-
-## [1.0.7]
-- Added support to explicitly only support configured languages. Once this setting has one or more entries, the extension will ONLY work for the given entry/entries.
-For language identifiers please refer to https://code.visualstudio.com/docs/languages/identifiers
-Leaving the option blank will enable it globally.
 
 
 ## Planned improvements

@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween brackets.",
-	"version": "1.0.9",
+	"version": "1.1.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
