@@ -23,6 +23,11 @@ export default class ConfigHandler {
         return config.get("activeInDebugMode");
     }
 
+    public getMaxLineSearchCount(): number {
+        const config = this.getConfiguration();
+        return config.get("maxLineSearchCount");
+    }
+
     public getDecorationOptions() {
         const config = this.getConfiguration();
         let fontWeight = config.get("fontWeight");
