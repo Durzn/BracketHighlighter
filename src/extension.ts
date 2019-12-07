@@ -4,144 +4,22 @@ import * as vscode from 'vscode';
 import * as Highlighter from './Highlighter';
 import * as DecorationHandler from './DecorationHandler';
 import * as GlobalsHandler from './GlobalsHandler';
-import { SearchDirection } from './GlobalsHandler';
 import * as SymbolFinder from './SymbolFinder';
 import * as SymbolHandler from './SymbolHandler';
 import * as ConfigHandler from './ConfigHandler';
-import HighlightRange from './HighlightRange';
 
-var globals = new GlobalsHandler.GlobalsHandler(new DecorationHandler.DecorationHandler());
+var globals: GlobalsHandler.GlobalsHandler = new GlobalsHandler.GlobalsHandler();
+
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeTextEditorSelection(handleTextSelectionEvent);
-	vscode.window.onDidChangeTextEditorVisibleRanges(handleVisibleRangesChangeEvent);
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
-
-function getHighlightedRangesInView(highlightRanges: Array<HighlightRange>, visibleRange: vscode.Range): Array<HighlightRange> {
-	let isContained = false;
-	let startIndex = 0;
-	let endIndex = 0;
-	/* Search first contained highlight range */
-	for (startIndex = 0; startIndex < highlightRanges.length; startIndex++) {
-		isContained = isHighlightRangeInRange(highlightRanges[startIndex], visibleRange);
-		if (isContained === true) {
-			break;
-		}
-	}
-	/* Find all contained highlight ranges */
-	for (endIndex = startIndex; endIndex < highlightRanges.length; endIndex++) {
-		isContained = isHighlightRangeInRange(highlightRanges[endIndex], visibleRange);
-		if (isContained === false) {
-			break;
-		}
-	}
-	let containedRanges: Array<HighlightRange> = [];
-	for (let i = startIndex; i < endIndex; i++) {
-		containedRanges.push(highlightRanges[i]);
-	}
-	return containedRanges;
-}
-
-function isHighlightRangeInRange(highlightRange: HighlightRange, visibleRange: vscode.Range): boolean {
-	if (highlightRange.decorationRange.start.line >= visibleRange.start.line && highlightRange.decorationRange.end.line <= visibleRange.end.line) {
-		return true;
-	}
-	return false;
-}
-
-function isHighlightRangeInHighlightRanges(range1: HighlightRange, range2: Array<HighlightRange>): boolean {
-	for (let visibleRange of range2) {
-		let decorationRange = range1.decorationRange;
-		if (decorationRange.start.line >= visibleRange.decorationRange.start.line && decorationRange.end.line <= visibleRange.decorationRange.end.line) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function getNewlyVisibleRanges(currentRanges: Array<HighlightRange>, containedRanges: Array<HighlightRange>): Array<HighlightRange> {
-	let newRanges: Array<HighlightRange> = [];
-	for (let containedRange of containedRanges) {
-		if (isHighlightRangeInHighlightRanges(containedRange, currentRanges) === false) {
-			newRanges.push(containedRange);
-		}
-	}
-	return newRanges;
-}
-
-function handleVisibleRangesChangeEvent() {
-	let activeEditor = vscode.window.activeTextEditor;
-	if (!activeEditor) {
-		return;
-	}
-	let configHandler = new ConfigHandler.ConfigHandler();
-	if (activeEditor.visibleRanges === undefined) {
-		return;
-	}
-	let visibleRange = activeEditor.visibleRanges[0];
-	let additionalLines = 12;
-	let visibleRangeStart = visibleRange.start;
-	if (additionalLines < visibleRange.start.line) {
-		visibleRangeStart = visibleRange.start.translate(-additionalLines, 0);
-	}
-	else {
-		visibleRangeStart.with(0, 0);
-	}
-	let visibleRangeEnd = visibleRange.end.translate(additionalLines, 0);
-	visibleRange = new vscode.Range(visibleRangeStart, visibleRangeEnd);
-	let highlighter = new Highlighter.Highlighter();
-	let highlightedRangesInView = getHighlightedRangesInView(globals.highlightedRanges, visibleRange);
-	let rangesToDecorate = getNewlyVisibleRanges(globals.currentlyHighlightedRanges, highlightedRangesInView);
-	let rangesToUndecorate = getNewlyVisibleRanges(highlightedRangesInView, globals.currentlyHighlightedRanges);
-	for (let rangeToUndecorate of rangesToUndecorate) {
-		let removeIndex = globals.currentlyHighlightedRanges.indexOf(rangeToUndecorate);
-		if (removeIndex !== -1) {
-			globals.currentlyHighlightedRanges.splice(removeIndex, 1);
-			highlighter.removeHighlight(rangeToUndecorate.decorationType);
-		}
-	}
-	for (let rangeToDecorate of rangesToDecorate) {
-		let tempRangesToDecorate = [rangeToDecorate];
-		highlighter.highlightRanges(activeEditor, globals.decorationHandler, tempRangesToDecorate);
-		globals.currentlyHighlightedRanges.push(rangeToDecorate);
-	}
-	if (configHandler.blurOutOfScopeText() === true) {
-		handleBlurredText(activeEditor, highlightedRangesInView, visibleRange);
-	}
-	if (globals.currentlyHighlightedRanges.length > 0) {
-
-		globals.decorationStatus = true;
-	}
-}
-
-function handleBlurredText(activeEditor: vscode.TextEditor, highlightedRangesInView: Array<HighlightRange>, visibleRange: vscode.Range) {
-	let highlighter = new Highlighter.Highlighter();
-	highlighter.removeHighlights(globals.blurredRanges);
-	globals.blurredRanges = [];
-	if (highlightedRangesInView.length === 0 && globals.decorationStatus === true) {
-		let blurredRange = new vscode.Range(visibleRange.start, visibleRange.end);
-		changeOpacityForRange(activeEditor, blurredRange);
-	}
-	else {
-		if (visibleRange.start.line < highlightedRangesInView[0].decorationRange.start.line) {
-			let startPosition = visibleRange.start;
-			let endPosition = highlightedRangesInView[0].decorationRange.start;
-			let textRangeBegin = new vscode.Range(startPosition, endPosition);
-			changeOpacityForRange(activeEditor, textRangeBegin);
-		}
-		if (highlightedRangesInView[highlightedRangesInView.length - 1].decorationRange.end.line <= visibleRange.end.line) {
-			let startPosition = highlightedRangesInView[highlightedRangesInView.length - 1].decorationRange.end;
-			let endPosition = visibleRange.end;
-			let textRangeEnd = new vscode.Range(startPosition, endPosition);
-			changeOpacityForRange(activeEditor, textRangeEnd);
-		}
-	}
-}
 
 function handleTextSelectionEvent() {
 	let debugMode = vscode.debug.activeDebugSession;
@@ -163,24 +41,35 @@ function handleTextSelectionEvent() {
 	let selectionText = getTextAroundSelection(activeEditor, selection);
 	let startSymbol = extractStartSymbol(selectionText);
 	if (startSymbol !== "" && selectionText.length <= 2) {
-		let startPosition = getStartPosition(selection, selectionText, startSymbol);
 		let symbolHandler = new SymbolHandler.SymbolHandler();
+		if (symbolHandler.isValidStartSymbol(startSymbol)) {
+			globals.searchDirection = GlobalsHandler.SearchDirection.FORWARDS;
+		}
+		else {
+			globals.searchDirection = GlobalsHandler.SearchDirection.BACKWARDS;
+		}
+		let startPosition = getStartPosition(selection, selectionText, startSymbol);
+		let highlighter = new Highlighter.Highlighter();
+		let decorationHandler = new DecorationHandler.DecorationHandler();
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let counterPartSymbol = symbolHandler.getCounterPart(startSymbol);
 		let textRanges: Array<vscode.Range> = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, counterPartSymbol, startPosition);
-		if (symbolHandler.isValidEndSymbol(startSymbol) === true) {
-			globals.searchDirection = SearchDirection.BACKWARDS;
-			textRanges = textRanges.reverse();
+
+		let decorationTypes = highlighter.highlightRanges(activeEditor, decorationHandler, textRanges);
+		globals.decorationStatus = true;
+		for (let decorationType of decorationTypes) {
+			globals.decorationTypes.push(decorationType);
 		}
-		else {
-			globals.searchDirection = SearchDirection.FORWARDS;
+
+		if (configHandler.blurOutOfScopeText() === true) {
+			if (globals.searchDirection === GlobalsHandler.SearchDirection.BACKWARDS) {
+				textRanges = textRanges.reverse();
+			}
+			let textRangeBegin = new vscode.Range(activeEditor.document.positionAt(0), textRanges[0].start);
+			let textRangeEnd = new vscode.Range(textRanges[textRanges.length - 1].end, activeEditor.document.positionAt(activeEditor.document.getText().length));
+			changeOpacityForRange(activeEditor, textRangeBegin);
+			changeOpacityForRange(activeEditor, textRangeEnd);
 		}
-		let highlightRanges = [];
-		for (let textRange of textRanges) {
-			highlightRanges.push(new HighlightRange(textRange, globals.decorationHandler.getDecorationType()));
-		}
-		globals.highlightedRanges = highlightRanges;
-		handleVisibleRangesChangeEvent();
 	}
 }
 
@@ -190,20 +79,15 @@ function changeOpacityForRange(activeEditor: vscode.TextEditor, textRange: vscod
 		opacity: configHandler.getOpacity()
 	});
 	let highlighter = new Highlighter.Highlighter();
-	let highlightRange = new HighlightRange(textRange, decorationType);
-	highlighter.highlightRange(activeEditor, decorationType, highlightRange);
-	globals.blurredRanges.push(highlightRange);
+	highlighter.highlightRange(activeEditor, decorationType, textRange);
+	globals.decorationTypes.push(decorationType);
 }
 
 function removePreviousDecorations() {
 	if (globals.decorationStatus === true) {
 		let highlighter = new Highlighter.Highlighter();
-		highlighter.removeHighlights(globals.currentlyHighlightedRanges);
-		highlighter.removeHighlights(globals.blurredRanges);
+		highlighter.removeHighlights(globals.decorationTypes);
 		globals.decorationStatus = false;
-		globals.highlightedRanges = [];
-		globals.currentlyHighlightedRanges = [];
-		globals.blurredRanges = [];
 	}
 }
 

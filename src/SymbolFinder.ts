@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as SymbolHandler from './SymbolHandler';
+import * as ConfigHandler from './ConfigHandler';
 
 export default class SymbolFinder {
 
@@ -44,7 +45,14 @@ export default class SymbolFinder {
         let tempPosition = startPosition;
         let ranges = [];
         let lineMove = -1;
+        let configHandler = new ConfigHandler.ConfigHandler();
+        let maxLineCount = configHandler.getMaxLineSearchCount();
+        let currentTextLineCount = 0;
         for (let textLine of textLines) {
+            currentTextLineCount++;
+            if (currentTextLineCount > maxLineCount) {
+                return [];
+            }
             textLine = this.reverseString(textLine);
             tempPosition = tempPosition.with(tempPosition.line, textLine.length);
             let endPosition = this.handleLineBackward(textLine, validSymbol, counterPartSymbol, tempPosition);
@@ -116,7 +124,14 @@ export default class SymbolFinder {
         let tempPosition = startPosition;
         let ranges = [];
         let lineMove = 1;
+        let configHandler = new ConfigHandler.ConfigHandler();
+        let maxLineCount = configHandler.getMaxLineSearchCount();
+        let currentTextLineCount = 0;
         for (let textLine of textLines) {
+            currentTextLineCount++;
+            if (currentTextLineCount > maxLineCount) {
+                return [];
+            }
             tempPosition = this.getFirstLetterPosition(tempPosition, textLine);
             let endPosition = this.handleLineForward(textLine, validSymbol, counterPartSymbol, tempPosition);
             if (this.depth <= 0) {

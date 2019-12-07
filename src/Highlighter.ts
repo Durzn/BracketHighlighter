@@ -1,24 +1,24 @@
 import { Range } from 'vscode';
 import * as vscode from 'vscode';
 import * as DecorationHandler from './DecorationHandler';
-import HighlightRange from './HighlightRange';
 
 export default class Highlighter {
 
-    public highlightRange(editor: vscode.TextEditor, decorationType: vscode.TextEditorDecorationType, highlightRange: HighlightRange): void {
-        let range: vscode.Range = highlightRange.decorationRange;
-        highlightRange.decorationType = decorationType;
+    public highlightRange(editor: vscode.TextEditor, decorationType: vscode.TextEditorDecorationType, range: Range): void {
         const decorationOptions: vscode.DecorationOptions[] = [];
         const decoration = { range };
         decorationOptions.push(decoration);
         editor.setDecorations(decorationType, decorationOptions);
     }
 
-    public highlightRanges(editor: vscode.TextEditor, decorationHandler: DecorationHandler.DecorationHandler, highlightRanges: Array<HighlightRange>): void {
-        for (let highlightRange of highlightRanges) {
+    public highlightRanges(editor: vscode.TextEditor, decorationHandler: DecorationHandler.DecorationHandler, ranges: Array<Range>): Array<vscode.TextEditorDecorationType> {
+        let decorationTypes = [];
+        for (let range of ranges) {
             let decorationType = decorationHandler.getDecorationType();
-            this.highlightRange(editor, decorationType, highlightRange);
+            decorationTypes.push(decorationType);
+            this.highlightRange(editor, decorationType, range);
         }
+        return decorationTypes;
     }
 
     public removeHighlight(decorationType: vscode.TextEditorDecorationType): void {
@@ -26,9 +26,9 @@ export default class Highlighter {
     }
 
 
-    public removeHighlights(highlightRanges: Array<HighlightRange>) {
-        for (let highlightRange of highlightRanges) {
-            this.removeHighlight(highlightRange.decorationType);
+    public removeHighlights(decorationTypes: Array<vscode.TextEditorDecorationType>) {
+        for (let decorationType of decorationTypes) {
+            this.removeHighlight(decorationType);
         }
     }
 }
