@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.2.0]
+- Reverted changes made in 1.0.9 and 1.1.0
+- Users can now define a maximum of searched lines for a closing symbol. (Default: 1000) This way accidentally clicking on symbols enclosing an extremely big amount of lines will not be searched endlessly.
+
 ## [1.1.0]
 - Changed the extension to only highlight text lines that are currently visible. That way the extension will not take ages/freeze the editor when highlighting huge files. If this causes trouble for anyone please use version 1.0.8 and tell me about the problems!
 
