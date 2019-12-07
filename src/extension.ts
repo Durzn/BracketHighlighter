@@ -143,6 +143,18 @@ function handleBlurredText(activeEditor: vscode.TextEditor, highlightedRangesInV
 	}
 }
 
+
+
+// this method is called when your extension is activated
+// your extension is activated the very first time the command is executed
+export function activate(context: vscode.ExtensionContext) {
+	globals = new GlobalsHandler.GlobalsHandler();
+	vscode.window.onDidChangeTextEditorSelection(handleTextSelectionEvent);
+}
+
+// this method is called when your extension is deactivated
+export function deactivate() { }
+
 function handleTextSelectionEvent() {
 	let debugMode = vscode.debug.activeDebugSession;
 	let configHandler = new ConfigHandler.ConfigHandler();
@@ -163,8 +175,19 @@ function handleTextSelectionEvent() {
 	let selectionText = getTextAroundSelection(activeEditor, selection);
 	let startSymbol = extractStartSymbol(selectionText);
 	if (startSymbol !== "" && selectionText.length <= 2) {
-		let startPosition = getStartPosition(selection, selectionText, startSymbol);
 		let symbolHandler = new SymbolHandler.SymbolHandler();
+<<<<<<< Updated upstream
+=======
+		if (symbolHandler.isValidStartSymbol(startSymbol)) {
+			globals.searchDirection = GlobalsHandler.SearchDirection.FORWARDS;
+		}
+		else {
+			globals.searchDirection = GlobalsHandler.SearchDirection.BACKWARDS;
+		}
+		let startPosition = getStartPosition(selection, selectionText, startSymbol);
+		let highlighter = new Highlighter.Highlighter();
+		let decorationHandler = new DecorationHandler.DecorationHandler();
+>>>>>>> Stashed changes
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let counterPartSymbol = symbolHandler.getCounterPart(startSymbol);
 		let textRanges: Array<vscode.Range> = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, counterPartSymbol, startPosition);
@@ -172,12 +195,24 @@ function handleTextSelectionEvent() {
 			globals.searchDirection = SearchDirection.BACKWARDS;
 			textRanges = textRanges.reverse();
 		}
+<<<<<<< Updated upstream
 		else {
 			globals.searchDirection = SearchDirection.FORWARDS;
 		}
 		let highlightRanges = [];
 		for (let textRange of textRanges) {
 			highlightRanges.push(new HighlightRange(textRange, globals.decorationHandler.getDecorationType()));
+=======
+
+		if (configHandler.blurOutOfScopeText() === true) {
+			if (globals.searchDirection === GlobalsHandler.SearchDirection.BACKWARDS) {
+				textRanges = textRanges.reverse();
+			}
+			let textRangeBegin = new vscode.Range(activeEditor.document.positionAt(0), textRanges[0].start);
+			let textRangeEnd = new vscode.Range(textRanges[textRanges.length - 1].end, activeEditor.document.positionAt(activeEditor.document.getText().length));
+			changeOpacityForRange(activeEditor, textRangeBegin);
+			changeOpacityForRange(activeEditor, textRangeEnd);
+>>>>>>> Stashed changes
 		}
 		globals.highlightedRanges = highlightRanges;
 		handleVisibleRangesChangeEvent();

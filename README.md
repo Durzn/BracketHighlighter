@@ -52,6 +52,7 @@ This extension contributes the following settings:
 * `BracketHighlighter.blurOutOfScopeText`: Enables a blur effect on non-highlighted text. (Opacity depends on blurOpacity value)
 * `BracketHighlighter.blurOpacity`: Sets the opacity of the blurred out text. E.g. 0.5
 * `BracketHighlighter.allowedLanguageIds`: IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java
+* `BracketHighlighter.maxLineSearchCount`: The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.
 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
@@ -68,16 +69,25 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+<<<<<<< Updated upstream
+=======
+## [1.2.0]
+- Reverted changes made in 1.0.9 and 1.1.0
+- Users can now define a maximum of searched lines for a closing symbol. (Default: 1000) This way accidentally clicking on symbols enclosing an extremely big amount of lines will not be searched endlessly.
+>>>>>>> Stashed changes
 
 ## [1.1.0]
 - Changed the extension to only highlight text lines that are currently visible. That way the extension will not take ages/freeze the editor when highlighting huge files. If this causes trouble for anyone please use version 1.0.8 and tell me about the problems!
 
 ## [1.0.9]
 - Added an icon for the extension
+<<<<<<< Updated upstream
 
 ## [1.0.8]
 - Changed default value of language identifiers to an empty field. (I.e. it is enabled globally)
 
+=======
+>>>>>>> Stashed changes
 
 ## Planned improvements
 
