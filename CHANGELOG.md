@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.2.1] 
+- Minor performance improvements when writing inside of a highlighted area
+
 ## [1.2.0]
 - Reverted changes made in 1.0.9 and 1.1.0
 - Users can now define a maximum of searched lines for a closing symbol. (Default: 1000) This way accidentally clicking on symbols enclosing an extremely big amount of lines will not be searched endlessly.
