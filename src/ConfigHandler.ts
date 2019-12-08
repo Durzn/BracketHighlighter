@@ -1,4 +1,4 @@
-const vscode = require('vscode');
+import * as vscode from 'vscode';
 import * as DecorationOptions from "./DecorationHandler";
 
 export default class ConfigHandler {
@@ -10,56 +10,76 @@ export default class ConfigHandler {
 
     public blurOutOfScopeText(): boolean {
         const config = this.getConfiguration();
-        return config.get("blurOutOfScopeText");
+        let blurOutOfScopeText: boolean | undefined = config.get("blurOutOfScopeText");
+        if (blurOutOfScopeText === undefined) {
+            blurOutOfScopeText = false;
+        }
+        return blurOutOfScopeText;
     }
 
     public getOpacity(): string {
         const config = this.getConfiguration();
-        return config.get("blurOpacity");
+        let opacity: string | undefined = config.get("blurOpacity");
+        if (opacity === undefined) {
+            opacity = '0.5';
+        }
+        return opacity;
     }
 
     public activeWhenDebugging(): boolean {
         const config = this.getConfiguration();
-        return config.get("activeInDebugMode");
+        let activeInDebug: boolean | undefined = config.get("activeInDebugMode");
+        if (activeInDebug === undefined) {
+            activeInDebug = true;
+        }
+        return activeInDebug;
     }
 
     public getMaxLineSearchCount(): number {
         const config = this.getConfiguration();
-        return config.get("maxLineSearchCount");
+        let maxLineSearchCount: number | undefined = config.get("maxLineSearchCount");
+        if (maxLineSearchCount === undefined) {
+            maxLineSearchCount = 1000;
+        }
+        return maxLineSearchCount;
     }
 
-    public getDecorationOptions() {
+    public getDecorationOptions(): DecorationOptions.DecorationOptions {
         const config = this.getConfiguration();
-        let fontWeight = config.get("fontWeight");
-        let fontStyle = config.get("fontStyle");
-        let letterSpacing = config.get("letterSpacing");
-        let outline = config.get("outline");
-        let border = config.get("border");
-        let backgroundColor = config.get("backgroundColor");
-        let textDecoration = config.get("textDecoration");
+        let fontWeight: string | undefined = config.get("fontWeight");
+        let fontStyle: string | undefined = config.get("fontStyle");
+        let letterSpacing: string | undefined = config.get("letterSpacing");
+        let outline: string | undefined = config.get("outline");
+        let border: string | undefined = config.get("border");
+        let backgroundColor: string | undefined = config.get("backgroundColor");
+        let textDecoration: string | undefined = config.get("textDecoration");
         return new DecorationOptions.DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor);
     }
 
-    public isLanguageEnabled(languageId: string): boolean {
+    public getEnabledLanguages(): Array<string> {
         const config = this.getConfiguration();
-        let allowedLanguageIdString: string = config.get("allowedLanguageIds");
+        let allowedLanguageIdString: string | undefined = config.get("allowedLanguageIds");
+        if (allowedLanguageIdString === undefined) {
+            return [];
+        }
         allowedLanguageIdString = allowedLanguageIdString.replace(/\s/g, "");
         let allowedLanguageIds: Array<string> = allowedLanguageIdString.split(",");
-        if (allowedLanguageIds.includes(languageId) || allowedLanguageIdString === "") {
-            return true;
-        }
-        return false;
+        return allowedLanguageIds;
     }
 
     public reverseSearchEnabled(): boolean {
         const config = this.getConfiguration();
-        return config.get("reverseSearchEnabled");
+        let reverseSearchEnabled: boolean | undefined = config.get("reverseSearchEnabled");
+        if (reverseSearchEnabled === undefined) {
+            reverseSearchEnabled = true;
+        }
+        return reverseSearchEnabled;
     }
 
     public getAllowedStartSymbols(): Array<string> {
         const config = this.getConfiguration();
         let validStartSymbols: Array<string> = [];
-        let useForSymbols: boolean;
+        let useForSymbols: boolean | undefined;
         useForSymbols = config.get("useParentheses");
         if (useForSymbols === true) {
             validStartSymbols.push("(");
@@ -83,7 +103,7 @@ export default class ConfigHandler {
     public getAllowedEndSymbols(): Array<string> {
         const config = this.getConfiguration();
         let validEndSymbols: Array<string> = [];
-        let useForSymbols: boolean;
+        let useForSymbols: boolean | undefined;
         useForSymbols = config.get("useParentheses");
         if (useForSymbols === true) {
             validEndSymbols.push(")");

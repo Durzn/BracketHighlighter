@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as SymbolHandler from './SymbolHandler';
-import * as ConfigHandler from './ConfigHandler';
+import { bracketHighlightGlobals } from './GlobalsHandler';
 
 export default class SymbolFinder {
 
@@ -45,8 +45,7 @@ export default class SymbolFinder {
         let tempPosition = startPosition;
         let ranges = [];
         let lineMove = -1;
-        let configHandler = new ConfigHandler.ConfigHandler();
-        let maxLineCount = configHandler.getMaxLineSearchCount();
+        let maxLineCount = bracketHighlightGlobals.maxLineSearchCount;
         let currentTextLineCount = 0;
         for (let textLine of textLines) {
             currentTextLineCount++;
@@ -124,8 +123,7 @@ export default class SymbolFinder {
         let tempPosition = startPosition;
         let ranges = [];
         let lineMove = 1;
-        let configHandler = new ConfigHandler.ConfigHandler();
-        let maxLineCount = configHandler.getMaxLineSearchCount();
+        let maxLineCount = bracketHighlightGlobals.maxLineSearchCount;
         let currentTextLineCount = 0;
         for (let textLine of textLines) {
             currentTextLineCount++;

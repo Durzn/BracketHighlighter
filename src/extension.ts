@@ -3,28 +3,39 @@
 import * as vscode from 'vscode';
 import * as Highlighter from './Highlighter';
 import * as DecorationHandler from './DecorationHandler';
-import * as GlobalsHandler from './GlobalsHandler';
+import GlobalsHandler, { bracketHighlightGlobals } from './GlobalsHandler';
+import { SearchDirection } from './GlobalsHandler';
 import * as SymbolFinder from './SymbolFinder';
 import * as SymbolHandler from './SymbolHandler';
-import * as ConfigHandler from './ConfigHandler';
 
-var globals: GlobalsHandler.GlobalsHandler = new GlobalsHandler.GlobalsHandler();
-
+var disableTimer: any = null;
 
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	vscode.workspace.onDidChangeConfiguration(handleConfigChangeEvent);
 	vscode.window.onDidChangeTextEditorSelection(handleTextSelectionEvent);
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
 
+function handleConfigChangeEvent() {
+	bracketHighlightGlobals.blurOutOfScopeText = bracketHighlightGlobals.configHandler.blurOutOfScopeText();
+	bracketHighlightGlobals.opactiy = bracketHighlightGlobals.configHandler.getOpacity();
+	bracketHighlightGlobals.activeWhenDebugging = bracketHighlightGlobals.configHandler.activeWhenDebugging();
+	bracketHighlightGlobals.maxLineSearchCount = bracketHighlightGlobals.configHandler.getMaxLineSearchCount();
+	bracketHighlightGlobals.decorationOptions = bracketHighlightGlobals.configHandler.getDecorationOptions();
+	bracketHighlightGlobals.enabledLanguages = bracketHighlightGlobals.configHandler.getEnabledLanguages();
+	bracketHighlightGlobals.reverseSearchEnabled = bracketHighlightGlobals.configHandler.reverseSearchEnabled();
+	bracketHighlightGlobals.allowedStartSymbols = bracketHighlightGlobals.configHandler.getAllowedStartSymbols();
+	bracketHighlightGlobals.allowedEndSymbols = bracketHighlightGlobals.configHandler.getAllowedEndSymbols();
+}
+
 function handleTextSelectionEvent() {
 	let debugMode = vscode.debug.activeDebugSession;
-	let configHandler = new ConfigHandler.ConfigHandler();
-	if (debugMode !== undefined && configHandler.activeWhenDebugging() === false) {
+	if (debugMode !== undefined && bracketHighlightGlobals.activeWhenDebugging === false) {
 		removePreviousDecorations();
 		return;
 	}
@@ -32,23 +43,33 @@ function handleTextSelectionEvent() {
 	if (!activeEditor) {
 		return;
 	}
-	let fileLanguageId: string = activeEditor.document.languageId;
-	if (configHandler.isLanguageEnabled(fileLanguageId) === false) {
+	if (bracketHighlightGlobals.enabledLanguages.length === 1 && bracketHighlightGlobals.enabledLanguages.includes("")) {
+	}
+	else if (bracketHighlightGlobals.enabledLanguages.includes(activeEditor.document.languageId) === false) {
 		return;
 	}
 	removePreviousDecorations();
-	let selection = activeEditor.selection;
-	let selectionText = getTextAroundSelection(activeEditor, selection);
+	let currentSelection = activeEditor.selection;
+	if (bracketHighlightGlobals.lastSelection === undefined) {
+		bracketHighlightGlobals.lastSelection = currentSelection;
+	}
+	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
+		//onSelectionChangeEvent(currentSelection, bracketHighlightGlobals.lastSelection);
+	}
+	if (bracketHighlightGlobals.handleTextSelectionEventActive === false) {
+		return;
+	}
+	let selectionText = getTextAroundSelection(activeEditor, currentSelection);
 	let startSymbol = extractStartSymbol(selectionText);
 	if (startSymbol !== "" && selectionText.length <= 2) {
 		let symbolHandler = new SymbolHandler.SymbolHandler();
 		if (symbolHandler.isValidStartSymbol(startSymbol)) {
-			globals.searchDirection = GlobalsHandler.SearchDirection.FORWARDS;
+			bracketHighlightGlobals.searchDirection = SearchDirection.FORWARDS;
 		}
 		else {
-			globals.searchDirection = GlobalsHandler.SearchDirection.BACKWARDS;
+			bracketHighlightGlobals.searchDirection = SearchDirection.BACKWARDS;
 		}
-		let startPosition = getStartPosition(selection, selectionText, startSymbol);
+		let startPosition = getStartPosition(currentSelection, selectionText, startSymbol);
 		let highlighter = new Highlighter.Highlighter();
 		let decorationHandler = new DecorationHandler.DecorationHandler();
 		let symbolFinder = new SymbolFinder.SymbolFinder();
@@ -56,38 +77,61 @@ function handleTextSelectionEvent() {
 		let textRanges: Array<vscode.Range> = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, counterPartSymbol, startPosition);
 
 		let decorationTypes = highlighter.highlightRanges(activeEditor, decorationHandler, textRanges);
-		globals.decorationStatus = true;
+		bracketHighlightGlobals.decorationStatus = true;
 		for (let decorationType of decorationTypes) {
-			globals.decorationTypes.push(decorationType);
+			bracketHighlightGlobals.decorationTypes.push(decorationType);
 		}
 
-		if (configHandler.blurOutOfScopeText() === true) {
-			if (globals.searchDirection === GlobalsHandler.SearchDirection.BACKWARDS) {
+		if (bracketHighlightGlobals.blurOutOfScopeText === true) {
+			if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 				textRanges = textRanges.reverse();
 			}
 			let textRangeBegin = new vscode.Range(activeEditor.document.positionAt(0), textRanges[0].start);
 			let textRangeEnd = new vscode.Range(textRanges[textRanges.length - 1].end, activeEditor.document.positionAt(activeEditor.document.getText().length));
-			changeOpacityForRange(activeEditor, textRangeBegin);
-			changeOpacityForRange(activeEditor, textRangeEnd);
+			let decorationType: Array<vscode.TextEditorDecorationType> = [
+				vscode.window.createTextEditorDecorationType({
+					opacity: bracketHighlightGlobals.opactiy
+				}),
+				vscode.window.createTextEditorDecorationType({
+					opacity: bracketHighlightGlobals.opactiy
+				})
+			];
+			highlighter.highlightRange(activeEditor, decorationType[0], textRangeBegin);
+			highlighter.highlightRange(activeEditor, decorationType[1], textRangeEnd);
+			bracketHighlightGlobals.decorationTypes.push(decorationType[0]);
+			bracketHighlightGlobals.decorationTypes.push(decorationType[1]);
 		}
+		bracketHighlightGlobals.lastSelection = currentSelection;
 	}
 }
 
-function changeOpacityForRange(activeEditor: vscode.TextEditor, textRange: vscode.Range): void {
-	let configHandler = new ConfigHandler.ConfigHandler();
-	let decorationType: vscode.TextEditorDecorationType = vscode.window.createTextEditorDecorationType({
-		opacity: configHandler.getOpacity()
-	});
-	let highlighter = new Highlighter.Highlighter();
-	highlighter.highlightRange(activeEditor, decorationType, textRange);
-	globals.decorationTypes.push(decorationType);
+function setTextSelectionEventHandling(state: boolean) {
+	bracketHighlightGlobals.handleTextSelectionEventActive = state;
+}
+
+function onSelectionChangeEvent(currentSelection: vscode.Selection, lastSelection: vscode.Selection) {
+	let currentSelectionPos = currentSelection.anchor;
+	let lastSelectionPos = lastSelection.anchor;
+	if (currentSelectionPos.line === lastSelectionPos.line && currentSelectionPos.character !== lastSelectionPos.character) {
+		if (disableTimer !== null) {
+			clearTimeout(disableTimer);
+			bracketHighlightGlobals.disableTimer = null;
+		}
+		setTextSelectionEventHandling(false);
+		disableTimer = setTimeout(function () {
+			setTextSelectionEventHandling(true);
+			bracketHighlightGlobals.lastSelection = undefined;
+			handleTextSelectionEvent();
+			disableTimer = null;
+		}, 500);
+	}
 }
 
 function removePreviousDecorations() {
-	if (globals.decorationStatus === true) {
+	if (bracketHighlightGlobals.decorationStatus === true) {
 		let highlighter = new Highlighter.Highlighter();
-		highlighter.removeHighlights(globals.decorationTypes);
-		globals.decorationStatus = false;
+		highlighter.removeHighlights(bracketHighlightGlobals.decorationTypes);
+		bracketHighlightGlobals.decorationStatus = false;
 	}
 }
 

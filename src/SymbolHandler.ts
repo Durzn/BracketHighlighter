@@ -1,4 +1,4 @@
-import * as ConfigHandler from './ConfigHandler';
+import { bracketHighlightGlobals } from './GlobalsHandler';
 
 export default class SymbolHandler {
 
@@ -29,23 +29,20 @@ export default class SymbolHandler {
     }
 
     public getValidSymbols(): Array<string> {
-        let configHandler = new ConfigHandler.ConfigHandler();
         let startSymbols: Array<string> = this.getValidStartSymbols();
         let endSymbols: Array<string> = [];
-        if (configHandler.reverseSearchEnabled() === true) {
+        if (bracketHighlightGlobals.reverseSearchEnabled === true) {
             endSymbols = this.getValidEndSymbols();
         }
         return startSymbols.concat(endSymbols);
     }
 
     public getValidStartSymbols(): Array<string> {
-        let configHandler = new ConfigHandler.ConfigHandler();
-        return configHandler.getAllowedStartSymbols();
+        return bracketHighlightGlobals.allowedStartSymbols;
     }
 
     public getValidEndSymbols(): Array<string> {
-        let configHandler = new ConfigHandler.ConfigHandler();
-        return configHandler.getAllowedEndSymbols();
+        return bracketHighlightGlobals.allowedEndSymbols;
     }
 
     public isValidStartSymbol(symbol: string) {
