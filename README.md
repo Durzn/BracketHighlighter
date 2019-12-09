@@ -69,15 +69,17 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [1.3.1]
+- Fixed a bug where text would wrongly be blurred out when following conditions applied:
+    1. blurring text out enabled
+    2. searching the scope from within the text enabled
+    3. selecting a closing bracket and then searching the scope from within text
+
 ## [1.3.0]
 - Feature request: Added option to highlight text when clicking anywhere inside of the scope (so it's not necessary to click on brackets directly). This will use the same enabled brackets as the normal process.
 
 ## [1.2.1] 
 - Minor performance improvements when writing inside of a highlighted area
-
-## [1.2.0]
-- Reverted changes made in 1.0.9 and 1.1.0
-- Users can now define a maximum of searched lines for a closing symbol. (Default: 1000) This way accidentally clicking on symbols enclosing an extremely big amount of lines will not be searched endlessly.
 
 ## Planned improvements
 

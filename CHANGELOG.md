@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.3.1]
+- Fixed a bug where text would wrongly be blurred out when following conditions applied:
+    1. blurring text out enabled
+    2. searching the scope from within the text enabled
+    3. selecting a closing bracket and then searching the scope from within text
+
 ## [1.3.0]
 - Feature request: Added option to highlight text when clicking anywhere inside of the scope (so it's not necessary to click on brackets directly). This will use the same enabled brackets as the normal process.
 
