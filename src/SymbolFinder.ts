@@ -92,7 +92,7 @@ export default class SymbolFinder {
             textLine = this.reverseString(textLine);
             endPosition = this.getFirstLetterPosition(endPosition, textLine);
             ranges.push(new vscode.Range(tempPosition, endPosition));
-            if (tempPosition.line + lineMove <= 0) {
+            if (tempPosition.line + lineMove < 0) {
                 lineMove = 0;
             }
             tempPosition = tempPosition.with(tempPosition.line + lineMove, tempPosition.character);
@@ -197,6 +197,11 @@ export default class SymbolFinder {
         }
         let textRangeLine = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.line;
         let textRangeCharacter = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.character;
+        /* edge case where the bracket is in the corner and would otherwise be skipped */
+        if (textRangeLine === 1 && textRangeCharacter === 1) {
+            textRangeLine = 0;
+            textRangeCharacter = 0;
+        }
         return {
             symbol: symbols[symbolIndex],
             symbolPosition: new vscode.Position(textRangeLine, textRangeCharacter),
