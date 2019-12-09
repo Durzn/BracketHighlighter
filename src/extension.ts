@@ -89,6 +89,7 @@ function handleHighlightFromText(activeEditor: vscode.TextEditor, startPosition:
 	let symbolFinder = new SymbolFinder.SymbolFinder();
 	let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
 	let symbolData = symbolFinder.findDepth1Backwards(startPosition, textLines, allowedStartSymbols, allowedEndSymbols);
+	bracketHighlightGlobals.searchDirection = SearchDirection.FORWARDS;
 	handleHighlightFromSymbol(activeEditor, symbolData.symbol, symbolHandler.getCounterPart(symbolData.symbol), symbolData.symbolPosition);
 }
 
