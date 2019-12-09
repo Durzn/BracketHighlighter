@@ -53,6 +53,7 @@ This extension contributes the following settings:
 * `BracketHighlighter.blurOpacity`: Sets the opacity of the blurred out text. E.g. 0.5
 * `BracketHighlighter.allowedLanguageIds`: IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java
 * `BracketHighlighter.maxLineSearchCount`: The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.
+* `BracketHighlighter.highlightScopeFromText`: Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.
 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
@@ -68,6 +69,9 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [1.3.0]
+- Feature request: Added option to highlight text when clicking anywhere inside of the scope (so it's not necessary to click on brackets directly). This will use the same enabled brackets as the normal process.
+
 ## [1.2.1] 
 - Minor performance improvements when writing inside of a highlighted area
 
@@ -75,12 +79,13 @@ Only the latest 3 releases will be shown here.
 - Reverted changes made in 1.0.9 and 1.1.0
 - Users can now define a maximum of searched lines for a closing symbol. (Default: 1000) This way accidentally clicking on symbols enclosing an extremely big amount of lines will not be searched endlessly.
 
-## [1.1.0]
-- Changed the extension to only highlight text lines that are currently visible. That way the extension will not take ages/freeze the editor when highlighting huge files. If this causes trouble for anyone please use version 1.0.8 and tell me about the problems!
-
 ## Planned improvements
 
 - Add option to add custom symbols between which text shall be marked up.
 
 ## Feature requests and bug reports
 Please mail them to me at dev@durzn.com or create an open issue at https://github.com/Durzn/BracketHighlighter
+
+# Special thanks
+## Art_of_bini 
+for the great extension icon. See more from her on her instagram page https://www.instagram.com/art_of_bini/

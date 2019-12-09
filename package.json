@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween brackets.",
-	"version": "1.2.1",
+	"version": "1.3.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -33,6 +33,12 @@
 						"type": "number",
 						"default": 1000,
 						"description": "The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.highlightScopeFromText": {
+						"type": "boolean",
+						"default": false,
+						"description": "Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.",
 						"scope": "resource"
 					},
 					"BracketHighlighter.allowedLanguageIds": {

@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.3.0]
+- Feature request: Added option to highlight text when clicking anywhere inside of the scope (so it's not necessary to click on brackets directly). This will use the same enabled brackets as the normal process.
+
 ## [1.2.1] 
 - Minor performance improvements when writing inside of a highlighted area
 
