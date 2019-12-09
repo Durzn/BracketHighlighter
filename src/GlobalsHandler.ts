@@ -28,6 +28,7 @@ export default class GlobalsHandler {
     public reverseSearchEnabled: boolean;
     public allowedStartSymbols: Array<string>;
     public allowedEndSymbols: Array<string>;
+    public highlightScopeFromText: boolean;
 
 
     constructor() {
@@ -49,6 +50,7 @@ export default class GlobalsHandler {
         this.reverseSearchEnabled = this.configHandler.reverseSearchEnabled();
         this.allowedStartSymbols = this.configHandler.getAllowedStartSymbols();
         this.allowedEndSymbols = this.configHandler.getAllowedEndSymbols();
+        this.highlightScopeFromText = this.configHandler.highlightScopeFromText();
     }
 }
 

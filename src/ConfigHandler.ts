@@ -8,6 +8,15 @@ export default class ConfigHandler {
         return vscode.workspace.getConfiguration("BracketHighlighter", null);
     }
 
+    public highlightScopeFromText(): boolean {
+        const config = this.getConfiguration();
+        let highlightScopeFromText: boolean | undefined = config.get("highlightScopeFromText");
+        if (highlightScopeFromText === undefined) {
+            highlightScopeFromText = false;
+        }
+        return highlightScopeFromText;
+    }
+
     public blurOutOfScopeText(): boolean {
         const config = this.getConfiguration();
         let blurOutOfScopeText: boolean | undefined = config.get("blurOutOfScopeText");

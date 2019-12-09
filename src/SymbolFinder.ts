@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as SymbolHandler from './SymbolHandler';
-import { bracketHighlightGlobals } from './GlobalsHandler';
+import { bracketHighlightGlobals, SearchDirection } from './GlobalsHandler';
 
 export default class SymbolFinder {
 
@@ -41,7 +41,34 @@ export default class SymbolFinder {
         return indices;
     }
 
-    private iterateLinesBackward(textLines: Array<string>, validSymbol: string, counterPartSymbol: string, startPosition: vscode.Position): Array<vscode.Range> {
+    private iterateLinesForward(textLines: Array<string>, validSymbol: string, counterPartSymbol: string, startPosition: vscode.Position, depthCounter: number): Array<vscode.Range> {
+        let tempPosition = startPosition;
+        let ranges = [];
+        let lineMove = 1;
+        let maxLineCount = bracketHighlightGlobals.maxLineSearchCount;
+        let currentTextLineCount = 0;
+        for (let textLine of textLines) {
+            currentTextLineCount++;
+            if (currentTextLineCount > maxLineCount) {
+                return [];
+            }
+            tempPosition = this.getFirstLetterPosition(tempPosition, textLine);
+            let endPosition = this.handleLineForward(textLine, validSymbol, counterPartSymbol, tempPosition, depthCounter);
+            if (this.depth === depthCounter) {
+                if (endPosition.character === 0) {
+                    lineMove = 0;
+                }
+                ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, 1)));
+                return ranges;
+            }
+            ranges.push(new vscode.Range(tempPosition, endPosition));
+            tempPosition = tempPosition.with(tempPosition.line + lineMove, 0);
+            this.lineCounter++;
+        }
+        return [];
+    }
+
+    private iterateLinesBackward(textLines: Array<string>, validSymbol: string, counterPartSymbol: string, startPosition: vscode.Position, depthCounter: number): Array<vscode.Range> {
         let tempPosition = startPosition;
         let ranges = [];
         let lineMove = -1;
@@ -54,8 +81,8 @@ export default class SymbolFinder {
             }
             textLine = this.reverseString(textLine);
             tempPosition = tempPosition.with(tempPosition.line, textLine.length);
-            let endPosition = this.handleLineBackward(textLine, validSymbol, counterPartSymbol, tempPosition);
-            if (this.depth <= 0) {
+            let endPosition = this.handleLineBackward(textLine, validSymbol, counterPartSymbol, tempPosition, depthCounter);
+            if (this.depth === depthCounter) {
                 if (endPosition.character === 0) {
                     lineMove = 0;
                 }
@@ -65,12 +92,15 @@ export default class SymbolFinder {
             textLine = this.reverseString(textLine);
             endPosition = this.getFirstLetterPosition(endPosition, textLine);
             ranges.push(new vscode.Range(tempPosition, endPosition));
+            if (tempPosition.line + lineMove <= 0) {
+                lineMove = 0;
+            }
             tempPosition = tempPosition.with(tempPosition.line + lineMove, tempPosition.character);
         }
-        return ranges;
+        return [];
     }
 
-    private handleLineBackward(textLine: string, symbol: string, counterPartSymbol: string, startPosition: vscode.Position): vscode.Position {
+    private handleLineBackward(textLine: string, symbol: string, counterPartSymbol: string, startPosition: vscode.Position, depthCounter: number): vscode.Position {
         let startIndices = this.findIndicesOfSymbol(textLine, symbol);
         let counterPartIndices = this.findIndicesOfSymbol(textLine, counterPartSymbol);
 
@@ -82,9 +112,9 @@ export default class SymbolFinder {
             }
             else {
                 this.depth--;
-                if (this.depth === 0) {
-                    return startPosition.translate(0, -index);
-                }
+            }
+            if (this.depth === depthCounter) {
+                return startPosition.translate(0, -index);
             }
         }
         let characterOffset = textLine.length;
@@ -95,7 +125,7 @@ export default class SymbolFinder {
         return startPosition.translate(0, characterOffset);
     }
 
-    private handleLineForward(textLine: string, symbol: string, counterPartSymbol: string, startPosition: vscode.Position): vscode.Position {
+    private handleLineForward(textLine: string, symbol: string, counterPartSymbol: string, startPosition: vscode.Position, depthCounter: number): vscode.Position {
         let startIndices = this.findIndicesOfSymbol(textLine, symbol);
         let counterPartIndices = this.findIndicesOfSymbol(textLine, counterPartSymbol);
 
@@ -107,7 +137,7 @@ export default class SymbolFinder {
             }
             else {
                 this.depth--;
-                if (this.depth === 0) {
+                if (this.depth === depthCounter) {
                     if (this.lineCounter === 0) {
                         return startPosition.translate(0, index);
                     }
@@ -119,39 +149,12 @@ export default class SymbolFinder {
         return startPosition.translate(0, characterOffset);
     }
 
-    private iterateLinesForward(textLines: Array<string>, validSymbol: string, counterPartSymbol: string, startPosition: vscode.Position): Array<vscode.Range> {
-        let tempPosition = startPosition;
-        let ranges = [];
-        let lineMove = 1;
-        let maxLineCount = bracketHighlightGlobals.maxLineSearchCount;
-        let currentTextLineCount = 0;
-        for (let textLine of textLines) {
-            currentTextLineCount++;
-            if (currentTextLineCount > maxLineCount) {
-                return [];
-            }
-            tempPosition = this.getFirstLetterPosition(tempPosition, textLine);
-            let endPosition = this.handleLineForward(textLine, validSymbol, counterPartSymbol, tempPosition);
-            if (this.depth <= 0) {
-                if (endPosition.character === 0) {
-                    lineMove = 0;
-                }
-                ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, 1)));
-                return ranges;
-            }
-            ranges.push(new vscode.Range(tempPosition, endPosition));
-            tempPosition = tempPosition.with(tempPosition.line + lineMove, 0);
-            this.lineCounter++;
-        }
-        return ranges;
-    }
-
     private findForwards(activeEditor: vscode.TextEditor, validSymbol: string, counterPartSymbol: string, startPosition: vscode.Position): Array<vscode.Range> {
         let endPosition = activeEditor.document.positionAt(activeEditor.document.getText().length);
         let textRange: vscode.Range = new vscode.Range(startPosition, endPosition);
         let text = activeEditor.document.getText(textRange);
         let textLines = text.split("\n");
-        return this.iterateLinesForward(textLines, validSymbol, counterPartSymbol, startPosition);
+        return this.iterateLinesForward(textLines, validSymbol, counterPartSymbol, startPosition, 0);
     }
 
 
@@ -161,7 +164,7 @@ export default class SymbolFinder {
         let text = activeEditor.document.getText(textRange);
         let textLines = text.split("\n");
         textLines = textLines.reverse();
-        return this.iterateLinesBackward(textLines, validSymbol, counterPartSymbol, startPosition);
+        return this.iterateLinesBackward(textLines, validSymbol, counterPartSymbol, startPosition, 0);
     }
 
     public findMatchingSymbolPosition(activeEditor: vscode.TextEditor, validSymbol: string, counterPartSymbol: string, startPosition: vscode.Position): Array<vscode.Range> {
@@ -175,7 +178,32 @@ export default class SymbolFinder {
         return [];
     }
 
+    public findDepth1Backwards(startPosition: vscode.Position, textLines: Array<string>, symbols: Array<string>, counterPartSymbols: Array<string>): {
+        symbol: string, symbolPosition: vscode.Position
+    } {
+        textLines = textLines.reverse();
+        let symbolHandler = new SymbolHandler.SymbolHandler();
+        let textRanges: Array<Array<vscode.Range>> = [];
+        for (let startSymbol of symbols) {
+            textRanges.push(this.iterateLinesBackward(textLines, startSymbol, symbolHandler.getCounterPart(startSymbol), startPosition, 1));
+        }
+        let maxLength = 0;
+        let symbolIndex = 0;
+        for (let i = 0; i < textRanges.length; i++) {
+            if (textRanges[i].length > maxLength) {
+                maxLength = textRanges[i].length;
+                symbolIndex = i;
+            }
+        }
+        let textRangeLine = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.line;
+        let textRangeCharacter = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.character;
+        return {
+            symbol: symbols[symbolIndex],
+            symbolPosition: new vscode.Position(textRangeLine, textRangeCharacter),
+        };
+    }
 }
+
 
 
 export { SymbolFinder };
