@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.4.0]
+- Added option to define custom opening and closing symbols (i.e. do ... end). For an example configuration look at the store page.
+- Added option to disable the extension back to the settings
+- Added hotkey to enable/disable the extension (Default: ctrl+alt+l)
+
 ## [1.3.1]
 - Fixed a bug where text would wrongly be blurred out when following conditions applied:
     1. blurring text out enabled

@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween brackets.",
-	"version": "1.3.1",
+	"version": "1.4.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -17,7 +17,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"*",
+		"onCommand:BracketHighlighter.toggleExtensionStatus"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -28,6 +29,12 @@
 					"BracketHighlighter.text": {
 						"type": "null",
 						"description": "For a good overview over CSS options for the possibilities look at the following link: https://www.w3schools.com/cssref/ \n For available language IDs please refer to the following link: https: //code.visualstudio.com/docs/languages/identifiers/ \n Note: for *.txt files use plaintext as the language identifier."
+					},
+					"BracketHighlighter.enableExtension": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enables the extension.",
+						"scope": "resource"
 					},
 					"BracketHighlighter.maxLineSearchCount": {
 						"type": "number",
@@ -136,8 +143,25 @@
 						"default": "0.5",
 						"description": "Sets the opacity value for blurred out text.",
 						"scope": "resource"
+					},
+					"BracketHighlighter.customSymbols": {
+						"type": "array",
+						"default": []
 					}
 				}
+			}
+		],
+		"commands": [
+			{
+				"command": "BracketHighlighter.toggleExtensionStatus",
+				"title": "Toggle the extension status."
+			}
+		],
+		"keybindings": [
+			{
+				"command": "BracketHighlighter.toggleExtensionStatus",
+				"key": "ctrl+alt+l",
+				"when": "editorTextFocus"
 			}
 		]
 	},
