@@ -14,7 +14,6 @@ export default class GlobalsHandler {
     public decorationStatus: boolean;
     public decorationTypes: Array<vscode.TextEditorDecorationType>;
     public searchDirection: SearchDirection;
-    public lastSelection: vscode.Selection | undefined;
     public handleTextSelectionEventActive: boolean;
     public disableTimer: any;
 
@@ -29,6 +28,7 @@ export default class GlobalsHandler {
     public allowedStartSymbols: Array<string>;
     public allowedEndSymbols: Array<string>;
     public highlightScopeFromText: boolean;
+    public extensionEnabled: boolean;
 
 
     constructor() {
@@ -36,7 +36,6 @@ export default class GlobalsHandler {
         this.decorationStatus = false;
         this.decorationTypes = [];
         this.searchDirection = SearchDirection.FORWARDS;
-        this.lastSelection = undefined;
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
 
@@ -51,6 +50,22 @@ export default class GlobalsHandler {
         this.allowedStartSymbols = this.configHandler.getAllowedStartSymbols();
         this.allowedEndSymbols = this.configHandler.getAllowedEndSymbols();
         this.highlightScopeFromText = this.configHandler.highlightScopeFromText();
+        this.extensionEnabled = this.configHandler.isExtensionEnabled();
+    }
+
+    public getLongestSymbolLength(): number {
+        let longestStartSymbolLength = this.getLongestStartSymbolLength();
+        let longestEndSymbolLength = this.getLongestEndSymbolLength();
+        return longestStartSymbolLength > longestEndSymbolLength ? longestStartSymbolLength : longestEndSymbolLength;
+    }
+
+    public getLongestStartSymbolLength(): number {
+        let startSymbols = this.allowedStartSymbols;
+        return startSymbols.reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
+    }
+    public getLongestEndSymbolLength(): number {
+        let endSymbols = this.allowedEndSymbols;
+        return endSymbols.reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
     }
 }
 

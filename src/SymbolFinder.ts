@@ -12,13 +12,6 @@ export default class SymbolFinder {
         this.lineCounter = 0;
     }
 
-    private reverseString(text: string): string {
-        let splitString = text.split("");
-        let reverseString = splitString.reverse();
-        let joinString = reverseString.join("");
-        return joinString;
-    }
-
     private getFirstLetterPosition(startPosition: vscode.Position, textLine: string): vscode.Position {
         let regExp = /[^\s]*[\S]+/g;
         let lineOffset = textLine.search(regExp);
@@ -28,16 +21,24 @@ export default class SymbolFinder {
         return startPosition;
     }
 
-    private findIndicesOfSymbol(text: string, symbol: string): Array<number> {
+    public findIndicesOfSymbol(text: string, symbol: string): Array<number> {
+        if (symbol === "") {
+            return [-1];
+        }
         let indices: Array<number> = [];
         let startIndex: number = 0;
         let symbolLength: number = symbol.length;
         let index: number = text.indexOf(symbol, startIndex);
         while (index !== -1) {
             indices.push(index);
-            startIndex = index + symbolLength;
+            //startIndex = index + symbolLength;
+            startIndex++;
             index = text.indexOf(symbol, startIndex);
         }
+        /* remove duplicates*/
+        indices = indices.filter(function (item, pos) {
+            return indices.indexOf(item) === pos;
+        });
         return indices;
     }
 
@@ -58,7 +59,7 @@ export default class SymbolFinder {
                 if (endPosition.character === 0) {
                     lineMove = 0;
                 }
-                ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, 1)));
+                ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, counterPartSymbol.length)));
                 return ranges;
             }
             ranges.push(new vscode.Range(tempPosition, endPosition));
@@ -79,17 +80,12 @@ export default class SymbolFinder {
             if (currentTextLineCount > maxLineCount) {
                 return [];
             }
-            textLine = this.reverseString(textLine);
             tempPosition = tempPosition.with(tempPosition.line, textLine.length);
             let endPosition = this.handleLineBackward(textLine, validSymbol, counterPartSymbol, tempPosition, depthCounter);
             if (this.depth === depthCounter) {
-                if (endPosition.character === 0) {
-                    lineMove = 0;
-                }
-                ranges.push(new vscode.Range(tempPosition, endPosition.translate(0, lineMove)));
+                ranges.push(new vscode.Range(tempPosition, endPosition));
                 return ranges;
             }
-            textLine = this.reverseString(textLine);
             endPosition = this.getFirstLetterPosition(endPosition, textLine);
             ranges.push(new vscode.Range(tempPosition, endPosition));
             if (tempPosition.line + lineMove < 0) {
@@ -105,7 +101,7 @@ export default class SymbolFinder {
         let counterPartIndices = this.findIndicesOfSymbol(textLine, counterPartSymbol);
 
         let allIndices = startIndices.concat(counterPartIndices);
-        allIndices = allIndices.sort(function (a, b) { return a - b; });
+        allIndices = allIndices.sort(function (a, b) { return b - a; });
         for (let index of allIndices) {
             if (startIndices.includes(index)) {
                 this.depth++;
@@ -114,7 +110,7 @@ export default class SymbolFinder {
                 this.depth--;
             }
             if (this.depth === depthCounter) {
-                return startPosition.translate(0, -index);
+                return startPosition.with(startPosition.line, index);
             }
         }
         let characterOffset = textLine.length;
@@ -186,12 +182,13 @@ export default class SymbolFinder {
         let textRanges: Array<Array<vscode.Range>> = [];
         for (let startSymbol of symbols) {
             textRanges.push(this.iterateLinesBackward(textLines, startSymbol, symbolHandler.getCounterPart(startSymbol), startPosition, 1));
+            this.depth = 0;
         }
-        let maxLength = 0;
+        let minLength = Number.MAX_SAFE_INTEGER;
         let symbolIndex = 0;
         for (let i = 0; i < textRanges.length; i++) {
-            if (textRanges[i].length > maxLength) {
-                maxLength = textRanges[i].length;
+            if (textRanges[i].length < minLength && textRanges[i].length !== 0) {
+                minLength = textRanges[i].length;
                 symbolIndex = i;
             }
         }

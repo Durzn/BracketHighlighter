@@ -85,6 +85,30 @@ export default class ConfigHandler {
         return reverseSearchEnabled;
     }
 
+    private getCustomSymbols(): {
+        startSymbols: Array<string>, endSymbols: Array<string>
+    } {
+        const config = this.getConfiguration();
+        let customSymbols: any = config.get("customSymbols");
+        if (customSymbols === undefined) {
+            customSymbols = [{}];
+        }
+        let customStartSymbols: Array<string> = [];
+        let customEndSymbols: Array<string> = [];
+        for (let customSymbol of customSymbols) {
+            if (customSymbol.hasOwnProperty("open") && customSymbol.hasOwnProperty("close")) {
+                if (customSymbol.open !== customSymbol.close) {
+                    customStartSymbols.push(customSymbol.open);
+                    customEndSymbols.push(customSymbol.close);
+                }
+            }
+        }
+        return {
+            startSymbols: customStartSymbols,
+            endSymbols: customEndSymbols
+        };
+    }
+
     public getAllowedStartSymbols(): Array<string> {
         const config = this.getConfiguration();
         let validStartSymbols: Array<string> = [];
@@ -106,6 +130,7 @@ export default class ConfigHandler {
             validStartSymbols.push("<");
 
         }
+        validStartSymbols = validStartSymbols.concat(this.getCustomSymbols().startSymbols);
         return validStartSymbols;
     }
 
@@ -129,8 +154,22 @@ export default class ConfigHandler {
         if (useForSymbols === true) {
             validEndSymbols.push(">");
         }
-
+        validEndSymbols = validEndSymbols.concat(this.getCustomSymbols().endSymbols);
         return validEndSymbols;
+    }
+
+    public isExtensionEnabled(): boolean {
+        const config = this.getConfiguration();
+        let extensionEnabled: boolean | undefined = config.get("enableExtension");
+        if (extensionEnabled === undefined) {
+            extensionEnabled = true;
+        }
+        return extensionEnabled;
+    }
+
+    public setExtensionEnabledStatus(extensionEnabled: boolean) {
+        let config = this.getConfiguration();
+        config.update("enableExtension", extensionEnabled);
     }
 
 }
