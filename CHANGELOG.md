@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.4.1]
+- Fixed a problem where symbols wouldn't always be found correctly to the left of the cursor
+
 ## [1.4.0]
 - Added option to define custom opening and closing symbols (i.e. do ... end). For an example configuration look at the store page.
 - Added option to disable the extension back to the settings

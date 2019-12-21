@@ -1,13 +1,18 @@
 ## About this Visual Studio Code extension
 
-This extension is for people that want a more "in the face" approach on highlighting bracket content. \
-It provides a very configurable CSS style markup for the whole text between brackets.
+This extension is for people that want a more "in the face" approach on highlighting content between symbols. \
+It provides a very configurable CSS style markup for the whole text between opening and closing symbols. \
+Those symbols can be defined by the user, or alternatively there are preset options for brackets.
 
 ## Features
 
 Finds the corresponding symbol for the currently selected symbol and adds decorations to the text inbetween. 
 
 **Decoration examples:**
+
+- **user defined opening and closing symbols**
+
+![](assets/customSymbols.gif)
 
 - **bold text with increased letter spacing**
 
@@ -29,9 +34,6 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 ![](assets/blur.gif)
 
-- **user defined opening and closing symbols**
-
-![](assets/customSymbols.gif)
 
 - **... Lots of additional possibilities. Just configure it the way you like it.**
 
@@ -85,6 +87,9 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [1.4.1]
+- Fixed a problem where symbols wouldn't always be found correctly to the left of the cursor
+
 ## [1.4.0]
 - Added option to define custom opening and closing symbols (i.e. do ... end). For an example configuration look at the store page.
 - Added option to disable the extension back to the settings
@@ -96,11 +101,9 @@ Only the latest 3 releases will be shown here.
     2. searching the scope from within the text enabled
     3. selecting a closing bracket and then searching the scope from within text
 
-## [1.3.0]
-- Feature request: Added option to highlight text when clicking anywhere inside of the scope (so it's not necessary to click on brackets directly). This will use the same enabled brackets as the normal process.
 
 ## Planned improvements
-- None
+- This extension is feature complete. If you think something is missing please refer to the next paragraph.
 
 ## Feature requests and bug reports
 Please mail them to me at dev@durzn.com or create an open issue at https://github.com/Durzn/BracketHighlighter
