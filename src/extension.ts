@@ -24,12 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-/* TODO: 
-option to set and description for custom opening/closing symbols 
-error handling if letter occurs multiple times in symbols
-*/
-
-// this method is called when your extension is deactivated
 export function deactivate() { }
 
 function handleConfigChangeEvent() {
@@ -44,6 +38,7 @@ function handleConfigChangeEvent() {
 	bracketHighlightGlobals.allowedEndSymbols = bracketHighlightGlobals.configHandler.getAllowedEndSymbols();
 	bracketHighlightGlobals.highlightScopeFromText = bracketHighlightGlobals.configHandler.highlightScopeFromText();
 	bracketHighlightGlobals.extensionEnabled = bracketHighlightGlobals.configHandler.isExtensionEnabled();
+	removePreviousDecorations();
 }
 
 function handleTextSelectionEvent() {
@@ -72,18 +67,18 @@ function handleTextSelectionEvent() {
 	/*************************************************************************************************************************************/
 
 	removePreviousDecorations();
-	let startSymbol = getStartSymbolFromSelection(activeEditor, currentSelection);
-	if (startSymbol !== "" && (currentSelection.active.isEqual(currentSelection.anchor))) {
+	let startSymbol = getStartSymbolFromSelection(activeEditor, currentSelection.start, 0);
+	if (startSymbol.startSymbol !== "" && (currentSelection.active.isEqual(currentSelection.anchor))) {
 		let symbolHandler = new SymbolHandler.SymbolHandler();
-		if (symbolHandler.isValidStartSymbol(startSymbol)) {
+		if (symbolHandler.isValidStartSymbol(startSymbol.startSymbol)) {
 			bracketHighlightGlobals.searchDirection = SearchDirection.FORWARDS;
 		}
 		else {
 			bracketHighlightGlobals.searchDirection = SearchDirection.BACKWARDS;
 		}
-		let startPosition = getStartPosition(activeEditor, currentSelection, startSymbol);
-		let counterPartSymbol = symbolHandler.getCounterPart(startSymbol);
-		handleHighlightFromSymbol(activeEditor, startSymbol, counterPartSymbol, startPosition);
+		let startPosition = getStartPosition(activeEditor, currentSelection.start, startSymbol.startSymbol, startSymbol.offset);
+		let counterPartSymbol = symbolHandler.getCounterPart(startSymbol.startSymbol);
+		handleHighlightFromSymbol(activeEditor, startSymbol.startSymbol, counterPartSymbol, startPosition);
 	}
 	else if (bracketHighlightGlobals.highlightScopeFromText === true) {
 		let startPosition = currentSelection.start;
@@ -141,30 +136,18 @@ function removePreviousDecorations() {
 	}
 }
 
-function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selection: vscode.Selection): string {
+function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, functionCount: number): {
+	startSymbol: string, offset: number
+} {
+	if (functionCount >= 2) {
+		return { startSymbol: "", offset: 0 };
+	}
 	let symbolHandler = new SymbolHandler.SymbolHandler;
 	let validSymbols = symbolHandler.getValidSymbols();
 	let longestSymbolLength = validSymbols.reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
-	let selectionLineText = activeEditor.document.getText(new vscode.Range(new vscode.Position(selection.start.line, 0), new vscode.Position(selection.start.line, selection.start.character + longestSymbolLength))); /* TODO: grab longest from config */
-	let stringPosition = selection.start.character;
+	let selectionLineText = activeEditor.document.getText(new vscode.Range(new vscode.Position(selectionStart.line, 0), new vscode.Position(selectionStart.line, selectionStart.character + longestSymbolLength))); /* TODO: grab longest from config */
+	let stringPosition = selectionStart.character;
 	let selectionSymbol = selectionLineText[stringPosition];
-	if (selectionSymbol === " " || selectionSymbol === undefined) {
-		if (selection.start.character > 0) {
-			stringPosition--;
-			selectionSymbol = selectionLineText[stringPosition];
-		}
-		else {
-			return "";
-		}
-	}
-	/* Necessary to make the extension consistent */
-	else if (selectionSymbol === ";") {
-		if (selection.start.character > 0) {
-			stringPosition--;
-			selectionSymbol = selectionLineText[stringPosition];
-		}
-
-	}
 	const containsSymbol = (symbol: string) => symbol.indexOf(selectionSymbol) !== -1;
 	validSymbols = validSymbols.filter(containsSymbol);
 	let tempValidSymbols = validSymbols;
@@ -182,9 +165,12 @@ function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selection:
 			validSymbols = validSymbols.filter(containsSymbol);
 		}
 	}
+	if (selectionSymbol === undefined) {
+		return getStartSymbolFromSelection(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
+	}
 	selectionSymbol = selectionSymbol.substr(1, selectionSymbol.length - 1);
-	stringPosition = selection.start.character;
-	while (validSymbols.some(containsSymbol)) {
+	stringPosition = selectionStart.character;
+	while (validSymbols.some(containsSymbol) && selectionSymbol !== "") {
 		stringPosition++;
 		if (selectionLineText[stringPosition] === undefined) {
 			selectionSymbol = selectionSymbol + " ";
@@ -199,21 +185,23 @@ function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selection:
 	selectionSymbol = selectionSymbol.substr(0, selectionSymbol.length - 1);
 	let startSymbol = selectionSymbol;
 	if (symbolHandler.isValidStartSymbol(startSymbol) || symbolHandler.isValidEndSymbol(startSymbol)) {
-		return startSymbol;
+		return { startSymbol: startSymbol, offset: -functionCount };
 	}
-	return "";
+	else {
+		return getStartSymbolFromSelection(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
+	}
 }
 
-function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: string): vscode.Position {
+function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
 	let symbolFinder = new SymbolFinder.SymbolFinder();
-	let symbolLength = startSymbol.length;
-	let internalOffset = 0;
-	let oldSelectionStartPosition: vscode.Position = selection.start;
-	let selectionSymbol: string = activeEditor.document.getText(new vscode.Range(selection.start, oldSelectionStartPosition.translate(0, 1)));
-	if (selectionSymbol === " " || selectionSymbol === "") {
-		/* Selection is at the end of the symbol */
-		return selection.start.translate(0, -symbolLength);
+	let internalOffset = -offset;
+	let oldSelectionStartPosition: vscode.Position = selectionStart;
+	let startPosition = selectionStart.translate(0, offset);
+	let endPosition = selectionStart;
+	if (offset === 0) {
+		endPosition = endPosition.translate(0, 1);
 	}
+	let selectionSymbol: string = activeEditor.document.getText(new vscode.Range(startPosition, endPosition));
 	let letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 	while (letterIndices.length > 1) {
 		if (oldSelectionStartPosition.character > 0) {
@@ -227,51 +215,68 @@ function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selecti
 			break;
 		}
 	}
+	oldSelectionStartPosition = selectionStart;
+	while (letterIndices.length > 1) {
+		let newSelectionStartPosition = oldSelectionStartPosition.translate(0, 1);
+		selectionSymbol = selectionSymbol + activeEditor.document.getText(new vscode.Range(oldSelectionStartPosition, newSelectionStartPosition));
+		letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
+		oldSelectionStartPosition = newSelectionStartPosition;
+	}
 	if (letterIndices[0] !== -1) {
-		return selection.start.translate(0, -letterIndices[0] - internalOffset);
+		return selectionStart.translate(0, -letterIndices[0] - internalOffset);
 	}
 
-	return selection.start;
+	return selectionStart;
 }
 
-function getPositionInTextBackwardSearch(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: string): vscode.Position {
+function getPositionInTextBackwardSearch(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
 	let symbolFinder = new SymbolFinder.SymbolFinder();
 	let symbolLength = startSymbol.length;
-	let internalOffset = 0;
-	let selectionSymbol = activeEditor.document.getText(new vscode.Range(selection.start, selection.start.translate(0, 1)));
-	if (selectionSymbol === "" || selectionSymbol === " ") {
-		/* Selection is at the end of the symbol */
-		return selection.start;
+	let internalOffset = offset;
+	let oldSelectionStartPosition: vscode.Position = selectionStart;
+	let startPosition = selectionStart.translate(0, offset);
+	let endPosition = selectionStart;
+	if (offset === 0) {
+		endPosition = endPosition.translate(0, 1);
 	}
-	/* Necessary to make the extension consistent */
-	else if (selectionSymbol === ";") {
-		selectionSymbol = activeEditor.document.getText(new vscode.Range(selection.start, selection.start.translate(0, -1)));
-		internalOffset--;
-	}
+	let selectionSymbol = activeEditor.document.getText(new vscode.Range(startPosition, endPosition));
 	let letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 	/* Search until unique sequence is found in string */
 	while (letterIndices.length > 1) {
-		selectionSymbol = selectionSymbol + activeEditor.document.getText(new vscode.Range(selection.start, selection.start.translate(0, 1)));
+		if (oldSelectionStartPosition.character > 0) {
+			let newSelectionStartPosition = oldSelectionStartPosition.translate(0, -1);
+			selectionSymbol = activeEditor.document.getText(new vscode.Range(oldSelectionStartPosition, newSelectionStartPosition)) + selectionSymbol;
+			letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
+			oldSelectionStartPosition = newSelectionStartPosition;
+			internalOffset++;
+		}
+		else {
+			break;
+		}
+	}
+	oldSelectionStartPosition = selectionStart;
+	while (letterIndices.length > 1) {
+		let newSelectionStartPosition = oldSelectionStartPosition.translate(0, 1);
+		selectionSymbol = selectionSymbol + activeEditor.document.getText(new vscode.Range(oldSelectionStartPosition, newSelectionStartPosition));
 		letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
-		internalOffset++;
+		oldSelectionStartPosition = newSelectionStartPosition;
 	}
 	if (letterIndices[0] !== -1) {
-		return selection.start.translate(0, symbolLength - letterIndices[0] + internalOffset);
+		return selectionStart.translate(0, symbolLength - letterIndices[0] + internalOffset);
 	}
 
-	return selection.start;
+	return selectionStart;
 }
 
-function getStartPosition(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: string): vscode.Position {
-	let shiftDirection =  1;
+function getStartPosition(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
+	let shiftDirection = 1;
 	let shiftLength;
-	let position = selection.start;
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.FORWARDS) {
 		shiftDirection = -1;
-		shiftLength = position.character - getPositionInTextForwardSearch(activeEditor, selection, startSymbol).character;
+		shiftLength = selectionStart.character - getPositionInTextForwardSearch(activeEditor, selectionStart, startSymbol, offset).character;
 	}
 	else {
-		shiftLength = getPositionInTextBackwardSearch(activeEditor, selection, startSymbol).character - position.character;
+		shiftLength = getPositionInTextBackwardSearch(activeEditor, selectionStart, startSymbol, offset).character - selectionStart.character;
 	}
-	return selection.start.translate(0, shiftDirection * shiftLength);
+	return selectionStart.translate(0, shiftDirection * shiftLength);
 }
