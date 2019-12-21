@@ -195,8 +195,9 @@ function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selectionS
 function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
 	let symbolFinder = new SymbolFinder.SymbolFinder();
 	let internalOffset = -offset;
-	let oldSelectionStartPosition: vscode.Position = selectionStart;
-	let startPosition = selectionStart.translate(0, offset);
+	let oldSelectionStartPosition: vscode.Position = selectionStart.translate(0, offset);
+	let newSelectionStartPosition: vscode.Position = selectionStart.translate(0, offset);
+	let startPosition = oldSelectionStartPosition;
 	let endPosition = selectionStart;
 	if (offset === 0) {
 		endPosition = endPosition.translate(0, 1);
@@ -205,7 +206,7 @@ function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selecti
 	let letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 	while (letterIndices.length > 1) {
 		if (oldSelectionStartPosition.character > 0) {
-			let newSelectionStartPosition = oldSelectionStartPosition.translate(0, -1);
+			newSelectionStartPosition = oldSelectionStartPosition.translate(0, -1);
 			selectionSymbol = activeEditor.document.getText(new vscode.Range(oldSelectionStartPosition, newSelectionStartPosition)) + selectionSymbol;
 			letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 			oldSelectionStartPosition = newSelectionStartPosition;
