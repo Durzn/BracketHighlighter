@@ -87,6 +87,9 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [1.4.2]
+- Fixed a crash that occurred when the cursor was at position 0 of a line and there was no valid symbol to highlight.
+
 ## [1.4.1]
 - Fixed a problem where symbols wouldn't always be found correctly to the left of the cursor
 
@@ -94,13 +97,6 @@ Only the latest 3 releases will be shown here.
 - Added option to define custom opening and closing symbols (i.e. do ... end). For an example configuration look at the store page.
 - Added option to disable the extension back to the settings
 - Added hotkey to enable/disable the extension (Default: ctrl+alt+l)
-
-## [1.3.1]
-- Fixed a bug where text would wrongly be blurred out when following conditions applied:
-    1. blurring text out enabled
-    2. searching the scope from within the text enabled
-    3. selecting a closing bracket and then searching the scope from within text
-
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.

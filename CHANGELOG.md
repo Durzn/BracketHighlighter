@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.4.2]
+- Fixed a crash that occurred when the cursor was at position 0 of a line and there was no valid symbol to highlight.
+
 ## [1.4.1]
 - Fixed a problem where symbols wouldn't always be found correctly to the left of the cursor
 
