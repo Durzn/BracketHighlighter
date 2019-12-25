@@ -90,6 +90,10 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [1.4.3]
+- Updated the store page to show all settings
+- Made the example for using custom symbols more readable
+
 ## [1.4.2]
 - Fixed a crash that occurred when the cursor was at position 0 of a line and there was no valid symbol to highlight.
 
