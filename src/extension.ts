@@ -67,7 +67,7 @@ function handleTextSelectionEvent() {
 	/*************************************************************************************************************************************/
 
 	removePreviousDecorations();
-	let startSymbol = getStartSymbolFromSelection(activeEditor, currentSelection.start, 0);
+	let startSymbol = getStartSymbolFromPosition(activeEditor, currentSelection.start, 0);
 	if (startSymbol.startSymbol !== "" && (currentSelection.active.isEqual(currentSelection.anchor))) {
 		let symbolHandler = new SymbolHandler.SymbolHandler();
 		if (symbolHandler.isValidStartSymbol(startSymbol.startSymbol)) {
@@ -136,7 +136,7 @@ function removePreviousDecorations() {
 	}
 }
 
-function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, functionCount: number): {
+function getStartSymbolFromPosition(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, functionCount: number): {
 	startSymbol: string, offset: number
 } {
 	if (functionCount >= 2) {
@@ -166,7 +166,10 @@ function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selectionS
 		}
 	}
 	if (selectionSymbol === undefined) {
-		return getStartSymbolFromSelection(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
+		if (selectionStart.character === 0) {
+			return { startSymbol: "", offset: 0 };
+		}
+		return getStartSymbolFromPosition(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
 	}
 	selectionSymbol = selectionSymbol.substr(1, selectionSymbol.length - 1);
 	stringPosition = selectionStart.character;
@@ -188,7 +191,11 @@ function getStartSymbolFromSelection(activeEditor: vscode.TextEditor, selectionS
 		return { startSymbol: startSymbol, offset: -functionCount };
 	}
 	else {
-		return getStartSymbolFromSelection(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
+		if (selectionStart.character === 0) {
+
+			return { startSymbol: "", offset: 0 };
+		}
+		return getStartSymbolFromPosition(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
 	}
 }
 
