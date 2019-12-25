@@ -42,6 +42,7 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 This extension contributes the following settings:
 
+* `BracketHighlighter.enableExtension`: enables the extension when set. (Default hotkey to toggle the state: ctrl+alt+l)
 * `BracketHighlighter.useParentheses`: enables highlighting between parentheses '()'.
 * `BracketHighlighter.useBrackets`: enables highlighting between brackets '[]'.
 * `BracketHighlighter.useBraces`: enables highlighting between braces '{}'.
@@ -62,16 +63,18 @@ This extension contributes the following settings:
 * `BracketHighlighter.highlightScopeFromText`: Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.
 * `BracketHighlighter.customSymbols`: User defined symbols which have to have a defined "open" and "close" value. Open and close values must not be the same. Symbols don't have to be unique, however the first entry in this list will always have priority.
 E.g.
-    "BracketHighlighter.customSymbols": [
-        {
-            "open": "do",
-            "close": "end"
-        },
-        {
-            "open": "/\*",
-            "close": "\*/"
-        }
-    ]
+```
+"BracketHighlighter.customSymbols": [
+    {
+        "open": "do",
+        "close": "end"
+    },
+    {
+        "open": "/*",
+        "close": "*/"
+    }
+]
+```
 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
@@ -92,11 +95,6 @@ Only the latest 3 releases will be shown here.
 
 ## [1.4.1]
 - Fixed a problem where symbols wouldn't always be found correctly to the left of the cursor
-
-## [1.4.0]
-- Added option to define custom opening and closing symbols (i.e. do ... end). For an example configuration look at the store page.
-- Added option to disable the extension back to the settings
-- Added hotkey to enable/disable the extension (Default: ctrl+alt+l)
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.

@@ -8,7 +8,7 @@
 	"icon": "assets/icon.png",
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
-	"description": "Decorates text inbetween brackets.",
+	"description": "Decorates text inbetween symbols.",
 	"version": "1.4.2",
 	"engines": {
 		"vscode": "^1.40.0"
@@ -165,6 +165,13 @@
 			}
 		]
 	},
+	"keywords": [
+		"bracket",
+		"highlight",
+		"customization",
+		"text",
+		"decoration"
+	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
