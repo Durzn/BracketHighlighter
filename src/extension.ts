@@ -9,7 +9,6 @@ import * as SymbolFinder from './SymbolFinder';
 import * as SymbolHandler from './SymbolHandler';
 import ConfigHandler from './ConfigHandler';
 
-
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -38,6 +37,8 @@ function handleConfigChangeEvent() {
 	bracketHighlightGlobals.allowedEndSymbols = bracketHighlightGlobals.configHandler.getAllowedEndSymbols();
 	bracketHighlightGlobals.highlightScopeFromText = bracketHighlightGlobals.configHandler.highlightScopeFromText();
 	bracketHighlightGlobals.extensionEnabled = bracketHighlightGlobals.configHandler.isExtensionEnabled();
+	bracketHighlightGlobals.timeOutValue = bracketHighlightGlobals.configHandler.getTimeOutValue();
+
 	removePreviousDecorations();
 }
 
@@ -61,6 +62,13 @@ function handleTextSelectionEvent() {
 		return;
 	}
 	let currentSelection = activeEditor.selection;
+	if (bracketHighlightGlobals.lastSelection === undefined) {
+		bracketHighlightGlobals.lastSelection = currentSelection;
+	}
+	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
+		onSelectionChangeEvent(currentSelection, bracketHighlightGlobals.lastSelection);
+	}
+	bracketHighlightGlobals.lastSelection = currentSelection;
 	if (bracketHighlightGlobals.handleTextSelectionEventActive === false) {
 		return;
 	}
@@ -287,4 +295,36 @@ function getStartPosition(activeEditor: vscode.TextEditor, selectionStart: vscod
 		shiftLength = getPositionInTextBackwardSearch(activeEditor, selectionStart, startSymbol, offset).character - selectionStart.character;
 	}
 	return selectionStart.translate(0, shiftDirection * shiftLength);
+}
+
+function setTextSelectionEventHandling(state: boolean) {
+	bracketHighlightGlobals.handleTextSelectionEventActive = state;
+}
+
+function onSelectionChangeEvent(currentSelection: vscode.Selection, lastSelection: vscode.Selection) {
+	let currentSelectionPos = currentSelection.anchor;
+	let lastSelectionPos = lastSelection.anchor;
+	if (currentSelectionPos.line === lastSelectionPos.line &&
+		(currentSelectionPos.character === lastSelectionPos.character ||
+			currentSelectionPos.character === lastSelectionPos.character - 1 ||
+			currentSelectionPos.character === lastSelectionPos.character + 1)) {
+		if (bracketHighlightGlobals.disableTimer !== null) {
+			clearTimeout(bracketHighlightGlobals.disableTimer);
+			bracketHighlightGlobals.disableTimer = null;
+		}
+		setTextSelectionEventHandling(false);
+		bracketHighlightGlobals.disableTimer = setTimeout(function () {
+			setTextSelectionEventHandling(true);
+			bracketHighlightGlobals.lastSelection = undefined;
+			handleTextSelectionEvent();
+			bracketHighlightGlobals.disableTimer = null;
+		}, bracketHighlightGlobals.timeOutValue);
+	}
+	else {
+		if (bracketHighlightGlobals.disableTimer !== null) {
+			clearTimeout(bracketHighlightGlobals.disableTimer);
+			bracketHighlightGlobals.disableTimer = null;
+		}
+		setTextSelectionEventHandling(true);
+	}
 }

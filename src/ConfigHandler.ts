@@ -172,6 +172,14 @@ export default class ConfigHandler {
         config.update("enableExtension", extensionEnabled);
     }
 
+    public getTimeOutValue(): number {
+        let config = this.getConfiguration();
+        let timeOutValue: number | undefined = config.get("timeOutValue");
+        if (timeOutValue === undefined) {
+            timeOutValue = 600;
+        }
+        return timeOutValue;
+    }
 }
 
 export { ConfigHandler };

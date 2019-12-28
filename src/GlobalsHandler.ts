@@ -29,6 +29,8 @@ export default class GlobalsHandler {
     public allowedEndSymbols: Array<string>;
     public highlightScopeFromText: boolean;
     public extensionEnabled: boolean;
+    public lastSelection: vscode.Selection | undefined;
+    public timeOutValue: number;
 
 
     constructor() {
@@ -38,6 +40,7 @@ export default class GlobalsHandler {
         this.searchDirection = SearchDirection.FORWARDS;
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
+        this.timeOutValue = 625;
 
         /* Config parameters */
         this.blurOutOfScopeText = this.configHandler.blurOutOfScopeText();
@@ -51,6 +54,7 @@ export default class GlobalsHandler {
         this.allowedEndSymbols = this.configHandler.getAllowedEndSymbols();
         this.highlightScopeFromText = this.configHandler.highlightScopeFromText();
         this.extensionEnabled = this.configHandler.isExtensionEnabled();
+        this.timeOutValue = this.configHandler.getTimeOutValue();
     }
 
     public getLongestSymbolLength(): number {
