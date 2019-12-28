@@ -75,6 +75,7 @@ E.g.
     }
 ]
 ```
+* `BracketHighlighter.timeOutValue`: Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.
 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
@@ -90,15 +91,16 @@ Refer to https://code.visualstudio.com/docs/languages/identifiers for available 
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+
+## [1.5.0]
+- Added a timeout for the highlighting action of the extension. This improves the performance when writing/erasing letters at the edge of a symbol, however the highlighting may be delayed in some unwanted cases (i.e. when just moving the cursor over symbols without writing). If there was no problem prior to this update, set the timeout value to 0 to get the old behavior. Lowering this value will make highlighting more responsive, however there might be a noticeable delay when writing/erasing.
+
 ## [1.4.3]
 - Updated the store page to show all settings
 - Made the example for using custom symbols more readable
 
 ## [1.4.2]
 - Fixed a crash that occurred when the cursor was at position 0 of a line and there was no valid symbol to highlight.
-
-## [1.4.1]
-- Fixed a problem where symbols wouldn't always be found correctly to the left of the cursor
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.
