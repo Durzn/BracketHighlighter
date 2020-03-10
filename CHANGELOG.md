@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.6.0]
+- Added support for highlighting with multiple cursors
+
 ## [1.5.0]
 - Added a timeout for the highlighting action of the extension. This improves the performance when writing/erasing letters at the edge of a symbol, however the highlighting may be delayed in some unwanted cases (i.e. when just moving the cursor over symbols without writing). If there was no problem prior to this update, set the timeout value to 0 to get the old behavior. Lowering this value will make highlighting more responsive, however there might be a noticeable delay when writing/erasing.
 
