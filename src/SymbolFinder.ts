@@ -31,7 +31,6 @@ export default class SymbolFinder {
         let index: number = text.indexOf(symbol, startIndex);
         while (index !== -1) {
             indices.push(index);
-            //startIndex = index + symbolLength;
             startIndex++;
             index = text.indexOf(symbol, startIndex);
         }
