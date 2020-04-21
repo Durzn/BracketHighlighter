@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "1.6.0",
+	"version": "1.7.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -153,6 +153,12 @@
 						"default": 600,
 						"description": "Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.",
 						"scope": "resource"
+					},
+					"BracketHighlighter.ignoreContent": {
+						"type": "boolean",
+						"default": false,
+						"description": "Ignores content in the scope and instead only highlights the enclosing symbols.",
+						"scope": "resource"
 					}
 				}
 			}
@@ -175,7 +181,7 @@
 		"bracket",
 		"highlight",
 		"customization",
-		"text",
+		"blur",
 		"decoration"
 	],
 	"scripts": {
@@ -191,9 +197,11 @@
 		"@types/node": "^10.12.21",
 		"@types/vscode": "^1.40.0",
 		"glob": "^7.1.4",
-		"mocha": "^6.1.4",
-		"typescript": "^3.3.1",
 		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
 		"vscode-test": "^1.0.2"
+	},
+	"dependencies": {
+		"minimist": "^1.2.5"
 	}
 }

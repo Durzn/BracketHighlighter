@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.7.0]
+- Added an option to only highlight the enclosing symbols. The text inside will not be highlighted.
+
 ## [1.6.0]
 - Added support for highlighting with multiple cursors
 
