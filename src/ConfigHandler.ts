@@ -180,6 +180,15 @@ export default class ConfigHandler {
         }
         return timeOutValue;
     }
+
+    public ignoreContent(): boolean {
+        let config = this.getConfiguration();
+        let ignoreContent: boolean | undefined = config.get("ignoreContent");
+        if (ignoreContent === undefined) {
+            ignoreContent = false;
+        }
+        return ignoreContent;
+    }
 }
 
 export { ConfigHandler };

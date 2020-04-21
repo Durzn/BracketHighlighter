@@ -18,19 +18,20 @@ export default class GlobalsHandler {
     public disableTimer: any;
 
     /* Config parameters */
-    public blurOutOfScopeText: boolean;
-    public opactiy: string;
-    public activeWhenDebugging: boolean;
-    public maxLineSearchCount: number;
-    public decorationOptions: DecorationOptions;
-    public enabledLanguages: Array<string>;
-    public reverseSearchEnabled: boolean;
-    public allowedStartSymbols: Array<string>;
-    public allowedEndSymbols: Array<string>;
-    public highlightScopeFromText: boolean;
-    public extensionEnabled: boolean;
+    public blurOutOfScopeText!: boolean;
+    public opactiy!: string;
+    public activeWhenDebugging!: boolean;
+    public maxLineSearchCount!: number;
+    public decorationOptions!: DecorationOptions;
+    public enabledLanguages!: Array<string>;
+    public reverseSearchEnabled!: boolean;
+    public allowedStartSymbols!: Array<string>;
+    public allowedEndSymbols!: Array<string>;
+    public highlightScopeFromText!: boolean;
+    public extensionEnabled!: boolean;
     public lastSelection: vscode.Selection | undefined;
-    public timeOutValue: number;
+    public timeOutValue!: number;
+    public ignoreContent!: boolean;
 
 
     constructor() {
@@ -40,8 +41,11 @@ export default class GlobalsHandler {
         this.searchDirection = SearchDirection.FORWARDS;
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
-        this.timeOutValue = 625;
 
+        this.onConfigChange();
+    }
+
+    public onConfigChange() {
         /* Config parameters */
         this.blurOutOfScopeText = this.configHandler.blurOutOfScopeText();
         this.opactiy = this.configHandler.getOpacity();
@@ -55,6 +59,8 @@ export default class GlobalsHandler {
         this.highlightScopeFromText = this.configHandler.highlightScopeFromText();
         this.extensionEnabled = this.configHandler.isExtensionEnabled();
         this.timeOutValue = this.configHandler.getTimeOutValue();
+        this.ignoreContent = this.configHandler.ignoreContent();
+
     }
 
     public getLongestSymbolLength(): number {
