@@ -89,10 +89,12 @@ E.g.
 ```
 * `BracketHighlighter.timeOutValue`: Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.
 * `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
+* `BracketHighlighter.textColor`: Sets the color of the highlighted text.
 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
 Refer to https://code.visualstudio.com/docs/languages/identifiers for available language identifiers.
+Refer to https://www.w3schools.com/cssref/css_colors_legal.asp for possible color values.
 
 ## Known Issues
 High CPU usage can occur. This cannot be avoided, because the extension has to search through the text in a file.
