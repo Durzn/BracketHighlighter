@@ -22,6 +22,10 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 ![](assets/ignoreContent.gif)
 
+- **change the color of highlighted text**
+
+![](assets/textColor.gif)
+
 - **bold text with increased letter spacing**
 
 ![](assets/bold.gif)
@@ -98,14 +102,14 @@ If it gets too bad, try increasing the timeOutValue and/or reduce the maxLineSea
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [1.8.0]
+- Added option to change the highlighted text color.
+
 ## [1.7.0]
 - Added an option to only highlight the enclosing symbols. The text inside will not be highlighted.
 
 ## [1.6.0]
-- Added support for highlighting with multiple cursors
-
-## [1.5.0]
-- Added a timeout for the highlighting action of the extension. This improves the performance when writing/erasing letters at the edge of a symbol, however the highlighting may be delayed in some unwanted cases (i.e. when just moving the cursor over symbols without writing). If there was no problem prior to this update, set the timeout value to 0 to get the old behavior. Lowering this value will make highlighting more responsive, however there might be a noticeable delay when writing/erasing.
+- Added support for highlighting with multiple cursors.
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.

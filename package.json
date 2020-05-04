@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "1.7.0",
+	"version": "1.8.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -26,6 +26,12 @@
 			{
 				"title": "BracketHighlighter",
 				"properties": {
+					"BracketHighlighter.textColor": {
+						"type": "string",
+						"default": "",
+						"description": "The color of the highlighted text.",
+						"scope": "resource"
+					},
 					"BracketHighlighter.text": {
 						"type": "null",
 						"description": "For a good overview over CSS options for the possibilities look at the following link: https://www.w3schools.com/cssref/ \n For available language IDs please refer to the following link: https: //code.visualstudio.com/docs/languages/identifiers/ \n Note: for *.txt files use plaintext as the language identifier."

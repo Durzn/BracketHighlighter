@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.8.0]
+- Added option to change the highlighted text color.
+
 ## [1.7.0]
 - Added an option to only highlight the enclosing symbols. The text inside will not be highlighted.
 
