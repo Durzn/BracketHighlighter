@@ -18,6 +18,7 @@ export default class GlobalsHandler {
     public disableTimer: any;
 
     /* Config parameters */
+    public textColor!: string;
     public blurOutOfScopeText!: boolean;
     public opactiy!: string;
     public activeWhenDebugging!: boolean;
@@ -49,6 +50,7 @@ export default class GlobalsHandler {
         /* Config parameters */
         this.blurOutOfScopeText = this.configHandler.blurOutOfScopeText();
         this.opactiy = this.configHandler.getOpacity();
+        this.textColor = this.configHandler.getTextColor();
         this.activeWhenDebugging = this.configHandler.activeWhenDebugging();
         this.maxLineSearchCount = this.configHandler.getMaxLineSearchCount();
         this.decorationOptions = this.configHandler.getDecorationOptions();

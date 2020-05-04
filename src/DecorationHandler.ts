@@ -6,6 +6,7 @@ export default class DecorationHandler {
         let configHandler = new ConfigHandler.ConfigHandler();
         let decorationOptions = configHandler.getDecorationOptions();
         let decorationType: vscode.TextEditorDecorationType = vscode.window.createTextEditorDecorationType({
+            color: decorationOptions.color,
             fontWeight: decorationOptions.fontWeight,
             fontStyle: decorationOptions.fontStyle,
             letterSpacing: decorationOptions.letterSpacing,
@@ -21,6 +22,7 @@ export default class DecorationHandler {
 }
 
 export class DecorationOptions {
+    public readonly color?: string;
     public readonly fontWeight?: string;
     public readonly fontStyle?: string;
     public readonly letterSpacing?: string;
@@ -30,7 +32,8 @@ export class DecorationOptions {
     public readonly textDecoration?: string;
     public readonly overviewColor?: string;
 
-    constructor(fontWeight?: string, fontStyle?: string, letterSpacing?: string, outline?: string, border?: string, textDecoration?: string, backgroundColor?: string) {
+    constructor(fontWeight?: string, fontStyle?: string, letterSpacing?: string, outline?: string, border?: string, textDecoration?: string, backgroundColor?: string, color?: string) {
+        this.color = color;
         this.fontWeight = fontWeight;
         this.fontStyle = fontStyle;
         this.letterSpacing = letterSpacing;

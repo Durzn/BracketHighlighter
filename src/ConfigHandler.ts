@@ -62,7 +62,8 @@ export default class ConfigHandler {
         let border: string | undefined = config.get("border");
         let backgroundColor: string | undefined = config.get("backgroundColor");
         let textDecoration: string | undefined = config.get("textDecoration");
-        return new DecorationOptions.DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor);
+        let textColor: string | undefined = config.get("textColor");
+        return new DecorationOptions.DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor, textColor);
     }
 
     public getEnabledLanguages(): Array<string> {
@@ -188,6 +189,15 @@ export default class ConfigHandler {
             ignoreContent = false;
         }
         return ignoreContent;
+    }
+
+    public getTextColor(): string {
+        const config = this.getConfiguration();
+        let textColor: string | undefined = config.get("textColor");
+        if (textColor === undefined) {
+            textColor = '';
+        }
+        return textColor;
     }
 }
 
