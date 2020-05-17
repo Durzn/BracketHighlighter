@@ -27,7 +27,6 @@ export default class SymbolFinder {
         }
         let indices: Array<number> = [];
         let startIndex: number = 0;
-        let symbolLength: number = symbol.length;
         let index: number = text.indexOf(symbol, startIndex);
         while (index !== -1) {
             indices.push(index);
@@ -173,7 +172,7 @@ export default class SymbolFinder {
         return [];
     }
 
-    public findDepth1Backwards(startPosition: vscode.Position, textLines: Array<string>, symbols: Array<string>, counterPartSymbols: Array<string>): {
+    public findDepth1Backwards(activeEditor: vscode.TextEditor, startPosition: vscode.Position, textLines: Array<string>, symbols: Array<string>, counterPartSymbols: Array<string>): {
         symbol: string, symbolPosition: vscode.Position
     } {
         textLines = textLines.reverse();
@@ -185,10 +184,23 @@ export default class SymbolFinder {
         }
         let minLength = Number.MAX_SAFE_INTEGER;
         let symbolIndex = 0;
+        let symbolPosition = 0;
         for (let i = 0; i < textRanges.length; i++) {
-            if (textRanges[i].length < minLength && textRanges[i].length !== 0) {
-                minLength = textRanges[i].length;
-                symbolIndex = i;
+            let textRange = textRanges[i];
+            if (textRange.length === 0) {
+                continue;
+            }
+            let currentSymbol = symbols[i];
+            let textLine = activeEditor.document.lineAt(textRange[textRange.length - 1].start.line);
+            let symbolIndices = this.findIndicesOfSymbol(textLine.text, currentSymbol);
+            let tempSymbolPosition = symbolIndices[symbolIndices.length - 1];
+            if (textRange.length <= minLength && textRange.length !== 0) {
+                /* Edge case where two symbols are on the same line: choose the one closest to the end of the line! */
+                if (tempSymbolPosition > symbolPosition) {
+                    minLength = textRange.length;
+                    symbolIndex = i;
+                    symbolPosition = tempSymbolPosition;
+                }
             }
         }
         let textRangeLine = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.line;

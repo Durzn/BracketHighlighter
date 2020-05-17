@@ -16,6 +16,7 @@ export default class GlobalsHandler {
     public searchDirection: SearchDirection;
     public handleTextSelectionEventActive: boolean;
     public disableTimer: any;
+    public highlightRanges: Array<vscode.Range>[];
 
     /* Config parameters */
     public textColor!: string;
@@ -30,7 +31,7 @@ export default class GlobalsHandler {
     public allowedEndSymbols!: Array<string>;
     public highlightScopeFromText!: boolean;
     public extensionEnabled!: boolean;
-    public lastSelection: vscode.Selection | undefined;
+    public lastSelection!: vscode.Selection | undefined;
     public timeOutValue!: number;
     public ignoreContent!: boolean;
 
@@ -42,6 +43,7 @@ export default class GlobalsHandler {
         this.searchDirection = SearchDirection.FORWARDS;
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
+        this.highlightRanges = [];
 
         this.onConfigChange();
     }
