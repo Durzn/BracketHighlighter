@@ -104,14 +104,15 @@ If it gets too bad, try increasing the timeOutValue and/or reduce the maxLineSea
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [1.8.1]
+- Fixed bug where multi cursor highlighting wouldn't work.
+- Fixed bug with the option "highlight scope from text" where the wrong symbols would be picked for highlighting if they were on the same line.
+
 ## [1.8.0]
 - Added option to change the highlighted text color.
 
 ## [1.7.0]
 - Added an option to only highlight the enclosing symbols. The text inside will not be highlighted.
-
-## [1.6.0]
-- Added support for highlighting with multiple cursors.
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.1]
+- Fixed bug where multi cursor highlighting wouldn't work.
+- Fixed bug with the option "highlight scope from text" where the wrong symbols would be picked for highlighting if they were on the same line.
+
 ## [1.8.0]
 - Added option to change the highlighted text color.
 
