@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "1.8.1",
+	"version": "2.0.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -18,7 +18,9 @@
 	],
 	"activationEvents": [
 		"*",
-		"onCommand:BracketHighlighter.toggleExtensionStatus"
+		"onCommand:BracketHighlighter.toggleExtensionStatus",
+		"onCommand:BracketHighlighter.jumpToOpeningSymbol",
+		"onCommand:BracketHighlighter.jumpToClosingSymbol"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -28,7 +30,7 @@
 				"properties": {
 					"BracketHighlighter.textColor": {
 						"type": "string",
-						"default": "",
+						"default": "#9FFF0F",
 						"description": "The color of the highlighted text.",
 						"scope": "resource"
 					},
@@ -92,19 +94,19 @@
 					},
 					"BracketHighlighter.fontWeight": {
 						"type": "string",
-						"default": "bold",
+						"default": "",
 						"description": "fontWeight in CSS style. E.g. 'bold'",
 						"scope": "resource"
 					},
 					"BracketHighlighter.fontStyle": {
 						"type": "string",
-						"default": "oblique",
+						"default": "",
 						"description": "fontStyle in CSS style. E.g. 'oblique'",
 						"scope": "resource"
 					},
 					"BracketHighlighter.letterSpacing": {
 						"type": "string",
-						"default": "1px",
+						"default": "",
 						"description": "letterSpacing in CSS style. E.g. '1px'",
 						"scope": "resource"
 					},
@@ -128,7 +130,7 @@
 					},
 					"BracketHighlighter.textDecoration": {
 						"type": "string",
-						"default": "underline",
+						"default": "",
 						"description": "textDecoration in CSS style. E.g. 'underline'",
 						"scope": "resource"
 					},
@@ -162,7 +164,7 @@
 					},
 					"BracketHighlighter.ignoreContent": {
 						"type": "boolean",
-						"default": false,
+						"default": true,
 						"description": "Ignores content in the scope and instead only highlights the enclosing symbols.",
 						"scope": "resource"
 					}
@@ -172,7 +174,33 @@
 		"commands": [
 			{
 				"command": "BracketHighlighter.toggleExtensionStatus",
-				"title": "Toggle the extension status."
+				"title": "Toggle the extension status.",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpOutOfOpeningSymbol",
+				"title": "Jump out of the opening symbol.",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpOutOfClosingSymbol",
+				"title": "Jump out of the closing symbol.",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpToOpeningSymbol",
+				"title": "Jump to the inside of the opening symbol.",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpToClosingSymbol",
+				"title": "Jump to the inside of the closing symbol.",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.selectTextInSymbols",
+				"title": "Selects the whole text between symbols.",
+				"when": "editorTextFocus"
 			}
 		],
 		"keybindings": [
@@ -180,11 +208,36 @@
 				"command": "BracketHighlighter.toggleExtensionStatus",
 				"key": "ctrl+alt+l",
 				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpOutOfOpeningSymbol",
+				"key": "ctrl+alt+ArrowUp",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpOutOfClosingSymbol",
+				"key": "ctrl+alt+ArrowDown",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpToOpeningSymbol",
+				"key": "ctrl+alt+ArrowLeft",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpToClosingSymbol",
+				"key": "ctrl+alt+ArrowRight",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.selectTextInSymbols",
+				"key": "ctrl+alt+k",
+				"when": "editorTextFocus"
 			}
 		]
 	},
 	"keywords": [
-		"bracket",
+		"utility",
 		"highlight",
 		"customization",
 		"blur",

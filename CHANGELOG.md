@@ -1,5 +1,11 @@
 # Change Log
 
+## [2.0.0]
+- Added hotkeys to jump to/out of highlighted symbols.
+- Cursors which aren't in a highlighted range will be removed when jumping.
+- Added hotkey to select all the text between symbols (not including the symbols).
+- Made the default settings way less aggressive to look at.
+
 ## [1.8.1]
 - Fixed bug where multi cursor highlighting wouldn't work.
 - Fixed bug with the option "highlight scope from text" where the wrong symbols would be picked for highlighting if they were on the same line.

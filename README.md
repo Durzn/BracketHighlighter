@@ -49,12 +49,18 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 - **... Lots of additional possibilities. Just configure it the way you like it.**
 
+**Hotkeys actions:**
+
+- Jump to/out of highlighted opening and closing symbols  
+- Select the text between highlighted symbols  
+![](assets/hotkeyActions.gif)
+
 
 ## Extension Settings
 
 This extension contributes the following settings:
 
-* `BracketHighlighter.enableExtension`: enables the extension when set. (Default hotkey to toggle the state: ctrl+alt+l)
+* `BracketHighlighter.enableExtension`: enables the extension when set.
 * `BracketHighlighter.maxLineSearchCount`: The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.
 * `BracketHighlighter.highlightScopeFromText`: Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.
 * `BracketHighlighter.allowedLanguageIds`: IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java
@@ -91,6 +97,17 @@ E.g.
 * `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
 * `BracketHighlighter.textColor`: Sets the color of the highlighted text.
 
+## Hotkeys provided by extension
+
+This extension provides several hotkeys to work with highlighted symbols.
+
+* `BracketHighlighter.toggleExtensionStatus`: Enables/Disables the extension. (Default hotkey: Ctrl + Alt + L)
+* `BracketHighlighter.jumpOutOfClosingSymbol`: Jumps to the outside of the closing symbol. (Default hotkey: Ctrl + Alt + DownArrow)
+* `BracketHighlighter.jumpOutOfOpeningSymbol`: Jumps to the outside of the opening symbol. (Default hotkey: Ctrl + Alt + UpArrow)
+* `BracketHighlighter.jumpToClosingSymbol`: Jumps to the inside of the closing symbol. (Default hotkey: Ctrl + Alt + RightArrow)
+* `BracketHighlighter.jumpToOpeningSymbol`: Jumps to the inside of the opening symbol. (Default hotkey: Ctrl + Alt + LeftArrow)
+* `BracketHighlighter.selectTextInSymbols`: Selects the whole text between (and not including) the symbols. (Default hotkey: Ctrl + Alt + K)
+
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
 Refer to https://code.visualstudio.com/docs/languages/identifiers for available language identifiers.
@@ -100,9 +117,18 @@ Refer to https://www.w3schools.com/cssref/css_colors_legal.asp for possible colo
 High CPU usage can occur. This cannot be avoided, because the extension has to search through the text in a file.
 If it gets too bad, try increasing the timeOutValue and/or reduce the maxLineSearchCount.
 
+Multiple ranges to highlight which share the same parent scope don't behave well with the blurring option enabled.
+This will likely not be fixed.
+
 ## Release Notes
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
+
+## [2.0.0]
+- Added hotkeys to jump to/out of highlighted symbols.
+- Cursors which aren't in a highlighted range will be removed when jumping.
+- Added hotkey to select all the text between symbols (not including the symbols).
+- Made the default settings way less aggressive to look at.
 
 ## [1.8.1]
 - Fixed bug where multi cursor highlighting wouldn't work.
@@ -110,9 +136,6 @@ Only the latest 3 releases will be shown here.
 
 ## [1.8.0]
 - Added option to change the highlighted text color.
-
-## [1.7.0]
-- Added an option to only highlight the enclosing symbols. The text inside will not be highlighted.
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.
