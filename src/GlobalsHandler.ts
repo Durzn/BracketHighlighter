@@ -21,7 +21,7 @@ export default class GlobalsHandler {
     /* Config parameters */
     public textColor!: string;
     public blurOutOfScopeText!: boolean;
-    public opactiy!: string;
+    public opacity!: string;
     public activeWhenDebugging!: boolean;
     public maxLineSearchCount!: number;
     public decorationOptions!: DecorationOptions;
@@ -51,7 +51,7 @@ export default class GlobalsHandler {
     public onConfigChange() {
         /* Config parameters */
         this.blurOutOfScopeText = this.configHandler.blurOutOfScopeText();
-        this.opactiy = this.configHandler.getOpacity();
+        this.opacity = this.configHandler.getOpacity();
         this.textColor = this.configHandler.getTextColor();
         this.activeWhenDebugging = this.configHandler.activeWhenDebugging();
         this.maxLineSearchCount = this.configHandler.getMaxLineSearchCount();

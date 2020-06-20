@@ -3,23 +3,43 @@
 import * as vscode from 'vscode';
 import * as Highlighter from './Highlighter';
 import * as DecorationHandler from './DecorationHandler';
-import GlobalsHandler, { bracketHighlightGlobals } from './GlobalsHandler';
+import { bracketHighlightGlobals } from './GlobalsHandler';
 import { SearchDirection } from './GlobalsHandler';
 import * as SymbolFinder from './SymbolFinder';
 import * as SymbolHandler from './SymbolHandler';
 import ConfigHandler from './ConfigHandler';
+import ActionHandler from './ActionHandler';
 
 
 export function activate(context: vscode.ExtensionContext) {
-	let disposable = vscode.commands.registerCommand('BracketHighlighter.toggleExtensionStatus', () => {
-		bracketHighlightGlobals.extensionEnabled = !bracketHighlightGlobals.extensionEnabled;
-		let configHandler = new ConfigHandler();
-		configHandler.setExtensionEnabledStatus(bracketHighlightGlobals.extensionEnabled);
+	let actionHandler = new ActionHandler();
+	let onToggleExtensionStatusDisposable = vscode.commands.registerCommand('BracketHighlighter.toggleExtensionStatus', () => {
+		actionHandler.onActivateHotkey();
 		removePreviousDecorations();
+	});
+	let onJumpOutOfOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfOpeningSymbol', () => {
+		actionHandler.onJumpOutOfOpeningSymbolHotkey();
+	});
+	let onJumpOutOfClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfClosingSymbol', () => {
+		actionHandler.onJumpOutOfClosingSymbolHotkey();
+	});
+	let onJumpToOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToOpeningSymbol', () => {
+		actionHandler.onJumpToOpeningSymbolHotkey();
+	});
+	let onJumpToClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToClosingSymbol', () => {
+		actionHandler.onJumpToClosingSymbolHotkey();
+	});
+	let onSelectTextBetweenSymbols = vscode.commands.registerCommand('BracketHighlighter.selectTextInSymbols', () => {
+		actionHandler.onSelectTextBetweenSymbolsHotkey();
 	});
 	vscode.workspace.onDidChangeConfiguration(handleConfigChangeEvent);
 	vscode.window.onDidChangeTextEditorSelection(handleTextSelectionEvent);
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(onToggleExtensionStatusDisposable);
+	context.subscriptions.push(onJumpOutOfOpeningSymbolDisposable);
+	context.subscriptions.push(onJumpOutOfClosingSymbolDisposable);
+	context.subscriptions.push(onJumpToOpeningSymbolDisposable);
+	context.subscriptions.push(onJumpToClosingSymbolDisposable);
+	context.subscriptions.push(onSelectTextBetweenSymbols);
 }
 
 export function deactivate() { }
@@ -76,7 +96,7 @@ function handleTextSelectionEvent() {
 	let startSymbol: { symbol: string, offset: number } = { symbol: "", offset: 0 };
 	let counterPartSymbol: string = "";
 	for (let selection of activeEditor.selections) {
-		startSymbol = getStartSymbolFromPosition(activeEditor, selection.start, 0);
+		startSymbol = getStartSymbolFromPosition(activeEditor, selection.active, 0);
 		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol, counterPartSymbol);
 		rangesForHighlight.push(scopeRanges.highlightRanges);
 		rangesForBlur.push(scopeRanges.blurRanges);
@@ -100,15 +120,15 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 	let rangesForBlur: vscode.Range[] = [];
 	let rangesForHighlight: vscode.Range[] = [];
 	let symbolFinder = new SymbolFinder.SymbolFinder();
-	if (startSymbol.symbol !== "" && (selection.active.isEqual(selection.anchor))) {
+	if (startSymbol.symbol !== "") {
 		let symbolHandler = new SymbolHandler.SymbolHandler();
 		bracketHighlightGlobals.searchDirection = (symbolHandler.isValidStartSymbol(startSymbol.symbol)) ? SearchDirection.FORWARDS : SearchDirection.BACKWARDS;
-		let startPosition = getStartPosition(activeEditor, selection.start, startSymbol.symbol, startSymbol.offset);
+		let startPosition = getStartPosition(activeEditor, selection.active, startSymbol.symbol, startSymbol.offset);
 		counterPartSymbol = symbolHandler.getCounterPart(startSymbol.symbol);
 		selectionRange = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol.symbol, counterPartSymbol, startPosition);
 	}
 	else if (bracketHighlightGlobals.highlightScopeFromText === true) {
-		let startPosition = selection.start;
+		let startPosition = selection.active;
 		let symbolHandler = new SymbolHandler.SymbolHandler();
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
@@ -146,7 +166,7 @@ function blurRange(activeEditor: vscode.TextEditor, range: vscode.Range) {
 	let highlighter = new Highlighter.Highlighter();
 	let decorationType: vscode.TextEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
-			opacity: bracketHighlightGlobals.opactiy
+			opacity: bracketHighlightGlobals.opacity
 		});
 	highlighter.highlightRange(activeEditor, decorationType, range);
 	bracketHighlightGlobals.decorationTypes.push(decorationType);

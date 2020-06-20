@@ -186,7 +186,7 @@ export default class ConfigHandler {
         let config = this.getConfiguration();
         let ignoreContent: boolean | undefined = config.get("ignoreContent");
         if (ignoreContent === undefined) {
-            ignoreContent = false;
+            ignoreContent = true;
         }
         return ignoreContent;
     }
