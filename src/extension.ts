@@ -63,7 +63,7 @@ function handleTextSelectionEvent() {
 		return;
 	}
 	let activeEditor = vscode.window.activeTextEditor;
-	if (!activeEditor) {
+	if (activeEditor === undefined || !activeEditor) {
 		return;
 	}
 	let debugMode = vscode.debug.activeDebugSession;
@@ -128,7 +128,7 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 		selectionRange = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol.symbol, counterPartSymbol, startPosition);
 	}
 	else if (bracketHighlightGlobals.highlightScopeFromText === true) {
-		let startPosition = selection.active;
+		let startPosition: vscode.Position = selection.active;
 		let symbolHandler = new SymbolHandler.SymbolHandler();
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
@@ -177,7 +177,7 @@ function blurRange(activeEditor: vscode.TextEditor, range: vscode.Range) {
 *	activeEditor: Currently used editor
 *	highlightRanges: Ranges which are highlighted (used to determine which ranges shall be blurred)
 ******************************************************************************************************************************************/
-function blurNonHighlightedRanges(activeEditor: vscode.TextEditor, highlightRangesArr: Array<vscode.Range>[]) {
+function blurNonHighlightedRanges(activeEditor: vscode.TextEditor, highlightRangesArr: vscode.Range[][]) {
 	if (bracketHighlightGlobals.blurOutOfScopeText === true) {
 		if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 			highlightRangesArr = highlightRangesArr.reverse();
@@ -194,8 +194,8 @@ function blurNonHighlightedRanges(activeEditor: vscode.TextEditor, highlightRang
 		blurRange(activeEditor, range);
 
 		/* Blur everything between the highlight ranges */
-		let holeIndices = highlightRangesArr.length - 1;
-		let currentIndex = 0;
+		let holeIndices: number = highlightRangesArr.length - 1;
+		let currentIndex: number = 0;
 		while (currentIndex < holeIndices) {
 			startPosition = new vscode.Position(highlightRangesArr[currentIndex][highlightRangesArr[currentIndex].length - 1].end.line, highlightRangesArr[currentIndex][highlightRangesArr[currentIndex].length - 1].end.character);
 			endPosition = new vscode.Position(highlightRangesArr[currentIndex + 1][0].start.line, highlightRangesArr[currentIndex + 1][0].start.character);
@@ -205,8 +205,8 @@ function blurNonHighlightedRanges(activeEditor: vscode.TextEditor, highlightRang
 		}
 
 		/* Blur everything from the last highlight range to the end of the file */
-		let lineCount = activeEditor.document.lineCount;
-		let lastLine = activeEditor.document.lineAt(lineCount - 1);
+		let lineCount: number = activeEditor.document.lineCount;
+		let lastLine: vscode.TextLine = activeEditor.document.lineAt(lineCount - 1);
 		startPosition = new vscode.Position(highlightRangesArr[highlightRangesArr.length - 1][highlightRangesArr[highlightRangesArr.length - 1].length - 1].start.line, highlightRangesArr[highlightRangesArr.length - 1][highlightRangesArr[highlightRangesArr.length - 1].length - 1].end.character);
 		endPosition = new vscode.Position(lastLine.range.start.line, lastLine.range.end.character);
 		range = new vscode.Range(startPosition, endPosition);
@@ -235,11 +235,11 @@ function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, co
 		startPosition = textRanges[0].start;
 		endPosition = textRanges[textRanges.length - 1].end;
 	}
-	let endPositionOpeningBracket = startPosition.translate(0, startSymbolLength);
-	let startPositionClosingBracket = endPosition.translate(0, -counterPartSymbolLength);
+	let endPositionOpeningBracket: vscode.Position = startPosition.translate(0, startSymbolLength);
+	let startPositionClosingBracket: vscode.Position = endPosition.translate(0, -counterPartSymbolLength);
 
-	let startRange = new vscode.Range(startPosition, endPositionOpeningBracket);
-	let endRange = new vscode.Range(startPositionClosingBracket, endPosition);
+	let startRange: vscode.Range = new vscode.Range(startPosition, endPositionOpeningBracket);
+	let endRange: vscode.Range = new vscode.Range(startPositionClosingBracket, endPosition);
 	returnRanges.push(startRange);
 	returnRanges.push(endRange);
 	return returnRanges;
@@ -356,13 +356,13 @@ function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selecti
 	let internalOffset = -offset;
 	let oldSelectionStartPosition: vscode.Position = selectionStart.translate(0, offset);
 	let newSelectionStartPosition: vscode.Position = selectionStart.translate(0, offset);
-	let startPosition = oldSelectionStartPosition;
-	let endPosition = selectionStart;
+	let startPosition: vscode.Position = oldSelectionStartPosition;
+	let endPosition: vscode.Position = selectionStart;
 	if (offset === 0) {
 		endPosition = endPosition.translate(0, 1);
 	}
 	let selectionSymbol: string = activeEditor.document.getText(new vscode.Range(startPosition, endPosition));
-	let letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
+	let letterIndices: number[] = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 	while (letterIndices.length > 1) {
 		if (oldSelectionStartPosition.character > 0) {
 			newSelectionStartPosition = oldSelectionStartPosition.translate(0, -1);
@@ -382,7 +382,7 @@ function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selecti
 	}
 	oldSelectionStartPosition = selectionStart;
 	while (letterIndices.length > 1) {
-		let newSelectionStartPosition = oldSelectionStartPosition.translate(0, 1);
+		let newSelectionStartPosition: vscode.Position = oldSelectionStartPosition.translate(0, 1);
 		selectionSymbol = selectionSymbol + activeEditor.document.getText(new vscode.Range(oldSelectionStartPosition, newSelectionStartPosition));
 		letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 		oldSelectionStartPosition = newSelectionStartPosition;
@@ -403,16 +403,16 @@ function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selecti
 ******************************************************************************************************************************************/
 function getPositionInTextBackwardSearch(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
 	let symbolFinder = new SymbolFinder.SymbolFinder();
-	let symbolLength = startSymbol.length;
-	let internalOffset = offset;
+	let symbolLength: number = startSymbol.length;
+	let internalOffset: number = offset;
 	let oldSelectionStartPosition: vscode.Position = selectionStart;
-	let startPosition = selectionStart.translate(0, offset);
-	let endPosition = selectionStart;
+	let startPosition: vscode.Position = selectionStart.translate(0, offset);
+	let endPosition: vscode.Position = selectionStart;
 	if (offset === 0) {
 		endPosition = endPosition.translate(0, 1);
 	}
-	let selectionSymbol = activeEditor.document.getText(new vscode.Range(startPosition, endPosition));
-	let letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
+	let selectionSymbol: string = activeEditor.document.getText(new vscode.Range(startPosition, endPosition));
+	let letterIndices: number[] = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 	/* Search until unique sequence is found in string */
 	while (letterIndices.length > 1) {
 		if (oldSelectionStartPosition.character > 0) {
@@ -448,8 +448,8 @@ function getPositionInTextBackwardSearch(activeEditor: vscode.TextEditor, select
 *	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
 ******************************************************************************************************************************************/
 function getStartPosition(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
-	let shiftDirection = 1;
-	let shiftLength;
+	let shiftDirection: number = 1;
+	let shiftLength: number;
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.FORWARDS) {
 		shiftDirection = -1;
 		shiftLength = selectionStart.character - getPositionInTextForwardSearch(activeEditor, selectionStart, startSymbol, offset).character;
