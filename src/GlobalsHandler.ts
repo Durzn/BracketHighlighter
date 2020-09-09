@@ -34,6 +34,7 @@ export default class GlobalsHandler {
     public lastSelection!: vscode.Selection | undefined;
     public timeOutValue!: number;
     public ignoreContent!: boolean;
+    public regexMode!: boolean;
 
 
     constructor() {
@@ -64,6 +65,7 @@ export default class GlobalsHandler {
         this.extensionEnabled = this.configHandler.isExtensionEnabled();
         this.timeOutValue = this.configHandler.getTimeOutValue();
         this.ignoreContent = this.configHandler.ignoreContent();
+        this.regexMode = this.configHandler.regexMode();
 
     }
 

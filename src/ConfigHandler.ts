@@ -199,6 +199,15 @@ export default class ConfigHandler {
         }
         return textColor;
     }
+
+    public regexMode(): boolean {
+        let config = this.getConfiguration();
+        let regexMode: boolean | undefined = config.get("regexMode");
+        if (regexMode === undefined) {
+            regexMode = false;
+        }
+        return regexMode;
+    }
 }
 
 export { ConfigHandler };

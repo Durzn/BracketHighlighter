@@ -282,10 +282,12 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 function getStartSymbolFromPosition(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, functionCount: number): {
 	symbol: string, offset: number
 } {
-	if (functionCount >= 2) {
+	const maxFunctionCount: number = 2;
+	if (functionCount >= maxFunctionCount) {
 		return { symbol: "", offset: 0 };
 	}
 	let symbolHandler = new SymbolHandler.SymbolHandler;
+	let symbolFinder = new SymbolFinder.SymbolFinder;
 	let validSymbols = symbolHandler.getValidSymbols();
 	let longestSymbolLength = validSymbols.reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
 	let startPosition = new vscode.Position(selectionStart.line, 0);
@@ -315,6 +317,9 @@ function getStartSymbolFromPosition(activeEditor: vscode.TextEditor, selectionSt
 			return { symbol: "", offset: 0 };
 		}
 		return getStartSymbolFromPosition(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
+	}
+	if (bracketHighlightGlobals.regexMode && symbolFinder.isSymbolEscaped(selectionSymbol)) {
+		return { symbol: "", offset: 0 };
 	}
 	selectionSymbol = selectionSymbol.substr(1, selectionSymbol.length - 1);
 	stringPosition = selectionStart.character;
