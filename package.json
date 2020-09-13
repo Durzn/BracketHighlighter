@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -166,6 +166,12 @@
 						"type": "boolean",
 						"default": true,
 						"description": "Ignores content in the scope and instead only highlights the enclosing symbols.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.regexMode": {
+						"type": "boolean",
+						"default": false,
+						"description": "If enabled, escaped symbols will be ignored.",
 						"scope": "resource"
 					}
 				}

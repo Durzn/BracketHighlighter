@@ -49,7 +49,7 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 
 - **... Lots of additional possibilities. Just configure it the way you like it.**
 
-**Hotkeys actions:**
+**Hotkey actions:**
 
 - Jump to/out of highlighted opening and closing symbols  
 - Select the text between highlighted symbols  
@@ -124,6 +124,10 @@ This will likely not be fixed.
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [2.1.0]
+- Added experimental support to ignore escaped symbols: To use it, enable the regex mode in the settings. If you find any errors, please open a ticket!
+- Fixed uncaught error exceptions
+
 ## [2.0.0]
 - Added hotkeys to jump to/out of highlighted symbols.
 - Cursors which aren't in a highlighted range will be removed when jumping.
@@ -133,9 +137,6 @@ Only the latest 3 releases will be shown here.
 ## [1.8.1]
 - Fixed bug where multi cursor highlighting wouldn't work.
 - Fixed bug with the option "highlight scope from text" where the wrong symbols would be picked for highlighting if they were on the same line.
-
-## [1.8.0]
-- Added option to change the highlighted text color.
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.

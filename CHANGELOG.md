@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.1.0]
+- Added experimental support to ignore escaped symbols: To use it, enable the regex mode in the settings. If you find any errors, please open a ticket!
+- Fixed uncaught error exceptions
+
 ## [2.0.0]
 - Added hotkeys to jump to/out of highlighted symbols.
 - Cursors which aren't in a highlighted range will be removed when jumping.
