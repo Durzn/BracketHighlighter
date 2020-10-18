@@ -2,30 +2,50 @@ import { bracketHighlightGlobals } from './GlobalsHandler';
 
 export default class SymbolHandler {
 
-    public getCounterPart(validSymbol: string): string {
-        let symbols: Array<string> = [];
+    public getCounterParts(symbol: string): Array<string> {
+        let validSymbols: Array<string> = [];
         let counterPartSymbols: Array<string> = [];
-        if (this.isValidStartSymbol(validSymbol) === true) {
-            symbols = this.getValidStartSymbols();
+        let foundSymbols: Array<string> = [];
+        if (this.isValidStartSymbol(symbol) === true) {
+            validSymbols = this.getValidStartSymbols();
             counterPartSymbols = this.getValidEndSymbols();
         }
-        else if (this.isValidEndSymbol(validSymbol) === true) {
-            symbols = this.getValidEndSymbols();
+        else if (this.isValidEndSymbol(symbol) === true) {
+            validSymbols = this.getValidEndSymbols();
             counterPartSymbols = this.getValidStartSymbols();
         }
         let index = 0;
-        for (let symbol of symbols) {
+        for (let validSymbol of validSymbols) {
             if (symbol === validSymbol) {
-                if (index > symbols.length) {
-                    return "";
-                }
-                else {
-                    return counterPartSymbols[index];
-                }
+                foundSymbols.push(counterPartSymbols[index]);
             }
             index++;
         }
-        return "";
+        return foundSymbols;
+    }
+
+    public getValidSymbolsWithSameEndSymbol(startSymbol: string): Array<string> {
+        let symbolsWithSameEndSymbols: Array<string> = [];
+        let validSymbols: string[] = [];
+        if (this.isValidStartSymbol(startSymbol)) {
+            validSymbols = this.getUniqueValidStartSymbols();
+        }
+        else {
+            validSymbols = this.getUniqueValidEndSymbols();
+        }
+        let counterPartSymbolsOfValidSymbol = this.getCounterParts(startSymbol);
+        for (let validSymbol of validSymbols) {
+            let counterPartSymbols = this.getCounterParts(validSymbol);
+            for (let counterPartSymbol of counterPartSymbols) {
+                if (counterPartSymbolsOfValidSymbol.includes(counterPartSymbol)) {
+                    let symbolToAppend = this.getCounterParts(counterPartSymbol);
+                    symbolsWithSameEndSymbols = symbolsWithSameEndSymbols.concat(symbolToAppend);
+                }
+            }
+        }
+        return symbolsWithSameEndSymbols.filter(function (item, pos, self) {
+            return self.indexOf(item) === pos;
+        });
     }
 
     public getValidSymbols(): Array<string> {
@@ -41,8 +61,20 @@ export default class SymbolHandler {
         return bracketHighlightGlobals.allowedStartSymbols;
     }
 
+    public getUniqueValidStartSymbols(): Array<string> {
+        return bracketHighlightGlobals.allowedStartSymbols.filter(function (item, pos, self) {
+            return self.indexOf(item) === pos;
+        });
+    }
+
     public getValidEndSymbols(): Array<string> {
         return bracketHighlightGlobals.allowedEndSymbols;
+    }
+
+    public getUniqueValidEndSymbols(): Array<string> {
+        return bracketHighlightGlobals.allowedEndSymbols.filter(function (item, pos, self) {
+            return self.indexOf(item) === pos;
+        });
     }
 
     public isValidStartSymbol(symbol: string) {

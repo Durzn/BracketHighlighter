@@ -94,10 +94,9 @@ function handleTextSelectionEvent() {
 	let rangesForBlur: Array<vscode.Range>[] = [];
 	let rangesForHighlight: Array<vscode.Range>[] = [];
 	let startSymbol: { symbol: string, offset: number } = { symbol: "", offset: 0 };
-	let counterPartSymbol: string = "";
 	for (let selection of activeEditor.selections) {
 		startSymbol = getStartSymbolFromPosition(activeEditor, selection.active, 0);
-		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol, counterPartSymbol);
+		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
 		rangesForHighlight.push(scopeRanges.highlightRanges);
 		rangesForBlur.push(scopeRanges.blurRanges);
 	}
@@ -107,51 +106,66 @@ function handleTextSelectionEvent() {
 	blurNonHighlightedRanges(activeEditor, rangesForBlur);
 }
 
+function getSelectionRange(activeEditor: vscode.TextEditor, startSymbol: string, startSymbols: Array<string>, counterPartSymbols: string[], startPosition: vscode.Position): { selectionRange: vscode.Range[], usedSymbol: string } {
+	let selectionRange: vscode.Range[] = [];
+	let symbolFinder = new SymbolFinder.SymbolFinder();
+	let usedSymbol: string = "";
+	for (let counterPartSymbol of counterPartSymbols) {
+		let possibleRange = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, startSymbols, counterPartSymbol, counterPartSymbols, startPosition);
+		let rangeText = activeEditor.document.getText(possibleRange[possibleRange.length - 1]);
+		if (rangeText.includes(counterPartSymbol)) {
+			selectionRange = possibleRange;
+			usedSymbol = counterPartSymbol;
+		}
+	}
+	return { selectionRange, usedSymbol };
+}
+
 
 /******************************************************************************************************************************************
 * Gets ranges to highlight and ranges to blur from given selection and symbols
 *	activeEditor: Currently used editor
 *	selection: Current selection
 *	startSymbol: Symbol containing the offset from the cursor and the string representation
-*	counterPartSymbol: Symbol containing the string representation of the counter part symbol
 ******************************************************************************************************************************************/
-function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: { symbol: string, offset: number }, counterPartSymbol: string): { highlightRanges: vscode.Range[], blurRanges: vscode.Range[] } {
-	let selectionRange: vscode.Range[] = [];
+function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: { symbol: string, offset: number }): { highlightRanges: vscode.Range[], blurRanges: vscode.Range[] } {
+	let selectionRange: { selectionRange: vscode.Range[], usedSymbol: string } = { selectionRange: [], usedSymbol: "" };
 	let rangesForBlur: vscode.Range[] = [];
 	let rangesForHighlight: vscode.Range[] = [];
-	let symbolFinder = new SymbolFinder.SymbolFinder();
+	let counterPartSymbols: Array<string> = [];
+	let symbolHandler = new SymbolHandler.SymbolHandler();
+	let startPosition: vscode.Position = new vscode.Position(0, 0);
+	bracketHighlightGlobals.searchDirection = (symbolHandler.isValidStartSymbol(startSymbol.symbol)) ? SearchDirection.FORWARDS : SearchDirection.BACKWARDS;
 	if (startSymbol.symbol !== "") {
-		let symbolHandler = new SymbolHandler.SymbolHandler();
-		bracketHighlightGlobals.searchDirection = (symbolHandler.isValidStartSymbol(startSymbol.symbol)) ? SearchDirection.FORWARDS : SearchDirection.BACKWARDS;
-		let startPosition = getStartPosition(activeEditor, selection.active, startSymbol.symbol, startSymbol.offset);
-		counterPartSymbol = symbolHandler.getCounterPart(startSymbol.symbol);
-		selectionRange = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol.symbol, counterPartSymbol, startPosition);
+		startPosition = getStartPosition(activeEditor, selection.active, startSymbol.symbol, startSymbol.offset);
+		counterPartSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
 	}
 	else if (bracketHighlightGlobals.highlightScopeFromText === true) {
-		let startPosition: vscode.Position = selection.active;
-		let symbolHandler = new SymbolHandler.SymbolHandler();
+		startPosition = selection.active;
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
-		let symbolData = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, bracketHighlightGlobals.allowedStartSymbols, bracketHighlightGlobals.allowedEndSymbols);
+		let symbolData = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, symbolHandler.getUniqueValidStartSymbols(), symbolHandler.getUniqueValidEndSymbols());
 		startSymbol.symbol = symbolData.symbol;
-		counterPartSymbol = symbolHandler.getCounterPart(symbolData.symbol);
+		counterPartSymbols = symbolHandler.getCounterParts(symbolData.symbol);
 		bracketHighlightGlobals.searchDirection = SearchDirection.FORWARDS;
-		selectionRange = symbolFinder.findMatchingSymbolPosition(activeEditor, symbolData.symbol, counterPartSymbol, symbolData.symbolPosition);
+		startPosition = symbolData.symbolPosition;
 	}
+	let validSymbols = symbolHandler.getValidSymbolsWithSameEndSymbol(startSymbol.symbol);
+	selectionRange = getSelectionRange(activeEditor, startSymbol.symbol, validSymbols, counterPartSymbols, startPosition);
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
-		selectionRange = selectionRange.reverse();
+		selectionRange.selectionRange = selectionRange.selectionRange.reverse();
 	}
 	if (bracketHighlightGlobals.ignoreContent) {
-		rangesForBlur = rangesForBlur.concat(selectionRange);
+		rangesForBlur = rangesForBlur.concat(selectionRange.selectionRange);
 		if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
-			rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange, counterPartSymbol.length, startSymbol.symbol.length));
+			rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange.selectionRange, selectionRange.usedSymbol.length, startSymbol.symbol.length));
 		}
 		else {
-			rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange, startSymbol.symbol.length, counterPartSymbol.length));
+			rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange.selectionRange, startSymbol.symbol.length, selectionRange.usedSymbol.length));
 		}
 	}
 	else {
-		rangesForHighlight = rangesForHighlight.concat(selectionRange);
+		rangesForHighlight = rangesForHighlight.concat(selectionRange.selectionRange);
 		rangesForBlur = rangesForHighlight;
 	}
 	return { highlightRanges: rangesForHighlight, blurRanges: rangesForBlur };
@@ -438,7 +452,7 @@ function getPositionInTextBackwardSearch(activeEditor: vscode.TextEditor, select
 		letterIndices = symbolFinder.findIndicesOfSymbol(startSymbol, selectionSymbol);
 		oldSelectionStartPosition = newSelectionStartPosition;
 	}
-	if (letterIndices[0] !== -1) {
+	if (letterIndices[0] !== -1 && letterIndices.length > 0) {
 		return selectionStart.translate(0, symbolLength - letterIndices[0] + internalOffset);
 	}
 
