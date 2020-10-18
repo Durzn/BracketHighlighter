@@ -32,7 +32,7 @@ export class DecorationOptions {
     public readonly textDecoration?: string;
     public readonly overviewColor?: string;
 
-    constructor(fontWeight?: string, fontStyle?: string, letterSpacing?: string, outline?: string, border?: string, textDecoration?: string, backgroundColor?: string, color?: string) {
+    constructor(fontWeight?: string, fontStyle?: string, letterSpacing?: string, outline?: string, border?: string, textDecoration?: string, backgroundColor?: string, color?: string, fontSize?: number) {
         this.color = color;
         this.fontWeight = fontWeight;
         this.fontStyle = fontStyle;
@@ -40,6 +40,10 @@ export class DecorationOptions {
         this.outline = outline;
         this.border = border;
         this.textDecoration = textDecoration;
+        if (fontSize !== undefined) {
+            /* Hacky solution, however it doesn't seem like this will officially be implemented for the TextEditorDecorationType */
+            this.textDecoration = this.textDecoration + ";font-size:" + fontSize + "px";
+        }
         this.backgroundColor = backgroundColor;
     }
 }

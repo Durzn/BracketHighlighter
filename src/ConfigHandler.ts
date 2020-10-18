@@ -63,7 +63,16 @@ export default class ConfigHandler {
         let backgroundColor: string | undefined = config.get("backgroundColor");
         let textDecoration: string | undefined = config.get("textDecoration");
         let textColor: string | undefined = config.get("textColor");
-        return new DecorationOptions.DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor, textColor);
+        let fontSize: number | undefined = vscode.workspace.getConfiguration('editor').get('fontSize');
+        let fontSizeMultiplicator: number | undefined = config.get('fontSizeMultiplicator');
+        if (fontSize === undefined) {
+            fontSize = 14; /* vscode default font size; this if should never be entered anyway! */
+        }
+        if (fontSizeMultiplicator === undefined) {
+            fontSizeMultiplicator = 1;
+        }
+        fontSize = fontSize * fontSizeMultiplicator;
+        return new DecorationOptions.DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor, textColor, fontSize);
     }
 
     public getEnabledLanguages(): Array<string> {
