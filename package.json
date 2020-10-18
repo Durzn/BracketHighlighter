@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -132,6 +132,12 @@
 						"type": "string",
 						"default": "",
 						"description": "textDecoration in CSS style. E.g. 'underline'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.fontSizeMultiplicator": {
+						"type": "number",
+						"default": 1,
+						"description": "Increases the font size of the highlighted text as a multiplicator of the configured font size of the editor. E.g. '1.25'",
 						"scope": "resource"
 					},
 					"BracketHighlighter.activeInDebugMode": {
