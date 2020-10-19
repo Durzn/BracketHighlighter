@@ -96,6 +96,7 @@ E.g.
 * `BracketHighlighter.timeOutValue`: Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.
 * `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
 * `BracketHighlighter.textColor`: Sets the color of the highlighted text.
+* `BracketHighlighter.fontSizeMultiplicator`: Scales the font size of the highlighted text as a multiplicator of the configured font size of the editor. E.g. '1.25'.
 
 ## Hotkeys provided by extension
 
@@ -124,6 +125,10 @@ This will likely not be fixed.
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [2.2.0]
+- Added support for highlighting of symbols share the same opening or closing symbols
+- Added option to change the font size of highlighted text
+
 ## [2.1.0]
 - Added experimental support to ignore escaped symbols: To use it, enable the regex mode in the settings. If you find any errors, please open a ticket!
 - Fixed uncaught error exceptions
@@ -133,10 +138,6 @@ Only the latest 3 releases will be shown here.
 - Cursors which aren't in a highlighted range will be removed when jumping.
 - Added hotkey to select all the text between symbols (not including the symbols).
 - Made the default settings way less aggressive to look at.
-
-## [1.8.1]
-- Fixed bug where multi cursor highlighting wouldn't work.
-- Fixed bug with the option "highlight scope from text" where the wrong symbols would be picked for highlighting if they were on the same line.
 
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.

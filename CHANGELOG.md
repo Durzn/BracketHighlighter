@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.0]
+- Added support for highlighting of symbols share the same opening or closing symbols
+- Added option to change the font size of highlighted text
+
 ## [2.1.0]
 - Added experimental support to ignore escaped symbols: To use it, enable the regex mode in the settings. If you find any errors, please open a ticket!
 - Fixed uncaught error exceptions

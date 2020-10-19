@@ -137,7 +137,7 @@
 					"BracketHighlighter.fontSizeMultiplicator": {
 						"type": "number",
 						"default": 1,
-						"description": "Increases the font size of the highlighted text as a multiplicator of the configured font size of the editor. E.g. '1.25'",
+						"description": "Scales the font size of the highlighted text as a multiplicator of the configured font size of the editor. E.g. '1.25'",
 						"scope": "resource"
 					},
 					"BracketHighlighter.activeInDebugMode": {
