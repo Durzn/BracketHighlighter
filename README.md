@@ -1,18 +1,23 @@
 ## About this Visual Studio Code extension
 
 This extension is for people that want a more "in the face" approach on highlighting content between symbols. \
-It provides a very configurable CSS style markup for the whole text between opening and closing symbols. \
-Those symbols can be defined by the user, or alternatively there are preset options for brackets.
+Symbols can be custom defined, the extension is not limited to only brackets. Sadly the extension name cannot be changed retroactively. \
+It provides a very configurable CSS style markup for the whole text between opening and closing symbols or only the symbols themselves. \
+There are preset options for all kinds of brackets.
 
 ## Features
 
-Finds the corresponding symbol for the currently selected symbol and adds decorations to the text inbetween. 
+Finds the corresponding symbol for the currently selected configured symbol and adds decorations to the text inbetween or only to the symbols themselves. 
 
 **Decoration examples:**
 
 - **user defined opening and closing symbols**
 
 ![](assets/customSymbols.gif)
+
+- **multi symbol matchin**
+
+![](assets/multiSymbolMatching.gif)
 
 - **multi cursor support**
 
@@ -21,6 +26,10 @@ Finds the corresponding symbol for the currently selected symbol and adds decora
 - **highlight only the enclosing symbols**
 
 ![](assets/ignoreContent.gif)
+
+- **change the font size of the highlighted text**
+
+![](assets/changeFontSize.gif)
 
 - **change the color of highlighted text**
 
