@@ -210,8 +210,8 @@ export default class SymbolFinder {
         let foundSymbols: Array<string> = [];
         let symbolHandler = new SymbolHandler.SymbolHandler();
         for (let startSymbol of symbols) {
-            for (let counterPartSymbol of symbolHandler.getCounterParts(startSymbol)) {
-                let possibleRange = this.findBackwards(activeEditor, [startSymbol], [counterPartSymbol], startPosition, 1);
+            let counterPartSymbols = symbolHandler.getCounterParts(startSymbol);
+                let possibleRange = this.findBackwards(activeEditor, [startSymbol], counterPartSymbols, startPosition, 1);
                 if (possibleRange.length <= 0) {
                     continue;
                 }
@@ -220,7 +220,6 @@ export default class SymbolFinder {
                     textRanges.push(possibleRange);
                     foundSymbols.push(startSymbol);
                 }
-            }
             this.depth = 0;
         }
         let minLength = Number.MAX_SAFE_INTEGER;
