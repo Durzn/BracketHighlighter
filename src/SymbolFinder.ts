@@ -211,45 +211,47 @@ export default class SymbolFinder {
         let symbolHandler = new SymbolHandler.SymbolHandler();
         for (let startSymbol of symbols) {
             let counterPartSymbols = symbolHandler.getCounterParts(startSymbol);
-                let possibleRange = this.findBackwards(activeEditor, [startSymbol], counterPartSymbols, startPosition, 1);
-                if (possibleRange.length <= 0) {
-                    continue;
-                }
-                let rangeText = activeEditor.document.getText(possibleRange[possibleRange.length - 1]);
-                if (rangeText.includes(startSymbol)) {
-                    textRanges.push(possibleRange);
-                    foundSymbols.push(startSymbol);
-                }
+            let possibleRange = this.findBackwards(activeEditor, [startSymbol], counterPartSymbols, startPosition, 1);
+            if (possibleRange.length <= 0) {
+                continue;
+            }
+            let rangeText = activeEditor.document.getText(possibleRange[possibleRange.length - 1]);
+            if (rangeText.includes(startSymbol)) {
+                textRanges.push(possibleRange);
+                foundSymbols.push(startSymbol);
+            }
             this.depth = 0;
         }
         let minLength = Number.MAX_SAFE_INTEGER;
         let symbolIndex: number = 0;
         let symbolPosition: number = 0;
+        let lineNumber: number = 0;
+        if (textRanges.length === 0) {
+            return {
+                symbol: "",
+                symbolPosition: new vscode.Position(0, 0),
+            };
+        }
         for (let i = 0; i < textRanges.length; i++) {
             let textRange = textRanges[i];
             if (textRange.length === 0) {
                 continue;
             }
-            let currentSymbol: string = foundSymbols[i];
-            let textLine: vscode.TextLine = activeEditor.document.lineAt(textRange[textRange.length - 1].start.line);
-            let symbolIndices: number[] = this.findIndicesOfSymbol(textLine.text, currentSymbol);
+            let tempLineNumber: number = textRange[textRange.length - 1].start.line;
+            let textLine: vscode.TextLine = activeEditor.document.lineAt(tempLineNumber);
+            let symbolIndices: number[] = this.findIndicesOfSymbol(textLine.text, foundSymbols[i]);
             let tempSymbolPosition: number = symbolIndices[symbolIndices.length - 1];
-            if (textRange.length <= minLength && textRange.length !== 0) {
-                /* Edge case where two symbols are on the same line: choose the one closest to the end of the line! */
-                if (tempSymbolPosition > symbolPosition || tempSymbolPosition === 0) {
-                    minLength = textRange.length;
-                    symbolIndex = i;
-                    symbolPosition = tempSymbolPosition;
-                }
+            /* If two symbols are on the same line: choose the one closest to the end of the line! */
+            /* If one symbol is on a higher line number: Use this symbol, since it will be closer to the cursor (since the search is upwards!) */
+            if (tempLineNumber > lineNumber || (tempSymbolPosition > symbolPosition && tempLineNumber === lineNumber)) {
+                minLength = textRange.length;
+                symbolIndex = i;
+                symbolPosition = tempSymbolPosition;
+                lineNumber = tempLineNumber;
             }
         }
         let textRangeLine = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.line;
         let textRangeCharacter = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.character;
-        /* edge case where the bracket is in the corner and would otherwise be skipped */
-        if (textRangeLine === 1 && textRangeCharacter === 1) {
-            textRangeLine = 0;
-            textRangeCharacter = 0;
-        }
         return {
             symbol: foundSymbols[symbolIndex],
             symbolPosition: new vscode.Position(textRangeLine, textRangeCharacter),

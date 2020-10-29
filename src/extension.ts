@@ -97,6 +97,9 @@ function handleTextSelectionEvent() {
 	for (let selection of activeEditor.selections) {
 		startSymbol = getStartSymbolFromPosition(activeEditor, selection.active, 0);
 		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
+		if (scopeRanges.highlightRanges.length === 0) {
+			return;
+		}
 		rangesForHighlight.push(scopeRanges.highlightRanges);
 		rangesForBlur.push(scopeRanges.blurRanges);
 	}
@@ -145,6 +148,10 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
 		let symbolData = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, symbolHandler.getUniqueValidStartSymbols(), symbolHandler.getUniqueValidEndSymbols());
+		if (symbolData.symbol === "") {
+			/* No symbol found, return empty ranges */
+			return { highlightRanges: [], blurRanges: [] };
+		}
 		startSymbol.symbol = symbolData.symbol;
 		counterPartSymbols = symbolHandler.getCounterParts(symbolData.symbol);
 		bracketHighlightGlobals.searchDirection = SearchDirection.FORWARDS;
