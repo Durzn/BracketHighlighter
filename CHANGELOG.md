@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.2.1]
+- Fixed issue where HighlightScopeFromText sometimes wouldn't work correctly
+
 ## [2.2.0]
 - Added support for highlighting of symbols share the same opening or closing symbols
 - Added option to change the font size of highlighted text

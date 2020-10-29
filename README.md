@@ -15,7 +15,7 @@ Finds the corresponding symbol for the currently selected configured symbol and 
 
 ![](assets/customSymbols.gif)
 
-- **multi symbol matchin**
+- **multi symbol matching**
 
 ![](assets/multiSymbolMatching.gif)
 
@@ -134,6 +134,9 @@ This will likely not be fixed.
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [2.2.1]
+- Fixed issue where HighlightScopeFromText sometimes wouldn't work correctly
+
 ## [2.2.0]
 - Added support for highlighting of symbols share the same opening or closing symbols
 - Added option to change the font size of highlighted text
@@ -142,17 +145,12 @@ Only the latest 3 releases will be shown here.
 - Added experimental support to ignore escaped symbols: To use it, enable the regex mode in the settings. If you find any errors, please open a ticket!
 - Fixed uncaught error exceptions
 
-## [2.0.0]
-- Added hotkeys to jump to/out of highlighted symbols.
-- Cursors which aren't in a highlighted range will be removed when jumping.
-- Added hotkey to select all the text between symbols (not including the symbols).
-- Made the default settings way less aggressive to look at.
-
 ## Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.
 
 ## Feature requests and bug reports
 Please mail them to me at dev@durzn.com or create an open issue at https://github.com/Durzn/BracketHighlighter
+Thanks to everyone reporting issues and requesting new features. The extension wouldn't be anywhere near where it currently is without these.
 
 # Special thanks
 ## Art_of_bini 
