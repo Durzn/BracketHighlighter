@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.2]
+- Removed font size multiplicator, since it caused issues when zooming. 
+    Reasoning: There is no official support through the TextEditorDecorationType class, and the font size cannot be dynamically determined through the vscode API, so this feature will not be maintained and was therefore removed.
+
 ## [2.2.1]
 - Fixed issue where HighlightScopeFromText sometimes wouldn't work correctly
 
