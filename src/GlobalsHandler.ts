@@ -17,6 +17,7 @@ export default class GlobalsHandler {
     public handleTextSelectionEventActive: boolean;
     public disableTimer: any;
     public highlightRanges: Array<vscode.Range>[];
+    public highlightSymbols: Array<string>;
 
     /* Config parameters */
     public textColor!: string;
@@ -45,6 +46,7 @@ export default class GlobalsHandler {
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
         this.highlightRanges = [];
+        this.highlightSymbols = [];
 
         this.onConfigChange();
     }

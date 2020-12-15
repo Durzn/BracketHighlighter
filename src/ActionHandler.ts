@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { bracketHighlightGlobals } from './GlobalsHandler';
 import { ConfigHandler } from './ConfigHandler';
+import * as Util from './Util';
 
 export default class HotkeyHandler {
 
@@ -40,8 +41,11 @@ export default class HotkeyHandler {
             return;
         }
         let newSelectionPositions: vscode.Position[] = [];
-        for (let range of bracketHighlightGlobals.highlightRanges) {
+        for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
+            let range = bracketHighlightGlobals.highlightRanges[index];
+            let symbol = this.getStartSymbol(index);
             let newSelectionPosition = range[0].start;
+            newSelectionPosition = this.correctStartPosition(symbol, newSelectionPosition);
             newSelectionPosition = newSelectionPosition.translate(0, 1);
             newSelectionPositions.push(newSelectionPosition);
         }
@@ -53,8 +57,12 @@ export default class HotkeyHandler {
             return;
         }
         let newSelectionPositions: vscode.Position[] = [];
-        for (let range of bracketHighlightGlobals.highlightRanges) {
+        for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
+            let range = bracketHighlightGlobals.highlightRanges[index];
+            let symbol = this.getStartSymbol(index);
             let newSelectionPosition = range[range.length - 1].end;
+            let counterPartSymbol = this.getEndSymbolAtPosition(activeEditor, symbol, newSelectionPosition);
+            newSelectionPosition = this.correctEndPosition(counterPartSymbol, newSelectionPosition);
             let offset = -1;
             if (newSelectionPosition.character === 0) {
                 offset = 0;
@@ -71,9 +79,16 @@ export default class HotkeyHandler {
             return;
         }
         let selectionRanges: vscode.Range[] = [];
-        for (let range of bracketHighlightGlobals.highlightRanges) {
+        for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
+            let range = bracketHighlightGlobals.highlightRanges[index];
+            let symbol = this.getStartSymbol(index);
             let selectionStart = range[0].start;
             let selectionEnd = range[range.length - 1].end;
+            let counterPartSymbol = this.getEndSymbolAtPosition(activeEditor, symbol, selectionEnd);
+
+            selectionStart = this.correctStartPosition(symbol, selectionStart);
+            selectionEnd = this.correctEndPosition(counterPartSymbol, selectionEnd);
+
             selectionRanges.push(new vscode.Range(selectionStart, selectionEnd));
         }
         this.setSelectionRanges(activeEditor, selectionRanges);
@@ -100,6 +115,27 @@ export default class HotkeyHandler {
             newSelections.push(new vscode.Selection(newRanges[i].end.translate(0, endOffset), newRanges[i].start.translate(0, startOffset)));
         }
         activeEditor.selections = newSelections;
+    }
+
+    private getEndSymbolAtPosition(activeEditor: vscode.TextEditor, symbol: string, position: vscode.Position): string {
+        return Util.getSymbolFromPosition(activeEditor, position, Util.SymbolType.ENDSYMBOL, 0).symbol;
+    }
+
+    private correctStartPosition(startSymbol: string, startPosition: vscode.Position): vscode.Position {
+
+        return startPosition.translate(0, startSymbol.length - 1);
+    }
+    private correctEndPosition(endSymbol: string, endPosition: vscode.Position): vscode.Position {
+
+        return endPosition.translate(0, -endSymbol.length + 1);
+    }
+
+    private getStartSymbol(index: number): string {
+        return bracketHighlightGlobals.highlightSymbols[index];
+    }
+
+    private getEndSymbol(index: number): string {
+        return bracketHighlightGlobals.highlightSymbols[index];
     }
 
 }

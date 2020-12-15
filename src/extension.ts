@@ -7,8 +7,8 @@ import { bracketHighlightGlobals } from './GlobalsHandler';
 import { SearchDirection } from './GlobalsHandler';
 import * as SymbolFinder from './SymbolFinder';
 import * as SymbolHandler from './SymbolHandler';
-import ConfigHandler from './ConfigHandler';
 import ActionHandler from './ActionHandler';
+import * as Util from './Util';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -95,13 +95,15 @@ function handleTextSelectionEvent() {
 	let rangesForHighlight: Array<vscode.Range>[] = [];
 	let startSymbol: { symbol: string, offset: number } = { symbol: "", offset: 0 };
 	for (let selection of activeEditor.selections) {
-		startSymbol = getStartSymbolFromPosition(activeEditor, selection.active, 0);
+		let symbolType: Util.SymbolType = bracketHighlightGlobals.reverseSearchEnabled ? Util.SymbolType.ALLSYMBOLS : Util.SymbolType.STARTSYMBOL;
+		startSymbol = Util.getSymbolFromPosition(activeEditor, selection.active, symbolType, 0);
 		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
 		if (scopeRanges.highlightRanges.length === 0) {
 			return;
 		}
 		rangesForHighlight.push(scopeRanges.highlightRanges);
 		rangesForBlur.push(scopeRanges.blurRanges);
+		bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
 	}
 	rangesForHighlight = rangesForHighlight.filter(range => range.length > 0);
 	rangesForBlur = rangesForBlur.filter(range => range.length > 0);
@@ -119,6 +121,7 @@ function getSelectionRange(activeEditor: vscode.TextEditor, startSymbol: string,
 		if (rangeText.includes(counterPartSymbol)) {
 			selectionRange = possibleRange;
 			usedSymbol = counterPartSymbol;
+			bracketHighlightGlobals.highlightSymbols.push(startSymbol);
 		}
 	}
 	return { selectionRange, usedSymbol };
@@ -278,8 +281,8 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 	for (let textRange of textRanges) {
 		decorationTypes = decorationTypes.concat(highlighter.highlightRanges(activeEditor, decorationHandler, textRange));
 	}
-	bracketHighlightGlobals.decorationStatus = true;
 	bracketHighlightGlobals.decorationTypes = decorationTypes;
+	bracketHighlightGlobals.decorationStatus = true;
 	bracketHighlightGlobals.highlightRanges = textRanges;
 }
 
@@ -291,82 +294,8 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 		let highlighter = new Highlighter.Highlighter();
 		highlighter.removeHighlights(bracketHighlightGlobals.decorationTypes);
 		bracketHighlightGlobals.decorationStatus = false;
-	}
-}
-
-/******************************************************************************************************************************************
-* Gets a valid start symbol and its offset from the given selection. Returns "" if no symbol is found.
-*	activeEditor: Editor containting the selectionStart
-*	selectionStart: Where searching for symbols shall start
-*	functionCount: Number specifying how often the function has been called (used to find symbols around the selectionStart)
-******************************************************************************************************************************************/
-function getStartSymbolFromPosition(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, functionCount: number): {
-	symbol: string, offset: number
-} {
-	const maxFunctionCount: number = 2;
-	if (functionCount >= maxFunctionCount) {
-		return { symbol: "", offset: 0 };
-	}
-	let symbolHandler = new SymbolHandler.SymbolHandler;
-	let symbolFinder = new SymbolFinder.SymbolFinder;
-	let validSymbols = symbolHandler.getValidSymbols();
-	let longestSymbolLength = validSymbols.reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
-	let startPosition = new vscode.Position(selectionStart.line, 0);
-	let endPosition = new vscode.Position(selectionStart.line, selectionStart.character + longestSymbolLength);
-	let selectionLineText = activeEditor.document.getText(new vscode.Range(startPosition, endPosition));
-	let stringPosition = selectionStart.character;
-	let selectionSymbol = selectionLineText[stringPosition];
-	const containsSymbol = (symbol: string) => symbol.indexOf(selectionSymbol) !== -1;
-	validSymbols = validSymbols.filter(containsSymbol);
-	let tempValidSymbols = validSymbols;
-	while (validSymbols.some(containsSymbol)) {
-		if (stringPosition === 0) {
-			selectionSymbol = " " + selectionSymbol;
-			break;
-		}
-		else {
-			stringPosition--;
-		}
-		selectionSymbol = selectionLineText[stringPosition] + selectionSymbol;
-		tempValidSymbols = tempValidSymbols.filter(containsSymbol);
-		if (tempValidSymbols.length !== 0) {
-			validSymbols = validSymbols.filter(containsSymbol);
-		}
-	}
-	if (selectionSymbol === undefined) {
-		if (selectionStart.character === 0) {
-			return { symbol: "", offset: 0 };
-		}
-		return getStartSymbolFromPosition(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
-	}
-	if (bracketHighlightGlobals.regexMode && symbolFinder.isSymbolEscaped(selectionSymbol)) {
-		return { symbol: "", offset: 0 };
-	}
-	selectionSymbol = selectionSymbol.substr(1, selectionSymbol.length - 1);
-	stringPosition = selectionStart.character;
-	while (validSymbols.some(containsSymbol) && selectionSymbol !== "") {
-		stringPosition++;
-		if (selectionLineText[stringPosition] === undefined) {
-			selectionSymbol = selectionSymbol + " ";
-			break;
-		}
-		selectionSymbol = selectionSymbol + selectionLineText[stringPosition];
-		tempValidSymbols = tempValidSymbols.filter(containsSymbol);
-		if (tempValidSymbols.length !== 0) {
-			validSymbols = validSymbols.filter(containsSymbol);
-		}
-	}
-	selectionSymbol = selectionSymbol.substr(0, selectionSymbol.length - 1);
-	let symbol = selectionSymbol;
-	if (symbolHandler.isValidStartSymbol(symbol) || symbolHandler.isValidEndSymbol(symbol)) {
-		return { symbol: symbol, offset: -functionCount };
-	}
-	else {
-		if (selectionStart.character === 0) {
-
-			return { symbol: "", offset: 0 };
-		}
-		return getStartSymbolFromPosition(activeEditor, selectionStart.translate(0, -1), functionCount + 1);
+		bracketHighlightGlobals.highlightSymbols = [];
+		bracketHighlightGlobals.highlightRanges = [];
 	}
 }
 
@@ -508,27 +437,41 @@ function isSelectionInPreviousRange(currentSelection: vscode.Selection): boolean
 }
 
 /******************************************************************************************************************************************
+* Clears the timeout of the global timer handle and resets the timer.
+******************************************************************************************************************************************/
+function clearTimer() {
+	clearTimeout(bracketHighlightGlobals.disableTimer);
+	bracketHighlightGlobals.disableTimer = null;
+}
+
+/******************************************************************************************************************************************
+* Business logic, which shall be executed once the timeout with the configured time span occurs.
+******************************************************************************************************************************************/
+function timeoutFunction() {
+	setTextSelectionEventHandling(true);
+	bracketHighlightGlobals.lastSelection = undefined;
+	handleTextSelectionEvent();
+	bracketHighlightGlobals.disableTimer = null;
+}
+
+/******************************************************************************************************************************************
 * Handles the selection change event. Enables/Disables the extension for a certain amount of time.
 *	currentSelection: Selection used to determine if highlighting is necessary
 ******************************************************************************************************************************************/
 function onSelectionChangeEvent(currentSelection: vscode.Selection) {
 	if (isSelectionInPreviousRange(currentSelection)) {
 		if (bracketHighlightGlobals.disableTimer !== null) {
-			clearTimeout(bracketHighlightGlobals.disableTimer);
-			bracketHighlightGlobals.disableTimer = null;
+			clearTimer();
 		}
 		setTextSelectionEventHandling(false);
-		bracketHighlightGlobals.disableTimer = setTimeout(function () {
-			setTextSelectionEventHandling(true);
-			bracketHighlightGlobals.lastSelection = undefined;
-			handleTextSelectionEvent();
-			bracketHighlightGlobals.disableTimer = null;
-		}, bracketHighlightGlobals.timeOutValue);
+		bracketHighlightGlobals.disableTimer = setTimeout(
+			timeoutFunction,
+			bracketHighlightGlobals.timeOutValue
+		);
 	}
 	else {
 		if (bracketHighlightGlobals.disableTimer !== null) {
-			clearTimeout(bracketHighlightGlobals.disableTimer);
-			bracketHighlightGlobals.disableTimer = null;
+			clearTimer();
 		}
 		setTextSelectionEventHandling(true);
 	}

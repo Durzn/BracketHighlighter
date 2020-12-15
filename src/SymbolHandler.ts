@@ -48,15 +48,6 @@ export default class SymbolHandler {
         });
     }
 
-    public getValidSymbols(): Array<string> {
-        let startSymbols: Array<string> = this.getValidStartSymbols();
-        let endSymbols: Array<string> = [];
-        if (bracketHighlightGlobals.reverseSearchEnabled === true) {
-            endSymbols = this.getValidEndSymbols();
-        }
-        return startSymbols.concat(endSymbols);
-    }
-
     public getValidStartSymbols(): Array<string> {
         return bracketHighlightGlobals.allowedStartSymbols;
     }
