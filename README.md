@@ -1,11 +1,11 @@
-## About this Visual Studio Code extension
+# About this Visual Studio Code extension
 
 This extension is for people that want a more "in the face" approach on highlighting content between symbols. \
 Symbols can be custom defined, the extension is not limited to only brackets. Sadly the extension name cannot be changed retroactively. \
 It provides a very configurable CSS style markup for the whole text between opening and closing symbols or only the symbols themselves. \
 There are preset options for all kinds of brackets.
 
-## Features
+# Features
 
 Finds the corresponding symbol for the currently selected configured symbol and adds decorations to the text inbetween or only to the symbols themselves. 
 
@@ -61,7 +61,7 @@ Finds the corresponding symbol for the currently selected configured symbol and 
 ![](assets/hotkeyActions.gif)
 
 
-## Extension Settings
+# Extension Settings
 
 This extension contributes the following settings:
 
@@ -102,7 +102,7 @@ E.g.
 * `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
 * `BracketHighlighter.textColor`: Sets the color of the highlighted text.
 
-## Hotkeys provided by extension
+# Hotkeys provided by extension
 
 This extension provides several hotkeys to work with highlighted symbols.
 
@@ -118,16 +118,20 @@ Refer to https://www.w3schools.com/cssref/ for all CSS options.
 Refer to https://code.visualstudio.com/docs/languages/identifiers for available language identifiers.
 Refer to https://www.w3schools.com/cssref/css_colors_legal.asp for possible color values.
 
-## Known Issues
+# Known Issues
 High CPU usage can occur. This cannot be avoided, because the extension has to search through the text in a file.
 If it gets too bad, try increasing the timeOutValue and/or reduce the maxLineSearchCount.
 
 Multiple ranges to highlight which share the same parent scope don't behave well with the blurring option enabled.
 This will likely not be fixed.
 
-## Release Notes
+# Release Notes
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
+
+## [2.2.3]
+- The hotkey actions will now take the length of the symbols into account. This means that custom symbols should now be
+    handled properly.
 
 ## [2.2.2]
 - Removed font size multiplicator, since it caused issues when zooming. 
@@ -136,14 +140,10 @@ Only the latest 3 releases will be shown here.
 ## [2.2.1]
 - Fixed issue where HighlightScopeFromText sometimes wouldn't work correctly
 
-## [2.2.0]
-- Added support for highlighting of symbols share the same opening or closing symbols
-- Added option to change the font size of highlighted text
-
-## Planned improvements
+# Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.
 
-## Feature requests and bug reports
+# Feature requests and bug reports
 Please mail them to me at dev@durzn.com or create an open issue at https://github.com/Durzn/BracketHighlighter
 Thanks to everyone reporting issues and requesting new features. The extension wouldn't be anywhere near where it currently is without these.
 
@@ -152,3 +152,9 @@ Thanks to everyone reporting issues and requesting new features. The extension w
 for the great extension icon. See more from her on her instagram page https://www.instagram.com/art_of_bini/
 ## You
 for using this extension :)
+
+# Support
+I'm working on projects like this extension in my free time. 
+If you want to buy me a coffee to keep me awake for more work on my projects, I'd greatly appreciate it.
+
+<a href="https://www.buymeacoffee.com/Durzn" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
