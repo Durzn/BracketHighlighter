@@ -121,7 +121,6 @@ function getSelectionRange(activeEditor: vscode.TextEditor, startSymbol: string,
 		if (rangeText.includes(counterPartSymbol)) {
 			selectionRange = possibleRange;
 			usedSymbol = counterPartSymbol;
-			bracketHighlightGlobals.highlightSymbols.push(startSymbol);
 		}
 	}
 	return { selectionRange, usedSymbol };
@@ -168,10 +167,12 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 			startSymbol.symbol = symbolRanges[currentIndex].symbol;
 			counterPartSymbols = symbolHandler.getCounterParts(symbolRanges[currentIndex].symbol);
 			startPosition = symbolRanges[currentIndex].symbolPosition;
+			validSymbols = symbolHandler.getValidSymbolsWithSameEndSymbol(startSymbol.symbol);
 			selectionRange = getSelectionRange(activeEditor, startSymbol.symbol, validSymbols, counterPartSymbols, startPosition);
 			currentIndex++;
 		} while (selectionRange.selectionRange.length === 0 && currentIndex < symbolRanges.length);
 	}
+	bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 		selectionRange.selectionRange = selectionRange.selectionRange.reverse();
 	}
