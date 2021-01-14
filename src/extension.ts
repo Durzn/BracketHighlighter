@@ -141,6 +141,7 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 	let counterPartSymbols: Array<string> = [];
 	let symbolHandler = new SymbolHandler.SymbolHandler();
 	let startPosition: vscode.Position = new vscode.Position(0, 0);
+	let symbolRanges: Array<{ symbol: string, symbolPosition: vscode.Position }> = [];
 	bracketHighlightGlobals.searchDirection = (symbolHandler.isValidStartSymbol(startSymbol.symbol)) ? SearchDirection.FORWARDS : SearchDirection.BACKWARDS;
 	if (startSymbol.symbol !== "") {
 		startPosition = getStartPosition(activeEditor, selection.active, startSymbol.symbol, startSymbol.offset);
@@ -150,18 +151,27 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 		startPosition = selection.active;
 		let symbolFinder = new SymbolFinder.SymbolFinder();
 		let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
-		let symbolData = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, symbolHandler.getUniqueValidStartSymbols(), symbolHandler.getUniqueValidEndSymbols());
-		if (symbolData.symbol === "") {
-			/* No symbol found, return empty ranges */
+		symbolRanges = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, symbolHandler.getUniqueValidStartSymbols(), symbolHandler.getUniqueValidEndSymbols());
+		if (symbolRanges.length === 0) {
 			return { highlightRanges: [], blurRanges: [] };
 		}
-		startSymbol.symbol = symbolData.symbol;
-		counterPartSymbols = symbolHandler.getCounterParts(symbolData.symbol);
+		startSymbol.symbol = symbolRanges[0].symbol;
+		counterPartSymbols = symbolHandler.getCounterParts(symbolRanges[0].symbol);
 		bracketHighlightGlobals.searchDirection = SearchDirection.FORWARDS;
-		startPosition = symbolData.symbolPosition;
+		startPosition = symbolRanges[0].symbolPosition;
 	}
 	let validSymbols = symbolHandler.getValidSymbolsWithSameEndSymbol(startSymbol.symbol);
 	selectionRange = getSelectionRange(activeEditor, startSymbol.symbol, validSymbols, counterPartSymbols, startPosition);
+	if (bracketHighlightGlobals.highlightScopeFromText === true && selectionRange.selectionRange.length === 0) {
+		let currentIndex = 1; /* The first symbol was already checked in the lines above */
+		do {
+			startSymbol.symbol = symbolRanges[currentIndex].symbol;
+			counterPartSymbols = symbolHandler.getCounterParts(symbolRanges[currentIndex].symbol);
+			startPosition = symbolRanges[currentIndex].symbolPosition;
+			selectionRange = getSelectionRange(activeEditor, startSymbol.symbol, validSymbols, counterPartSymbols, startPosition);
+			currentIndex++;
+		} while (selectionRange.selectionRange.length === 0 && currentIndex < symbolRanges.length);
+	}
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 		selectionRange.selectionRange = selectionRange.selectionRange.reverse();
 	}

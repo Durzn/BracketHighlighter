@@ -202,9 +202,9 @@ export default class SymbolFinder {
         return [];
     }
 
-    public findDepth1Backwards(activeEditor: vscode.TextEditor, startPosition: vscode.Position, textLines: Array<string>, symbols: Array<string>, counterPartSymbols: Array<string>): {
+    public findDepth1Backwards(activeEditor: vscode.TextEditor, startPosition: vscode.Position, textLines: Array<string>, symbols: Array<string>, counterPartSymbols: Array<string>): Array<{
         symbol: string, symbolPosition: vscode.Position
-    } {
+    }> {
         textLines = textLines.reverse();
         let textRanges: Array<Array<vscode.Range>> = [];
         let foundSymbols: Array<string> = [];
@@ -222,40 +222,19 @@ export default class SymbolFinder {
             }
             this.depth = 0;
         }
-        let minLength = Number.MAX_SAFE_INTEGER;
-        let symbolIndex: number = 0;
-        let symbolPosition: number = 0;
-        let lineNumber: number = 0;
-        if (textRanges.length === 0) {
-            return {
-                symbol: "",
-                symbolPosition: new vscode.Position(0, 0),
-            };
-        }
+        let possibleRanges: Array<{
+            symbol: string, symbolPosition: vscode.Position
+        }> = [];
         for (let i = 0; i < textRanges.length; i++) {
             let textRange = textRanges[i];
             if (textRange.length === 0) {
                 continue;
             }
-            let tempLineNumber: number = textRange[textRange.length - 1].start.line;
-            let textLine: vscode.TextLine = activeEditor.document.lineAt(tempLineNumber);
-            let symbolIndices: number[] = this.findIndicesOfSymbol(textLine.text, foundSymbols[i]);
-            let tempSymbolPosition: number = symbolIndices[symbolIndices.length - 1];
-            /* If two symbols are on the same line: choose the one closest to the end of the line! */
-            /* If one symbol is on a higher line number: Use this symbol, since it will be closer to the cursor (since the search is upwards!) */
-            if (tempLineNumber > lineNumber || (tempSymbolPosition > symbolPosition && tempLineNumber === lineNumber)) {
-                minLength = textRange.length;
-                symbolIndex = i;
-                symbolPosition = tempSymbolPosition;
-                lineNumber = tempLineNumber;
-            }
+            let textRangeLine = textRanges[i][textRanges[i].length - 1].start.line;
+            let textRangeCharacter = textRanges[i][textRanges[i].length - 1].start.character;
+            possibleRanges.push({ symbol: foundSymbols[i], symbolPosition: new vscode.Position(textRangeLine, textRangeCharacter) })
         }
-        let textRangeLine = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.line;
-        let textRangeCharacter = textRanges[symbolIndex][textRanges[symbolIndex].length - 1].start.character;
-        return {
-            symbol: foundSymbols[symbolIndex],
-            symbolPosition: new vscode.Position(textRangeLine, textRangeCharacter),
-        };
+        return possibleRanges.sort((a, b) => { return a.symbolPosition.isBefore(b.symbolPosition) === true ? 1 : -1 });
     }
 }
 
