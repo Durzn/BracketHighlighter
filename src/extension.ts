@@ -163,14 +163,14 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 	selectionRange = getSelectionRange(activeEditor, startSymbol.symbol, validSymbols, counterPartSymbols, startPosition);
 	if (bracketHighlightGlobals.highlightScopeFromText === true && selectionRange.selectionRange.length === 0) {
 		let currentIndex = 1; /* The first symbol was already checked in the lines above */
-		do {
+		while (selectionRange.selectionRange.length === 0 && currentIndex < symbolRanges.length) {
 			startSymbol.symbol = symbolRanges[currentIndex].symbol;
 			counterPartSymbols = symbolHandler.getCounterParts(symbolRanges[currentIndex].symbol);
 			startPosition = symbolRanges[currentIndex].symbolPosition;
 			validSymbols = symbolHandler.getValidSymbolsWithSameEndSymbol(startSymbol.symbol);
 			selectionRange = getSelectionRange(activeEditor, startSymbol.symbol, validSymbols, counterPartSymbols, startPosition);
 			currentIndex++;
-		} while (selectionRange.selectionRange.length === 0 && currentIndex < symbolRanges.length);
+		}
 	}
 	bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
