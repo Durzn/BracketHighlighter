@@ -70,21 +70,6 @@ export default class GlobalsHandler {
         this.regexMode = this.configHandler.regexMode();
 
     }
-
-    public getLongestSymbolLength(): number {
-        let longestStartSymbolLength = this.getLongestStartSymbolLength();
-        let longestEndSymbolLength = this.getLongestEndSymbolLength();
-        return longestStartSymbolLength > longestEndSymbolLength ? longestStartSymbolLength : longestEndSymbolLength;
-    }
-
-    public getLongestStartSymbolLength(): number {
-        let startSymbols = this.allowedStartSymbols;
-        return startSymbols.reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
-    }
-    public getLongestEndSymbolLength(): number {
-        let endSymbols = this.allowedEndSymbols;
-        return endSymbols.reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
-    }
 }
 
 var bracketHighlightGlobals: GlobalsHandler = new GlobalsHandler();
