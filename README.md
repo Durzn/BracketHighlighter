@@ -129,6 +129,10 @@ This will likely not be fixed.
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [2.2.4]
+  If a symbol with no end symbol was included within a different symbol, nothing would get highlighted when trying to highlight from the scope of the symbols.  
+  Example: { [ | }  
+  Expected behavior: The cursor ("|") is placed within {}, therefore this should be highlighted, even though "[" is the closest symbol to the cursor  
 ## [2.2.3]
 - The hotkey actions will now take the length of the symbols into account. This means that custom symbols should now be
     handled properly.
@@ -136,9 +140,6 @@ Only the latest 3 releases will be shown here.
 ## [2.2.2]
 - Removed font size multiplicator, since it caused issues when zooming. 
     Reasoning: There is no official support through the TextEditorDecorationType class, and the font size cannot be dynamically determined through the vscode API, so this feature will not be maintained and was therefore removed.
-
-## [2.2.1]
-- Fixed issue where HighlightScopeFromText sometimes wouldn't work correctly
 
 # Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.
@@ -158,3 +159,5 @@ I'm working on projects like this extension in my free time.
 If you want to buy me a coffee to keep me awake for more work on my projects, I'd greatly appreciate it.
 
 <a href="https://www.buymeacoffee.com/Durzn" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+
+I also gladly accept ``Cardano`` over this address: ``addr1qyz4hp9a5m844c5dn7nz56vget0lcx2lxg9eg02x9nyg82m7306tyvjqygl08grv79tm2jw0sh9lg8nr5u0g0qvf2nlsw376z4``

@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.4]
+  If a symbol with no end symbol was included within a different symbol, nothing would get highlighted when trying to highlight from the scope of the symbols.
+  Example: { [ | }
+  Expected behavior: The cursor ("|") is placed within {}, therefore this should be highlighted, even though "[" is the closest symbol to the cursor
 ## [2.2.3]
 - The hotkey actions will now take the length of the symbols into account. This means that custom symbols should now be
     handled properly.
