@@ -232,9 +232,9 @@ export default class SymbolFinder {
             }
             let textRangeLine = textRanges[i][textRanges[i].length - 1].start.line;
             let textRangeCharacter = textRanges[i][textRanges[i].length - 1].start.character;
-            possibleRanges.push({ symbol: foundSymbols[i], symbolPosition: new vscode.Position(textRangeLine, textRangeCharacter) })
+            possibleRanges.push({ symbol: foundSymbols[i], symbolPosition: new vscode.Position(textRangeLine, textRangeCharacter) });
         }
-        return possibleRanges.sort((a, b) => { return a.symbolPosition.isBefore(b.symbolPosition) === true ? 1 : -1 });
+        return possibleRanges.sort((a, b) => { return a.symbolPosition.isBefore(b.symbolPosition) === true ? 1 : -1; });
     }
 }
 
