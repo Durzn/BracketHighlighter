@@ -51,6 +51,10 @@ Finds the corresponding symbol for the currently selected configured symbol and 
 
 ![](assets/blur.gif)
 
+- **separate highlighting of symbols and content**
+
+![](assets/separateHighlighting.gif)
+
 
 - **... Lots of additional possibilities. Just configure it the way you like it.**
 
@@ -74,13 +78,20 @@ This extension contributes the following settings:
 * `BracketHighlighter.useBraces`: enables highlighting between braces '{}'.
 * `BracketHighlighter.useBrackets`: enables highlighting between brackets '[]'.
 * `BracketHighlighter.useAngularBrackets`: enables highlighting between angular brackets '<>'.
-* `BracketHighlighter.fontWeight`: CSS-style setting specifying the weight of the font. E.g. 'bold'
-* `BracketHighlighter.fontStyle`: CSS-style setting specifying the style of the font. E.g. 'oblique'
-* `BracketHighlighter.letterSpacing`: CSS-style setting specifying the space between letters. E.g. '1px'
-* `BracketHighlighter.outline`: CSS-style setting specifying the outline of the text. E.g. '2px dashed blue'
-* `BracketHighlighter.border`: CSS-style setting specifying the border around the text. E.g. '4px dotted blue'
-* `BracketHighlighter.backgroundColor`: CSS-style setting specifying the color in the background of the text. E.g. 'coral'
-* `BracketHighlighter.textDecoration`: CSS-style setting specifying additional decorations around the text. E.g. 'underline' 
+* `BracketHighlighter.fontWeight`: fontWeight in CSS style. E.g. 'bold'. If separate highlighting for symbols and content is used, this parameter is used for the content
+* `BracketHighlighter.fontStyle`: fontStyle in CSS style. E.g. 'oblique'. If separate highlighting for symbols and content is used, this parameter is used for the content
+* `BracketHighlighter.letterSpacing`: letterSpacing in CSS style. E.g. '1px'. If separate highlighting for symbols and content is used, this parameter is used for the content
+* `BracketHighlighter.outline`: outline in CSS style. E.g. '2px dashed blue'. If separate highlighting for symbols and content is used, this parameter is used for the content
+* `BracketHighlighter.border`: border in CSS style. E.g. '4px dotted blue'. If separate highlighting for symbols and content is used, this parameter is used for the content
+* `BracketHighlighter.backgroundColor`: backgroundColor in CSS style. E.g. 'coral'. If separate highlighting for symbols and content is used, this parameter is used for the content
+* `BracketHighlighter.differentSymbolHighlightingUsed`: If enabled, separate text decorations can be used for symbols and content.
+* `BracketHighlighter.fontWeightSymbol`: Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontWeight in CSS style. E.g. 'bold'
+* `BracketHighlighter.fontStyleSymbol`: Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontStyle in CSS style. E.g. 'oblique'
+* `BracketHighlighter.letterSpacingSymbol`: Parameter is used for symbols only if separate highlighting for symbols and content is enabled: letterSpacing in CSS style. E.g. '1px'
+* `BracketHighlighter.outlineSymbol`: Parameter is used for symbols only if separate highlighting for symbols and content is enabled: outline in CSS style. E.g. '2px dashed blue'
+* `BracketHighlighter.borderSymbol`: Parameter is used for symbols only if separate highlighting for symbols and content is enabled: border in CSS style. E.g. '4px dotted blue'
+* `BracketHighlighter.backgroundColorSymbol`: Parameter is used for symbols only if separate highlighting for symbols and content is enabled: backgroundColor in CSS style. E.g. 'coral'
+* `BracketHighlighter.textDecorationSymbol`: Parameter is used for symbols only if separate highlighting for symbols and content is enabled: textDecoration in CSS style. E.g. 'underline'
 * `BracketHighlighter.activeInDebugMode`: Enables the extension when debugging. 
 * `BracketHighlighter.blurOutOfScopeText`: Enables a blur effect on non-highlighted text. (Opacity depends on blurOpacity value)
 * `BracketHighlighter.blurOpacity`: Sets the opacity of the blurred out text. E.g. 0.5
@@ -129,6 +140,9 @@ This will likely not be fixed.
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [2.3.0]
+  Added an option to have separate highlighting options for symbols and content.
+
 ## [2.2.4]
   If a symbol with no end symbol was included within a different symbol, nothing would get highlighted when trying to highlight from the scope of the symbols.  
   Example: { [ | }  
@@ -136,10 +150,6 @@ Only the latest 3 releases will be shown here.
 ## [2.2.3]
 - The hotkey actions will now take the length of the symbols into account. This means that custom symbols should now be
     handled properly.
-
-## [2.2.2]
-- Removed font size multiplicator, since it caused issues when zooming. 
-    Reasoning: There is no official support through the TextEditorDecorationType class, and the font size cannot be dynamically determined through the vscode API, so this feature will not be maintained and was therefore removed.
 
 # Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.

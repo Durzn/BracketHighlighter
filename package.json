@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "2.2.4",
+	"version": "2.3.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -29,6 +29,12 @@
 				"title": "BracketHighlighter",
 				"properties": {
 					"BracketHighlighter.textColor": {
+						"type": "string",
+						"default": "#9FFF0F",
+						"description": "The color of the highlighted text.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.textColorSymbol": {
 						"type": "string",
 						"default": "#9FFF0F",
 						"description": "The color of the highlighted text.",
@@ -95,43 +101,91 @@
 					"BracketHighlighter.fontWeight": {
 						"type": "string",
 						"default": "",
-						"description": "fontWeight in CSS style. E.g. 'bold'",
+						"description": "fontWeight in CSS style. E.g. 'bold'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
 						"scope": "resource"
 					},
 					"BracketHighlighter.fontStyle": {
 						"type": "string",
 						"default": "",
-						"description": "fontStyle in CSS style. E.g. 'oblique'",
+						"description": "fontStyle in CSS style. E.g. 'oblique'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
 						"scope": "resource"
 					},
 					"BracketHighlighter.letterSpacing": {
 						"type": "string",
 						"default": "",
-						"description": "letterSpacing in CSS style. E.g. '1px'",
+						"description": "letterSpacing in CSS style. E.g. '1px'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
 						"scope": "resource"
 					},
 					"BracketHighlighter.outline": {
 						"type": "string",
 						"default": "",
-						"description": "outline in CSS style. E.g. '2px dashed blue'",
+						"description": "outline in CSS style. E.g. '2px dashed blue'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
 						"scope": "resource"
 					},
 					"BracketHighlighter.border": {
 						"type": "string",
 						"default": "",
-						"description": "border in CSS style. E.g. '4px dotted blue'",
+						"description": "border in CSS style. E.g. '4px dotted blue'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
 						"scope": "resource"
 					},
 					"BracketHighlighter.backgroundColor": {
 						"type": "string",
 						"default": "",
-						"description": "backgroundColor in CSS style. E.g. 'coral'",
+						"description": "backgroundColor in CSS style. E.g. 'coral'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
 						"scope": "resource"
 					},
 					"BracketHighlighter.textDecoration": {
 						"type": "string",
 						"default": "",
-						"description": "textDecoration in CSS style. E.g. 'underline'",
+						"description": "textDecoration in CSS style. E.g. 'underline'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.differentSymbolHighlightingUsed": {
+						"type": "boolean",
+						"default": false,
+						"description": "If enabled, separate text decorations can be used for symbols and content.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.fontWeightSymbol": {
+						"type": "string",
+						"default": "",
+						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontWeight in CSS style. E.g. 'bold'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.fontStyleSymbol": {
+						"type": "string",
+						"default": "",
+						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontStyle in CSS style. E.g. 'oblique'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.letterSpacingSymbol": {
+						"type": "string",
+						"default": "",
+						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: letterSpacing in CSS style. E.g. '1px'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.outlineSymbol": {
+						"type": "string",
+						"default": "",
+						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: outline in CSS style. E.g. '2px dashed blue'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.borderSymbol": {
+						"type": "string",
+						"default": "",
+						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: border in CSS style. E.g. '4px dotted blue'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.backgroundColorSymbol": {
+						"type": "string",
+						"default": "",
+						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: backgroundColor in CSS style. E.g. 'coral'",
+						"scope": "resource"
+					},
+					"BracketHighlighter.textDecorationSymbol": {
+						"type": "string",
+						"default": "",
+						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: textDecoration in CSS style. E.g. 'underline'",
 						"scope": "resource"
 					},
 					"BracketHighlighter.activeInDebugMode": {
