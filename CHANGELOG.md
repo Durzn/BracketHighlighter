@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.3.1]
+  Fixed issue with text selection between symbols.
+
 ## [2.3.0]
   Added an option to have separate highlighting options for symbols and content.
   

@@ -140,6 +140,9 @@ This will likely not be fixed.
 For all notes please refer to the changelog.
 Only the latest 3 releases will be shown here.
 
+## [2.3.1]
+  Fixed issue with text selection between symbols.
+  
 ## [2.3.0]
   Added an option to have separate highlighting options for symbols and content.
 
@@ -147,9 +150,6 @@ Only the latest 3 releases will be shown here.
   If a symbol with no end symbol was included within a different symbol, nothing would get highlighted when trying to highlight from the scope of the symbols.  
   Example: { [ | }  
   Expected behavior: The cursor ("|") is placed within {}, therefore this should be highlighted, even though "[" is the closest symbol to the cursor  
-## [2.2.3]
-- The hotkey actions will now take the length of the symbols into account. This means that custom symbols should now be
-    handled properly.
 
 # Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.
