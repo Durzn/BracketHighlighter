@@ -17,7 +17,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*",
+		"onStartupFinished",
 		"onCommand:BracketHighlighter.toggleExtensionStatus",
 		"onCommand:BracketHighlighter.jumpToOpeningSymbol",
 		"onCommand:BracketHighlighter.jumpToClosingSymbol"
