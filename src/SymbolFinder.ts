@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as SymbolHandler from './SymbolHandler';
-import { bracketHighlightGlobals, SearchDirection } from './GlobalsHandler';
+import { bracketHighlightGlobals } from './GlobalsHandler';
 
 export default class SymbolFinder {
 

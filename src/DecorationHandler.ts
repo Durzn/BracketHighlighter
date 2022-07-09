@@ -1,10 +1,27 @@
 import * as vscode from 'vscode';
-import * as ConfigHandler from './ConfigHandler';
+import { bracketHighlightGlobals } from './GlobalsHandler';
+
+export const enum DecorationType {
+    SYMBOLS,
+    CONTENT
+}
 
 export default class DecorationHandler {
+
+    public decorationType: DecorationType;
+
+    constructor(decorationType: DecorationType = DecorationType.CONTENT) {
+        this.decorationType = decorationType;
+    }
+
     public getDecorationType(): vscode.TextEditorDecorationType {
-        let configHandler = new ConfigHandler.ConfigHandler();
-        let decorationOptions = configHandler.getDecorationOptions();
+        let decorationOptions;
+        if (this.decorationType === DecorationType.CONTENT) {
+            decorationOptions = bracketHighlightGlobals.contentDecorationOptions;
+        }
+        else {
+            decorationOptions = bracketHighlightGlobals.symbolDecorationOptions;
+        }
         let decorationType: vscode.TextEditorDecorationType = vscode.window.createTextEditorDecorationType({
             color: decorationOptions.color,
             fontWeight: decorationOptions.fontWeight,
@@ -20,28 +37,3 @@ export default class DecorationHandler {
         return decorationType;
     }
 }
-
-export class DecorationOptions {
-    public readonly color?: string;
-    public readonly fontWeight?: string;
-    public readonly fontStyle?: string;
-    public readonly letterSpacing?: string;
-    public readonly outline?: string;
-    public readonly border?: string;
-    public readonly backgroundColor?: string;
-    public readonly textDecoration?: string;
-    public readonly overviewColor?: string;
-
-    constructor(fontWeight?: string, fontStyle?: string, letterSpacing?: string, outline?: string, border?: string, textDecoration?: string, backgroundColor?: string, color?: string) {
-        this.color = color;
-        this.fontWeight = fontWeight;
-        this.fontStyle = fontStyle;
-        this.letterSpacing = letterSpacing;
-        this.outline = outline;
-        this.border = border;
-        this.textDecoration = textDecoration;
-        this.backgroundColor = backgroundColor;
-    }
-}
-
-export { DecorationHandler };

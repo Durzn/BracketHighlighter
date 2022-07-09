@@ -1,15 +1,16 @@
 import * as vscode from 'vscode';
-import DecorationHandler, { DecorationOptions } from './DecorationHandler';
-import * as ConfigHandler from './ConfigHandler';
+import { DecorationType } from './DecorationHandler';
+import DecorationOptions from './DecorationOptions';
+import ConfigHandler from './ConfigHandler';
 
-enum SearchDirection {
+const enum SearchDirection {
     FORWARDS,
     BACKWARDS
 }
 
 export default class GlobalsHandler {
 
-    public configHandler: ConfigHandler.ConfigHandler;
+    public configHandler: ConfigHandler;
 
     public decorationStatus: boolean;
     public decorationTypes: Array<vscode.TextEditorDecorationType>;
@@ -25,7 +26,8 @@ export default class GlobalsHandler {
     public opacity!: string;
     public activeWhenDebugging!: boolean;
     public maxLineSearchCount!: number;
-    public decorationOptions!: DecorationOptions;
+    public symbolDecorationOptions!: DecorationOptions;
+    public contentDecorationOptions!: DecorationOptions;
     public enabledLanguages!: Array<string>;
     public reverseSearchEnabled!: boolean;
     public allowedStartSymbols!: Array<string>;
@@ -39,7 +41,7 @@ export default class GlobalsHandler {
 
 
     constructor() {
-        this.configHandler = new ConfigHandler.ConfigHandler();
+        this.configHandler = new ConfigHandler();
         this.decorationStatus = false;
         this.decorationTypes = [];
         this.searchDirection = SearchDirection.FORWARDS;
@@ -58,7 +60,8 @@ export default class GlobalsHandler {
         this.textColor = this.configHandler.getTextColor();
         this.activeWhenDebugging = this.configHandler.activeWhenDebugging();
         this.maxLineSearchCount = this.configHandler.getMaxLineSearchCount();
-        this.decorationOptions = this.configHandler.getDecorationOptions();
+        this.symbolDecorationOptions = this.configHandler.getDecorationOptions(DecorationType.SYMBOLS);
+        this.contentDecorationOptions = this.configHandler.getDecorationOptions(DecorationType.CONTENT);
         this.enabledLanguages = this.configHandler.getEnabledLanguages();
         this.reverseSearchEnabled = this.configHandler.reverseSearchEnabled();
         this.allowedStartSymbols = this.configHandler.getAllowedStartSymbols();

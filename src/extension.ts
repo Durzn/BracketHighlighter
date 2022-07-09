@@ -1,12 +1,12 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as Highlighter from './Highlighter';
-import * as DecorationHandler from './DecorationHandler';
+import Highlighter from './Highlighter';
+import DecorationHandler, { DecorationType } from './DecorationHandler';
 import { bracketHighlightGlobals } from './GlobalsHandler';
 import { SearchDirection } from './GlobalsHandler';
-import * as SymbolFinder from './SymbolFinder';
-import * as SymbolHandler from './SymbolHandler';
+import SymbolFinder from './SymbolFinder';
+import { SymbolHandler } from './SymbolHandler';
 import ActionHandler from './ActionHandler';
 import * as Util from './Util';
 
@@ -93,10 +93,11 @@ function handleTextSelectionEvent() {
 	removePreviousDecorations();
 	let rangesForBlur: Array<vscode.Range>[] = [];
 	let rangesForHighlight: Array<vscode.Range>[] = [];
-	let startSymbol: { symbol: string, offset: number } = { symbol: "", offset: 0 };
+	let startSymbol: Util.SymbolWithOffset = { symbol: "", relativeOffset: 0, absoluteOffset: 0 };
+	let symbolHandler = new SymbolHandler();
 	for (let selection of activeEditor.selections) {
 		let symbolType: Util.SymbolType = bracketHighlightGlobals.reverseSearchEnabled ? Util.SymbolType.ALLSYMBOLS : Util.SymbolType.STARTSYMBOL;
-		startSymbol = Util.getSymbolFromPosition_legacy(activeEditor, selection.active, symbolType, 0);
+		startSymbol = Util.getSymbolFromPosition(activeEditor, selection.active, symbolType);
 		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
 		if (scopeRanges.highlightRanges.length === 0) {
 			return;
@@ -105,15 +106,32 @@ function handleTextSelectionEvent() {
 		rangesForBlur.push(scopeRanges.blurRanges);
 		bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
 	}
+	let endSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
+	let endSymbol = "";
+	let usedRange = rangesForHighlight[0][0];
+	if (symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
+		usedRange = rangesForHighlight[rangesForHighlight.length - 1][rangesForHighlight[rangesForHighlight.length - 1].length - 1];
+	}
+	endSymbol = getUsedCounterPartSymbol(activeEditor, endSymbols, usedRange)
 	rangesForHighlight = rangesForHighlight.filter(range => range.length > 0);
 	rangesForBlur = rangesForBlur.filter(range => range.length > 0);
-	handleHighlightRanges(activeEditor, rangesForHighlight);
+	handleHighlightRanges(activeEditor, rangesForHighlight, startSymbol, endSymbol);
 	blurNonHighlightedRanges(activeEditor, rangesForBlur);
+}
+
+function getUsedCounterPartSymbol(activeEditor: vscode.TextEditor, endSymbols: Array<string>, range: vscode.Range): string {
+	let rangeText = activeEditor.document.getText(range);
+	for (let endSymbol of endSymbols) {
+		if (rangeText.includes(endSymbol, rangeText.length - endSymbol.length)) {
+			return endSymbol;
+		}
+	}
+	return "";
 }
 
 function getSelectionRange(activeEditor: vscode.TextEditor, startSymbol: string, startSymbols: Array<string>, counterPartSymbols: string[], startPosition: vscode.Position): { selectionRange: vscode.Range[], usedSymbol: string } {
 	let selectionRange: vscode.Range[] = [];
-	let symbolFinder = new SymbolFinder.SymbolFinder();
+	let symbolFinder = new SymbolFinder();
 	let usedSymbol: string = "";
 	for (let counterPartSymbol of counterPartSymbols) {
 		let possibleRange = symbolFinder.findMatchingSymbolPosition(activeEditor, startSymbol, startSymbols, counterPartSymbol, counterPartSymbols, startPosition);
@@ -133,22 +151,22 @@ function getSelectionRange(activeEditor: vscode.TextEditor, startSymbol: string,
 *	selection: Current selection
 *	startSymbol: Symbol containing the offset from the cursor and the string representation
 ******************************************************************************************************************************************/
-function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: { symbol: string, offset: number }): { highlightRanges: vscode.Range[], blurRanges: vscode.Range[] } {
+function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: Util.SymbolWithOffset): { highlightRanges: vscode.Range[], blurRanges: vscode.Range[] } {
 	let selectionRange: { selectionRange: vscode.Range[], usedSymbol: string } = { selectionRange: [], usedSymbol: "" };
 	let rangesForBlur: vscode.Range[] = [];
 	let rangesForHighlight: vscode.Range[] = [];
 	let counterPartSymbols: Array<string> = [];
-	let symbolHandler = new SymbolHandler.SymbolHandler();
+	let symbolHandler = new SymbolHandler();
 	let startPosition: vscode.Position = new vscode.Position(0, 0);
 	let symbolRanges: Array<{ symbol: string, symbolPosition: vscode.Position }> = [];
 	bracketHighlightGlobals.searchDirection = (symbolHandler.isValidStartSymbol(startSymbol.symbol)) ? SearchDirection.FORWARDS : SearchDirection.BACKWARDS;
 	if (startSymbol.symbol !== "") {
-		startPosition = getStartPosition(activeEditor, selection.active, startSymbol.symbol, startSymbol.offset);
+		startPosition = getStartPosition(activeEditor, selection.active, startSymbol.symbol, startSymbol.relativeOffset);
 		counterPartSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
 	}
 	else if (bracketHighlightGlobals.highlightScopeFromText === true) {
 		startPosition = selection.active;
-		let symbolFinder = new SymbolFinder.SymbolFinder();
+		let symbolFinder = new SymbolFinder();
 		let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
 		symbolRanges = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, symbolHandler.getUniqueValidStartSymbols(), symbolHandler.getUniqueValidEndSymbols());
 		if (symbolRanges.length === 0) {
@@ -198,7 +216,7 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 *	range: Range to blur
 ******************************************************************************************************************************************/
 function blurRange(activeEditor: vscode.TextEditor, range: vscode.Range) {
-	let highlighter = new Highlighter.Highlighter();
+	let highlighter = new Highlighter();
 	let decorationType: vscode.TextEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
 			opacity: bracketHighlightGlobals.opacity
@@ -285,13 +303,46 @@ function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, co
 *	activeEditor: Editor containing the ranges
 *	textRanges: Ranges to highlight
 ******************************************************************************************************************************************/
-function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Array<vscode.Range>[]) {
-	let highlighter = new Highlighter.Highlighter();
-	let decorationHandler = new DecorationHandler.DecorationHandler();
+function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Array<vscode.Range>[], startSymbol: Util.SymbolWithOffset, endSymbol: string) {
+	let highlighter = new Highlighter();
+	let symbolHandler = new SymbolHandler();
+	let contentDecorationHandler = new DecorationHandler(DecorationType.CONTENT);
+	let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
 	let decorationTypes: Array<vscode.TextEditorDecorationType> = [];
-	for (let textRange of textRanges) {
-		decorationTypes = decorationTypes.concat(highlighter.highlightRanges(activeEditor, decorationHandler, textRange));
+	let startSymbolRange: vscode.Range[] = [];
+	let endSymbolRange: vscode.Range[] = [];
+	let symbolRanges: Array<vscode.Range>[] = [];
+	let contentRanges: Array<vscode.Range>[] = textRanges;
+	let firstRange = contentRanges[0][0];
+	let lastRange = contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1];
+
+	contentRanges[0][0] = new vscode.Range(firstRange.start.translate(0, startSymbol.symbol.length), firstRange.end);
+	contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1] = new vscode.Range(lastRange.start, lastRange.end.translate(0, -endSymbol.length));
+
+	if (!symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
+		let tempRange = firstRange;
+		firstRange = lastRange;
+		lastRange = tempRange;
 	}
+
+	let startOffset = firstRange.start.translate(0, startSymbol.symbol.length);
+
+	startSymbolRange.push(new vscode.Range(firstRange.start, startOffset));
+	endSymbolRange.push(new vscode.Range(lastRange.start, lastRange.start.translate(0, endSymbol.length)));
+	firstRange = new vscode.Range(firstRange.start, startOffset);
+	lastRange = new vscode.Range(lastRange.start, lastRange.end.translate(0, -endSymbol.length));
+
+	symbolRanges.push(startSymbolRange);
+	symbolRanges.push(endSymbolRange);
+
+	for (let symbolRange of symbolRanges) {
+		decorationTypes = decorationTypes.concat(highlighter.highlightRanges(activeEditor, symbolDecorationHandler, symbolRange));
+	}
+
+	for (let contentRange of contentRanges) {
+		decorationTypes = decorationTypes.concat(highlighter.highlightRanges(activeEditor, contentDecorationHandler, contentRange));
+	}
+
 	bracketHighlightGlobals.decorationTypes = decorationTypes;
 	bracketHighlightGlobals.decorationStatus = true;
 	bracketHighlightGlobals.highlightRanges = textRanges;
@@ -302,7 +353,7 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 ******************************************************************************************************************************************/
 function removePreviousDecorations() { /* TODO: extend this for multiple editors */
 	if (bracketHighlightGlobals.decorationStatus === true) {
-		let highlighter = new Highlighter.Highlighter();
+		let highlighter = new Highlighter();
 		highlighter.removeHighlights(bracketHighlightGlobals.decorationTypes);
 		bracketHighlightGlobals.decorationStatus = false;
 		bracketHighlightGlobals.highlightSymbols = [];
@@ -318,7 +369,7 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 *	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
 ******************************************************************************************************************************************/
 function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
-	let symbolFinder = new SymbolFinder.SymbolFinder();
+	let symbolFinder = new SymbolFinder();
 	let internalOffset = -offset;
 	let oldSelectionStartPosition: vscode.Position = selectionStart.translate(0, offset);
 	let newSelectionStartPosition: vscode.Position = selectionStart.translate(0, offset);
@@ -368,7 +419,7 @@ function getPositionInTextForwardSearch(activeEditor: vscode.TextEditor, selecti
 *	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
 ******************************************************************************************************************************************/
 function getPositionInTextBackwardSearch(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, startSymbol: string, offset: number): vscode.Position {
-	let symbolFinder = new SymbolFinder.SymbolFinder();
+	let symbolFinder = new SymbolFinder();
 	let symbolLength: number = startSymbol.length;
 	let internalOffset: number = offset;
 	let oldSelectionStartPosition: vscode.Position = selectionStart;

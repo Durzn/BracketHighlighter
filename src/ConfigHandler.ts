@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import * as DecorationOptions from "./DecorationHandler";
+import { DecorationType } from './DecorationHandler';
+import DecorationOptions from './DecorationOptions';
 
 export default class ConfigHandler {
     constructor() { }
@@ -53,17 +54,46 @@ export default class ConfigHandler {
         return maxLineSearchCount;
     }
 
-    public getDecorationOptions(): DecorationOptions.DecorationOptions {
+    public getDecorationOptions(decorationType: DecorationType): DecorationOptions {
         const config = this.getConfiguration();
-        let fontWeight: string | undefined = config.get("fontWeight");
-        let fontStyle: string | undefined = config.get("fontStyle");
-        let letterSpacing: string | undefined = config.get("letterSpacing");
-        let outline: string | undefined = config.get("outline");
-        let border: string | undefined = config.get("border");
-        let backgroundColor: string | undefined = config.get("backgroundColor");
-        let textDecoration: string | undefined = config.get("textDecoration");
-        let textColor: string | undefined = config.get("textColor");
-        return new DecorationOptions.DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor, textColor);
+        let fontWeight: string | undefined = undefined;
+        let fontStyle: string | undefined = undefined;
+        let letterSpacing: string | undefined = undefined;
+        let outline: string | undefined = undefined;
+        let border: string | undefined = undefined;
+        let backgroundColor: string | undefined = undefined;
+        let textDecoration: string | undefined = undefined;
+        let textColor: string | undefined = undefined;
+        if (decorationType === DecorationType.SYMBOLS && this.isDifferentSymbolHighlightingUsed()) {
+            fontWeight = config.get("fontWeightSymbol");
+            fontStyle = config.get("fontStyleSymbol");
+            letterSpacing = config.get("letterSpacingSymbol");
+            outline = config.get("outlineSymbol");
+            border = config.get("borderSymbol");
+            backgroundColor = config.get("backgroundColorSymbol");
+            textDecoration = config.get("textDecorationSymbol");
+            textColor = config.get("textColorSymbol");
+        }
+        else {
+            fontWeight = config.get("fontWeight");
+            fontStyle = config.get("fontStyle");
+            letterSpacing = config.get("letterSpacing");
+            outline = config.get("outline");
+            border = config.get("border");
+            backgroundColor = config.get("backgroundColor");
+            textDecoration = config.get("textDecoration");
+            textColor = config.get("textColor");
+        }
+        return new DecorationOptions(fontWeight, fontStyle, letterSpacing, outline, border, textDecoration, backgroundColor, textColor);
+    }
+
+    private isDifferentSymbolHighlightingUsed(): boolean {
+        const config = this.getConfiguration();
+        let differentHighlightingUsed: boolean | undefined = config.get("differentSymbolHighlightingUsed");
+        if(!differentHighlightingUsed) {
+            differentHighlightingUsed = false;
+        }
+        return differentHighlightingUsed;
     }
 
     public getEnabledLanguages(): Array<string> {

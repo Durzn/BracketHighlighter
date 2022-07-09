@@ -1,17 +1,16 @@
-import { Range } from 'vscode';
-import * as vscode from 'vscode';
-import * as DecorationHandler from './DecorationHandler';
+import { Range, TextEditor, TextEditorDecorationType, DecorationOptions } from 'vscode';
+import DecorationHandler from './DecorationHandler';
 
 export default class Highlighter {
 
-    public highlightRange(editor: vscode.TextEditor, decorationType: vscode.TextEditorDecorationType, range: Range): void {
-        const decorationOptions: vscode.DecorationOptions[] = [];
+    public highlightRange(editor: TextEditor, decorationType: TextEditorDecorationType, range: Range): void {
+        const decorationOptions: DecorationOptions[] = [];
         const decoration = { range };
         decorationOptions.push(decoration);
         editor.setDecorations(decorationType, decorationOptions);
     }
 
-    public highlightRanges(editor: vscode.TextEditor, decorationHandler: DecorationHandler.DecorationHandler, ranges: Array<Range>): Array<vscode.TextEditorDecorationType> {
+    public highlightRanges(editor: TextEditor, decorationHandler: DecorationHandler, ranges: Array<Range>): Array<TextEditorDecorationType> {
         let decorationTypes = [];
         for (let range of ranges) {
             let decorationType = decorationHandler.getDecorationType();
@@ -21,12 +20,12 @@ export default class Highlighter {
         return decorationTypes;
     }
 
-    public removeHighlight(decorationType: vscode.TextEditorDecorationType): void {
+    public removeHighlight(decorationType: TextEditorDecorationType): void {
         decorationType.dispose();
     }
 
 
-    public removeHighlights(decorationTypes: Array<vscode.TextEditorDecorationType>) {
+    public removeHighlights(decorationTypes: Array<TextEditorDecorationType>) {
         for (let decorationType of decorationTypes) {
             this.removeHighlight(decorationType);
         }
