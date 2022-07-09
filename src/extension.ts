@@ -312,7 +312,8 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 	let startSymbolRange: vscode.Range[] = [];
 	let endSymbolRange: vscode.Range[] = [];
 	let symbolRanges: Array<vscode.Range>[] = [];
-	let contentRanges: Array<vscode.Range>[] = textRanges;
+	let contentRanges: Array<vscode.Range>[] = [];
+	textRanges.forEach(val => contentRanges.push(Object.assign([], val)));
 	let firstRange = contentRanges[0][0];
 	let lastRange = contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1];
 
