@@ -238,6 +238,15 @@ export default class ConfigHandler {
         }
         return regexMode;
     }
+
+    public isInsideOfSymbolsIgnored(): boolean {
+        let config = this.getConfiguration();
+        let isIgnored: boolean | undefined = config.get("ignoreInsideOfSymbols");
+        if (isIgnored === undefined) {
+            isIgnored = false;
+        }
+        return isIgnored;
+    }
 }
 
 export { ConfigHandler };

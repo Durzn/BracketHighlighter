@@ -227,6 +227,12 @@
 						"default": false,
 						"description": "If enabled, escaped symbols will be ignored.",
 						"scope": "resource"
+					},
+					"BracketHighlighter.ignoreInsideOfSymbols": {
+						"type": "boolean",
+						"default": false,
+						"description": "If enabled, highlighting will only occur when the outside of a symbol is selected.",
+						"scope": "resource"
 					}
 				}
 			}
