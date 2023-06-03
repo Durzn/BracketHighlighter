@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as SymbolHandler from './SymbolHandler';
+import { SymbolHandler } from './SymbolHandler';
 import { bracketHighlightGlobals } from './GlobalsHandler';
 
 export default class SymbolFinder {
@@ -191,7 +191,7 @@ export default class SymbolFinder {
     }
 
     public findMatchingSymbolPosition(activeEditor: vscode.TextEditor, validSymbol: string, validSymbols: Array<string>, counterPartSymbol: string, counterPartSymbols: Array<string>, startPosition: vscode.Position): Array<vscode.Range> {
-        let symbolHandler = new SymbolHandler.SymbolHandler();
+        let symbolHandler = new SymbolHandler();
         this.depth = 0;
         if (symbolHandler.isValidStartSymbol(validSymbol) === true) {
             return this.findForwards(activeEditor, validSymbols, counterPartSymbol, counterPartSymbols, startPosition, 0);
@@ -202,13 +202,13 @@ export default class SymbolFinder {
         return [];
     }
 
-    public findDepth1Backwards(activeEditor: vscode.TextEditor, startPosition: vscode.Position, textLines: Array<string>, symbols: Array<string>, counterPartSymbols: Array<string>): Array<{
+    public findDepth1Backwards(activeEditor: vscode.TextEditor, startPosition: vscode.Position, textLines: Array<string>, symbols: Array<string>): Array<{
         symbol: string, symbolPosition: vscode.Position
     }> {
         textLines = textLines.reverse();
         let textRanges: Array<Array<vscode.Range>> = [];
         let foundSymbols: Array<string> = [];
-        let symbolHandler = new SymbolHandler.SymbolHandler();
+        let symbolHandler = new SymbolHandler();
         for (let startSymbol of symbols) {
             let counterPartSymbols = symbolHandler.getCounterParts(startSymbol);
             let possibleRange = this.findBackwards(activeEditor, [startSymbol], counterPartSymbols, startPosition, 1);

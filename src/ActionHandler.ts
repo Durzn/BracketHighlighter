@@ -118,7 +118,7 @@ export default class HotkeyHandler {
     }
 
     private getEndSymbolAtPosition(activeEditor: vscode.TextEditor, symbol: string, position: vscode.Position): string {
-        return Util.getSymbolFromPosition_legacy(activeEditor, position, Util.SymbolType.ENDSYMBOL, 0).symbol;
+        return Util.getSymbolFromPosition(activeEditor, position, Util.SymbolType.ENDSYMBOL).symbol;
     }
 
     private correctStartPosition(startSymbol: string, startPosition: vscode.Position): vscode.Position {

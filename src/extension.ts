@@ -168,7 +168,7 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 		startPosition = selection.active;
 		let symbolFinder = new SymbolFinder();
 		let textLines = activeEditor.document.getText(new vscode.Range(activeEditor.document.positionAt(0), startPosition)).split("\n");
-		symbolRanges = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, symbolHandler.getUniqueValidStartSymbols(), symbolHandler.getUniqueValidEndSymbols());
+		symbolRanges = symbolFinder.findDepth1Backwards(activeEditor, startPosition, textLines, symbolHandler.getUniqueValidStartSymbols());
 		if (symbolRanges.length === 0) {
 			return { highlightRanges: [], blurRanges: [] };
 		}
@@ -196,12 +196,7 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 	}
 	if (bracketHighlightGlobals.ignoreContent) {
 		rangesForBlur = rangesForBlur.concat(selectionRange.selectionRange);
-		if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
-			rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange.selectionRange, selectionRange.usedSymbol.length, startSymbol.symbol.length));
-		}
-		else {
-			rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange.selectionRange, startSymbol.symbol.length, selectionRange.usedSymbol.length));
-		}
+		rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange.selectionRange, startSymbol.symbol.length, selectionRange.usedSymbol.length, bracketHighlightGlobals.searchDirection));
 	}
 	else {
 		rangesForHighlight = rangesForHighlight.concat(selectionRange.selectionRange);
@@ -273,7 +268,7 @@ function blurNonHighlightedRanges(activeEditor: vscode.TextEditor, highlightRang
 *	startSymbolLength: Length of the start symbol
 *	counterPartSymbolLength: Length of the counter part symbol
 ******************************************************************************************************************************************/
-function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, counterPartSymbolLength: number): vscode.Range[] {
+function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, counterPartSymbolLength: number, searchDirection: SearchDirection): vscode.Range[] {
 	let returnRanges: vscode.Range[] = [];
 	let startPosition: vscode.Position;
 	let endPosition: vscode.Position;
@@ -287,6 +282,11 @@ function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, co
 	else {
 		startPosition = textRanges[0].start;
 		endPosition = textRanges[textRanges.length - 1].end;
+	}
+	if (searchDirection === SearchDirection.BACKWARDS) {
+		let tempLength = startSymbolLength
+		startSymbolLength = counterPartSymbolLength
+		counterPartSymbolLength = tempLength
 	}
 	let endPositionOpeningBracket: vscode.Position = startPosition.translate(0, startSymbolLength);
 	let startPositionClosingBracket: vscode.Position = endPosition.translate(0, -counterPartSymbolLength);
