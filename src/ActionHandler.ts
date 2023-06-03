@@ -16,10 +16,7 @@ export default class HotkeyHandler {
         if (!activeEditor) {
             return;
         }
-        let newSelectionPositions: vscode.Position[] = [];
-        for (let range of bracketHighlightGlobals.highlightRanges) {
-            newSelectionPositions.push(range[0].start);
-        }
+        let newSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions();
         this.setSelectionPositions(activeEditor, newSelectionPositions);
     }
 
@@ -28,10 +25,7 @@ export default class HotkeyHandler {
         if (!activeEditor) {
             return;
         }
-        let newSelectionPositions: vscode.Position[] = [];
-        for (let range of bracketHighlightGlobals.highlightRanges) {
-            newSelectionPositions.push(range[range.length - 1].end);
-        }
+        let newSelectionPositions = this.getClosingSymbolOutsideSelectionPositions();
         this.setSelectionPositions(activeEditor, newSelectionPositions);
     }
 
@@ -40,15 +34,7 @@ export default class HotkeyHandler {
         if (!activeEditor) {
             return;
         }
-        let newSelectionPositions: vscode.Position[] = [];
-        for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
-            let range = bracketHighlightGlobals.highlightRanges[index];
-            let symbol = this.getStartSymbol(index);
-            let newSelectionPosition = range[0].start;
-            newSelectionPosition = this.correctStartPosition(symbol, newSelectionPosition);
-            newSelectionPosition = newSelectionPosition.translate(0, 1);
-            newSelectionPositions.push(newSelectionPosition);
-        }
+        let newSelectionPositions = this.getOpeningSymbolInsideSelectionPositions();
         this.setSelectionPositions(activeEditor, newSelectionPositions);
     }
     public onJumpToClosingSymbolHotkey() {
@@ -56,21 +42,38 @@ export default class HotkeyHandler {
         if (!activeEditor) {
             return;
         }
-        let newSelectionPositions: vscode.Position[] = [];
-        for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
-            let range = bracketHighlightGlobals.highlightRanges[index];
-            let symbol = this.getStartSymbol(index);
-            let newSelectionPosition = range[range.length - 1].end;
-            let counterPartSymbol = this.getEndSymbolAtPosition(activeEditor, symbol, newSelectionPosition);
-            newSelectionPosition = this.correctEndPosition(counterPartSymbol, newSelectionPosition);
-            let offset = -1;
-            if (newSelectionPosition.character === 0) {
-                offset = 0;
-            }
-            newSelectionPosition = newSelectionPosition.translate(0, offset);
-            newSelectionPositions.push(newSelectionPosition);
-        }
+        let newSelectionPositions = this.getClosingSymbolInsideSelectionPositions();
         this.setSelectionPositions(activeEditor, newSelectionPositions);
+    }
+
+    public onjumpBetweenOpeningAndClosingSymbolsHotkey()
+    {
+        let activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor) {
+            return;
+        }
+
+        let openingOutsideSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions();
+        let closingOutsideSelectionPositions = this.getClosingSymbolOutsideSelectionPositions();
+        let openingInsideSelectionPositions = this.getOpeningSymbolInsideSelectionPositions();
+        let closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions();
+
+        let map = new Map<vscode.Position[], vscode.Position[]>();
+        map.set(openingOutsideSelectionPositions, closingOutsideSelectionPositions);
+        map.set(openingInsideSelectionPositions, closingInsideSelectionPositions);
+        map.set(closingInsideSelectionPositions, openingInsideSelectionPositions);
+        map.set(closingOutsideSelectionPositions, openingOutsideSelectionPositions);
+
+        let newSelectionPositions = openingOutsideSelectionPositions;
+        for (let [key, value] of map) {
+            if (activeEditor.selections[0].start.isEqual(key[0])) {
+                newSelectionPositions = value;
+                break;
+            }
+        }
+
+        this.setSelectionPositions(activeEditor, newSelectionPositions);
+        activeEditor.revealRange(activeEditor.selections[0]);
     }
 
     public onSelectTextBetweenSymbolsHotkey() {
@@ -94,6 +97,55 @@ export default class HotkeyHandler {
         this.setSelectionRanges(activeEditor, selectionRanges);
     }
 
+    private getOpeningSymbolOutsideSelectionPositions(): vscode.Position[] {
+        let newSelectionPositions: vscode.Position[] = [];
+        for (let range of bracketHighlightGlobals.highlightRanges) {
+            newSelectionPositions.push(range[0].start);
+        }
+        return newSelectionPositions;
+    }
+
+    private getClosingSymbolOutsideSelectionPositions(): vscode.Position[] {
+        let newSelectionPositions: vscode.Position[] = [];
+        for (let range of bracketHighlightGlobals.highlightRanges) {
+            newSelectionPositions.push(range[range.length - 1].end);
+        }
+        return newSelectionPositions;
+    }
+
+    private getOpeningSymbolInsideSelectionPositions(): vscode.Position[] {
+        let newSelectionPositions: vscode.Position[] = [];
+        for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
+            let range = bracketHighlightGlobals.highlightRanges[index];
+            let symbol = this.getStartSymbol(index);
+            let newSelectionPosition = range[0].start;
+            newSelectionPosition = this.correctStartPosition(symbol, newSelectionPosition);
+            newSelectionPosition = newSelectionPosition.translate(0, 1);
+            newSelectionPositions.push(newSelectionPosition);
+        }
+        return newSelectionPositions;
+    }
+
+    private getClosingSymbolInsideSelectionPositions(): vscode.Position[] {
+        let newSelectionPositions: vscode.Position[] = [];
+        let activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor) {
+            for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
+                let range = bracketHighlightGlobals.highlightRanges[index];
+                let symbol = this.getStartSymbol(index);
+                let newSelectionPosition = range[range.length - 1].end;
+                let counterPartSymbol = this.getEndSymbolAtPosition(activeEditor, symbol, newSelectionPosition);
+                newSelectionPosition = this.correctEndPosition(counterPartSymbol, newSelectionPosition);
+                let offset = -1;
+                if (newSelectionPosition.character === 0) {
+                    offset = 0;
+                }
+                newSelectionPosition = newSelectionPosition.translate(0, offset);
+                newSelectionPositions.push(newSelectionPosition);
+            }
+        }
+        return newSelectionPositions;
+    }
 
     private setSelectionPositions(activeEditor: vscode.TextEditor, newPositions: vscode.Position[]) {
         let newSelections: vscode.Selection[] = [];

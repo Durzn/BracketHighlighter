@@ -123,6 +123,7 @@ This extension provides several hotkeys to work with highlighted symbols.
 * `BracketHighlighter.jumpToClosingSymbol`: Jumps to the inside of the closing symbol. (Default hotkey: Ctrl + Alt + RightArrow)
 * `BracketHighlighter.jumpToOpeningSymbol`: Jumps to the inside of the opening symbol. (Default hotkey: Ctrl + Alt + LeftArrow)
 * `BracketHighlighter.selectTextInSymbols`: Selects the whole text between (and not including) the symbols. (Default hotkey: Ctrl + Alt + K)
+* `BracketHighlighter.jumpBetweenOpeningAndClosingSymbols`: Jumps between the opening and closing symbols. (Default hotkey: Ctrl + Alt + \\)
 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
