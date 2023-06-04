@@ -13,7 +13,7 @@ export default class HotkeyHandler {
 
     public onJumpOutOfOpeningSymbolHotkey() {
         let activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
+        if (!activeEditor || bracketHighlightGlobals.highlightRanges.length <= 0) {
             return;
         }
         let newSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions();
@@ -22,7 +22,7 @@ export default class HotkeyHandler {
 
     public onJumpOutOfClosingSymbolHotkey() {
         let activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
+        if (!activeEditor || bracketHighlightGlobals.highlightRanges.length <= 0) {
             return;
         }
         let newSelectionPositions = this.getClosingSymbolOutsideSelectionPositions();
@@ -31,7 +31,7 @@ export default class HotkeyHandler {
 
     public onJumpToOpeningSymbolHotkey() {
         let activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
+        if (!activeEditor || bracketHighlightGlobals.highlightRanges.length <= 0) {
             return;
         }
         let newSelectionPositions = this.getOpeningSymbolInsideSelectionPositions();
@@ -39,17 +39,16 @@ export default class HotkeyHandler {
     }
     public onJumpToClosingSymbolHotkey() {
         let activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
+        if (!activeEditor || bracketHighlightGlobals.highlightRanges.length <= 0) {
             return;
         }
         let newSelectionPositions = this.getClosingSymbolInsideSelectionPositions();
         this.setSelectionPositions(activeEditor, newSelectionPositions);
     }
 
-    public onjumpBetweenOpeningAndClosingSymbolsHotkey()
-    {
+    public onjumpBetweenOpeningAndClosingSymbolsHotkey() {
         let activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
+        if (!activeEditor || bracketHighlightGlobals.highlightRanges.length <= 0) {
             return;
         }
 
@@ -78,7 +77,7 @@ export default class HotkeyHandler {
 
     public onSelectTextBetweenSymbolsHotkey() {
         let activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
+        if (!activeEditor || bracketHighlightGlobals.highlightRanges.length <= 0) {
             return;
         }
         let selectionRanges: vscode.Range[] = [];
@@ -129,7 +128,7 @@ export default class HotkeyHandler {
     private getClosingSymbolInsideSelectionPositions(): vscode.Position[] {
         let newSelectionPositions: vscode.Position[] = [];
         let activeEditor = vscode.window.activeTextEditor;
-        if (activeEditor) {
+        if (activeEditor && bracketHighlightGlobals.highlightRanges.length > 0) {
             for (let index = 0; index < bracketHighlightGlobals.highlightRanges.length; index++) {
                 let range = bracketHighlightGlobals.highlightRanges[index];
                 let symbol = this.getStartSymbol(index);
@@ -185,11 +184,6 @@ export default class HotkeyHandler {
     private getStartSymbol(index: number): string {
         return bracketHighlightGlobals.highlightSymbols[index];
     }
-
-    private getEndSymbol(index: number): string {
-        return bracketHighlightGlobals.highlightSymbols[index];
-    }
-
 }
 
 export { HotkeyHandler };

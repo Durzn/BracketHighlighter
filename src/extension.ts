@@ -102,9 +102,6 @@ function handleTextSelectionEvent() {
 	for (let selection of activeEditor.selections) {
 		let symbolType: Util.SymbolType = bracketHighlightGlobals.reverseSearchEnabled ? Util.SymbolType.ALLSYMBOLS : Util.SymbolType.STARTSYMBOL;
 		startSymbol = Util.getSymbolFromPosition(activeEditor, selection.active, symbolType);
-		if (startSymbol.symbol === '') {
-			return;
-		}
 		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
 		if (scopeRanges.highlightRanges.length === 0) {
 			return;
