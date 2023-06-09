@@ -108,7 +108,6 @@ function handleTextSelectionEvent() {
 		}
 		rangesForHighlight.push(scopeRanges.highlightRanges);
 		rangesForBlur.push(scopeRanges.blurRanges);
-		bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
 	}
 	let endSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
 	let endSymbol = "";
@@ -194,7 +193,6 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 			currentIndex++;
 		}
 	}
-	bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 		selectionRange.selectionRange = selectionRange.selectionRange.reverse();
 	}
@@ -324,6 +322,8 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 		[startSymbol, endSymbol] = [endSymbol, startSymbol];
 	}
+	
+	bracketHighlightGlobals.highlightSymbols.push(startSymbol);
 
 	contentRanges[0][0] = new vscode.Range(firstRange.start.translate(0, startSymbol.length), firstRange.end);
 	contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1] = new vscode.Range(lastRange.start, lastRange.end.translate(0, -endSymbol.length));
