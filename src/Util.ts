@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as ConfigHandler from './ConfigHandler';
 import * as SymbolHandler from './SymbolHandler';
 import { bracketHighlightGlobals } from './GlobalsHandler';
 import SymbolFinder from './SymbolFinder';

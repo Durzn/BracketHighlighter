@@ -98,7 +98,24 @@ function handleTextSelectionEvent() {
 	for (let selection of activeEditor.selections) {
 		let symbolType: Util.SymbolType = bracketHighlightGlobals.reverseSearchEnabled ? Util.SymbolType.ALLSYMBOLS : Util.SymbolType.STARTSYMBOL;
 		startSymbol = Util.getSymbolFromPosition(activeEditor, selection.active, symbolType);
-		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
+
+		let searchDirection: SearchDirection = (symbolHandler.isValidStartSymbol(startSymbol.symbol)) ? SearchDirection.FORWARDS : SearchDirection.BACKWARDS;
+
+		if (startSymbol.symbol === "" && bracketHighlightGlobals.highlightScopeFromText === true) {
+			searchDirection = SearchDirection.FORWARDS;
+		}
+
+		bracketHighlightGlobals.searchDirection = searchDirection;
+
+		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol, searchDirection);
+		if (bracketHighlightGlobals.isInsideOfSymboIgnored) {
+			if (((searchDirection === SearchDirection.FORWARDS) && (startSymbol.relativeOffset !== 0))) {
+				return;
+			}
+			else if (((searchDirection === SearchDirection.BACKWARDS) && (Math.abs(startSymbol.relativeOffset) !== startSymbol.symbol.length))) {
+				return;
+			}
+		}
 		if (scopeRanges.highlightRanges.length === 0) {
 			return;
 		}
@@ -151,7 +168,7 @@ function getSelectionRange(activeEditor: vscode.TextEditor, startSymbol: string,
 *	selection: Current selection
 *	startSymbol: Symbol containing the offset from the cursor and the string representation
 ******************************************************************************************************************************************/
-function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: Util.SymbolWithOffset): { highlightRanges: vscode.Range[], blurRanges: vscode.Range[] } {
+function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selection, startSymbol: Util.SymbolWithOffset, searchDirection: SearchDirection): { highlightRanges: vscode.Range[], blurRanges: vscode.Range[] } {
 	let selectionRange: { selectionRange: vscode.Range[], usedSymbol: string } = { selectionRange: [], usedSymbol: "" };
 	let rangesForBlur: vscode.Range[] = [];
 	let rangesForHighlight: vscode.Range[] = [];
@@ -159,7 +176,6 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 	let symbolHandler = new SymbolHandler();
 	let startPosition: vscode.Position = new vscode.Position(0, 0);
 	let symbolRanges: Array<{ symbol: string, symbolPosition: vscode.Position }> = [];
-	bracketHighlightGlobals.searchDirection = (symbolHandler.isValidStartSymbol(startSymbol.symbol)) ? SearchDirection.FORWARDS : SearchDirection.BACKWARDS;
 	if (startSymbol.symbol !== "") {
 		startPosition = getStartPosition(activeEditor, selection.active, startSymbol.symbol, startSymbol.relativeOffset);
 		counterPartSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
@@ -191,12 +207,12 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 		}
 	}
 	bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
-	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
+	if (searchDirection === SearchDirection.BACKWARDS) {
 		selectionRange.selectionRange = selectionRange.selectionRange.reverse();
 	}
 	if (bracketHighlightGlobals.ignoreContent) {
 		rangesForBlur = rangesForBlur.concat(selectionRange.selectionRange);
-		if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
+		if (searchDirection === SearchDirection.BACKWARDS) {
 			rangesForHighlight = rangesForHighlight.concat(filterSymbols(selectionRange.selectionRange, selectionRange.usedSymbol.length, startSymbol.symbol.length));
 		}
 		else {

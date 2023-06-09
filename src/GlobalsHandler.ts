@@ -38,6 +38,7 @@ export default class GlobalsHandler {
     public timeOutValue!: number;
     public ignoreContent!: boolean;
     public regexMode!: boolean;
+    public isInsideOfSymboIgnored!: boolean;
 
 
     constructor() {
@@ -71,7 +72,7 @@ export default class GlobalsHandler {
         this.timeOutValue = this.configHandler.getTimeOutValue();
         this.ignoreContent = this.configHandler.ignoreContent();
         this.regexMode = this.configHandler.regexMode();
-
+        this.isInsideOfSymboIgnored = this.configHandler.isInsideOfSymboIgnored();
     }
 }
 
