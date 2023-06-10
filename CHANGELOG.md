@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.4.0]
+  Added option to only trigger highlighting from outside of a symbol
+
 ## [2.3.1]
   Fixed issue with text selection between symbols.
 
