@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { bracketHighlightGlobals } from './GlobalsHandler';
 import { ConfigHandler } from './ConfigHandler';
 import * as Util from './Util';
+import assert = require('assert');
 
 export default class HotkeyHandler {
 
@@ -56,19 +57,58 @@ export default class HotkeyHandler {
         let closingOutsideSelectionPositions = this.getClosingSymbolOutsideSelectionPositions();
         let openingInsideSelectionPositions = this.getOpeningSymbolInsideSelectionPositions();
         let closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions();
+        assert(openingOutsideSelectionPositions[0].line === openingInsideSelectionPositions[0].line);
+        assert(closingOutsideSelectionPositions[0].line === closingInsideSelectionPositions[0].line);
 
-        let map = new Map<vscode.Position[], vscode.Position[]>();
-        map.set(openingOutsideSelectionPositions, closingOutsideSelectionPositions);
-        map.set(openingInsideSelectionPositions, closingInsideSelectionPositions);
-        map.set(closingInsideSelectionPositions, openingInsideSelectionPositions);
-        map.set(closingOutsideSelectionPositions, openingOutsideSelectionPositions);
-
-        let newSelectionPositions = openingOutsideSelectionPositions;
-        for (let [key, value] of map) {
-            if (activeEditor.selections[0].start.isEqual(key[0])) {
-                newSelectionPositions = value;
+        let newSelectionPositions: vscode.Position[];
+        let cursorPosition = activeEditor.selection.active;
+        switch (cursorPosition) {
+            case openingOutsideSelectionPositions[0]:
+                newSelectionPositions = closingOutsideSelectionPositions;
                 break;
-            }
+            case closingOutsideSelectionPositions[0]:
+                newSelectionPositions = openingOutsideSelectionPositions;
+                break;
+            case openingInsideSelectionPositions[0]:
+                newSelectionPositions = closingInsideSelectionPositions;
+                break;
+            case closingInsideSelectionPositions[0]:
+                newSelectionPositions = openingInsideSelectionPositions;
+                break;
+
+            default:
+                let openingSymbolRange = new vscode.Range(openingOutsideSelectionPositions[0], openingInsideSelectionPositions[0]);
+                let closingSymbolRange = new vscode.Range(closingInsideSelectionPositions[0], closingOutsideSelectionPositions[0]);
+                if (openingSymbolRange.contains(cursorPosition)) {
+                    let distanceToStart = cursorPosition.character - openingSymbolRange.start.character;
+                    let distanceToEnd = openingSymbolRange.end.character - cursorPosition.character;
+                    assert(distanceToStart >= 0);
+                    assert(distanceToEnd >= 0);
+                    if (distanceToStart < distanceToEnd)
+                        newSelectionPositions = closingOutsideSelectionPositions;
+                    else
+                        newSelectionPositions = closingInsideSelectionPositions;
+                }
+                else if (closingSymbolRange.contains(cursorPosition)) {
+                    let distanceToStart = cursorPosition.character - closingSymbolRange.start.character;
+                    let distanceToEnd = closingSymbolRange.end.character - cursorPosition.character;
+                    assert(distanceToStart >= 0);
+                    assert(distanceToEnd >= 0);
+                    if (distanceToStart < distanceToEnd)
+                        newSelectionPositions = openingInsideSelectionPositions;
+                    else
+                        newSelectionPositions = openingOutsideSelectionPositions;
+                }
+                else {
+                    // If the cursor moves fast, there will be situations where the highlighting
+                    // is still on (= some symbols are green) but the cursor is not in the range
+                    // of any of the opening or closing symbols.
+                    // If the user still desires the cursor to jump in this situation, I do not
+                    // know where the jump destination should be.
+                    // I do not see myself needing this currently. Let's just return here.
+                    return;
+                }
+                break;
         }
 
         this.setSelectionPositions(activeEditor, newSelectionPositions);
@@ -95,6 +135,17 @@ export default class HotkeyHandler {
         }
         this.setSelectionRanges(activeEditor, selectionRanges);
     }
+
+    /*
+        foo() {
+              ^ opening symbol
+             ^ start of opening symbol / outside of opening symbol
+               ^ end of opening symbol / inside of opening symbol
+        }
+        ^ closing symbol
+       ^ start of closing symbol / inside of closing symbol
+         ^ end of closing symbol / outside of closing symbol
+    */
 
     private getOpeningSymbolOutsideSelectionPositions(): vscode.Position[] {
         let newSelectionPositions: vscode.Position[] = [];
