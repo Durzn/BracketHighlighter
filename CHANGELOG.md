@@ -2,6 +2,9 @@
 
 ## [2.4.0]
   Added option to only trigger highlighting from outside of a symbol
+  
+## [2.3.2]
+  Fixed issue where the backwards search would incorrectly highlight text.
 
 ## [2.3.1]
   Fixed issue with text selection between symbols.

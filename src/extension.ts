@@ -132,7 +132,7 @@ function handleTextSelectionEvent() {
 	endSymbol = getUsedCounterPartSymbol(activeEditor, endSymbols, usedRange)
 	rangesForHighlight = rangesForHighlight.filter(range => range.length > 0);
 	rangesForBlur = rangesForBlur.filter(range => range.length > 0);
-	handleHighlightRanges(activeEditor, rangesForHighlight, startSymbol, endSymbol);
+	handleHighlightRanges(activeEditor, rangesForHighlight, startSymbol.symbol, endSymbol);
 	blurNonHighlightedRanges(activeEditor, rangesForBlur);
 }
 
@@ -319,7 +319,7 @@ function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, co
 *	activeEditor: Editor containing the ranges
 *	textRanges: Ranges to highlight
 ******************************************************************************************************************************************/
-function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Array<vscode.Range>[], startSymbol: Util.SymbolWithOffset, endSymbol: string) {
+function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Array<vscode.Range>[], startSymbol: string, endSymbol: string) {
 	let highlighter = new Highlighter();
 	let symbolHandler = new SymbolHandler();
 	let contentDecorationHandler = new DecorationHandler(DecorationType.CONTENT);
@@ -333,16 +333,20 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 	let firstRange = contentRanges[0][0];
 	let lastRange = contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1];
 
-	contentRanges[0][0] = new vscode.Range(firstRange.start.translate(0, startSymbol.symbol.length), firstRange.end);
+	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
+		[startSymbol, endSymbol] = [endSymbol, startSymbol];
+	}
+
+	contentRanges[0][0] = new vscode.Range(firstRange.start.translate(0, startSymbol.length), firstRange.end);
 	contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1] = new vscode.Range(lastRange.start, lastRange.end.translate(0, -endSymbol.length));
 
-	if (!symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
+	if (!symbolHandler.isValidStartSymbol(startSymbol)) {
 		let tempRange = firstRange;
 		firstRange = lastRange;
 		lastRange = tempRange;
 	}
 
-	let startOffset = firstRange.start.translate(0, startSymbol.symbol.length);
+	let startOffset = firstRange.start.translate(0, startSymbol.length);
 
 	startSymbolRange.push(new vscode.Range(firstRange.start, startOffset));
 	endSymbolRange.push(new vscode.Range(lastRange.start, lastRange.start.translate(0, endSymbol.length)));
