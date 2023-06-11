@@ -95,31 +95,34 @@ function handleTextSelectionEvent() {
 
 
 	removePreviousDecorations();
-	let rangesForBlur: Array<vscode.Range>[] = [];
-	let rangesForHighlight: Array<vscode.Range>[] = [];
 	let startSymbol: Util.SymbolWithOffset = { symbol: "", relativeOffset: 0, absoluteOffset: 0 };
 	let symbolHandler = new SymbolHandler();
 	for (let selection of activeEditor.selections) {
+		let rangesForBlur: Array<vscode.Range>[] = [];
+		let rangesForHighlight: Array<vscode.Range>[] = [];
+
 		let symbolType: Util.SymbolType = bracketHighlightGlobals.reverseSearchEnabled ? Util.SymbolType.ALLSYMBOLS : Util.SymbolType.STARTSYMBOL;
 		startSymbol = Util.getSymbolFromPosition(activeEditor, selection.active, symbolType);
 		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
 		if (scopeRanges.highlightRanges.length === 0) {
-			return;
+			continue;
 		}
+
 		rangesForHighlight.push(scopeRanges.highlightRanges);
 		rangesForBlur.push(scopeRanges.blurRanges);
+
+		let endSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
+		let endSymbol = "";
+		let usedRange = rangesForHighlight[0][0];
+		if (symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
+			usedRange = rangesForHighlight[rangesForHighlight.length - 1][rangesForHighlight[rangesForHighlight.length - 1].length - 1];
+		}
+		endSymbol = getUsedCounterPartSymbol(activeEditor, endSymbols, usedRange)
+		rangesForHighlight = rangesForHighlight.filter(range => range.length > 0);
+		rangesForBlur = rangesForBlur.filter(range => range.length > 0);
+		handleHighlightRanges(activeEditor, rangesForHighlight, startSymbol.symbol, endSymbol);
+		blurNonHighlightedRanges(activeEditor, rangesForBlur);
 	}
-	let endSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
-	let endSymbol = "";
-	let usedRange = rangesForHighlight[0][0];
-	if (symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
-		usedRange = rangesForHighlight[rangesForHighlight.length - 1][rangesForHighlight[rangesForHighlight.length - 1].length - 1];
-	}
-	endSymbol = getUsedCounterPartSymbol(activeEditor, endSymbols, usedRange)
-	rangesForHighlight = rangesForHighlight.filter(range => range.length > 0);
-	rangesForBlur = rangesForBlur.filter(range => range.length > 0);
-	handleHighlightRanges(activeEditor, rangesForHighlight, startSymbol.symbol, endSymbol);
-	blurNonHighlightedRanges(activeEditor, rangesForBlur);
 }
 
 function getUsedCounterPartSymbol(activeEditor: vscode.TextEditor, endSymbols: Array<string>, range: vscode.Range): string {
@@ -307,7 +310,6 @@ function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, co
 ******************************************************************************************************************************************/
 function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Array<vscode.Range>[], startSymbol: string, endSymbol: string) {
 	let highlighter = new Highlighter();
-	let symbolHandler = new SymbolHandler();
 	let contentDecorationHandler = new DecorationHandler(DecorationType.CONTENT);
 	let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
 	let decorationTypes: Array<vscode.TextEditorDecorationType> = [];
@@ -322,17 +324,11 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 		[startSymbol, endSymbol] = [endSymbol, startSymbol];
 	}
-	
+
 	bracketHighlightGlobals.highlightSymbols.push(startSymbol);
 
 	contentRanges[0][0] = new vscode.Range(firstRange.start.translate(0, startSymbol.length), firstRange.end);
 	contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1] = new vscode.Range(lastRange.start, lastRange.end.translate(0, -endSymbol.length));
-
-	if (!symbolHandler.isValidStartSymbol(startSymbol)) {
-		let tempRange = firstRange;
-		firstRange = lastRange;
-		lastRange = tempRange;
-	}
 
 	let startOffset = firstRange.start.translate(0, startSymbol.length);
 
@@ -352,9 +348,9 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 		decorationTypes = decorationTypes.concat(highlighter.highlightRanges(activeEditor, contentDecorationHandler, contentRange));
 	}
 
-	bracketHighlightGlobals.decorationTypes = decorationTypes;
+	bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(decorationTypes);
 	bracketHighlightGlobals.decorationStatus = true;
-	bracketHighlightGlobals.highlightRanges = textRanges;
+	bracketHighlightGlobals.highlightRanges = bracketHighlightGlobals.highlightRanges.concat(textRanges);
 }
 
 /******************************************************************************************************************************************
