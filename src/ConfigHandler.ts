@@ -2,6 +2,11 @@ import * as vscode from 'vscode';
 import { DecorationType } from './DecorationHandler';
 import DecorationOptions from './DecorationOptions';
 
+export enum JumpBetweenStrategy {
+    TO_SYMBOL_START = "toSymbolStart",
+    TO_SYMBOL_OPPOSITE_SIDE = "toSymbolOppositeSide"
+}
+
 export default class ConfigHandler {
     constructor() { }
 
@@ -127,11 +132,13 @@ export default class ConfigHandler {
         let customStartSymbols: Array<string> = [];
         let customEndSymbols: Array<string> = [];
         for (let customSymbol of customSymbols) {
-            if (customSymbol.hasOwnProperty("open") && customSymbol.hasOwnProperty("close")) {
-                if (customSymbol.open !== customSymbol.close) {
-                    customStartSymbols.push(customSymbol.open);
-                    customEndSymbols.push(customSymbol.close);
-                }
+            const isGoodSymbolPairs =
+                customSymbol.hasOwnProperty("open") &&
+                customSymbol.hasOwnProperty("close") &&
+                customSymbol.open !== customSymbol.close;
+            if (isGoodSymbolPairs) {
+                customStartSymbols.push(customSymbol.open);
+                customEndSymbols.push(customSymbol.close);
             }
         }
         return {
@@ -237,6 +244,51 @@ export default class ConfigHandler {
             regexMode = false;
         }
         return regexMode;
+    }
+
+    public defaultJumpBetweenStrategy(): JumpBetweenStrategy {
+        let config = this.getConfiguration();
+        let strategy: JumpBetweenStrategy;
+        let strategyStr: string | undefined = config.get("defaultJumpBetweenStrategy");
+        if (strategyStr === undefined) {
+            strategy = JumpBetweenStrategy.TO_SYMBOL_START;
+        }
+        else {
+            const allStrategies = Object.values(JumpBetweenStrategy);
+            strategy = strategyStr as JumpBetweenStrategy;
+            const isValidStrategy = allStrategies.indexOf(strategy) >= 0;
+            if (!isValidStrategy) {
+                strategy = JumpBetweenStrategy.TO_SYMBOL_START;
+            }
+        }
+        return strategy;
+    }
+
+    public preferredJumpBetweenStrategiesBySymbol(): Map<string, JumpBetweenStrategy> {
+        const config = this.getConfiguration();
+        const map = new Map<string, JumpBetweenStrategy>();
+        const customSymbols: any = config.get("customSymbols");
+        if (Array.isArray(customSymbols)) {
+            const allStrategies = Object.values(JumpBetweenStrategy);
+            for (let customSymbol of customSymbols) {
+                const isGoodSymbolPairs =
+                    customSymbol.hasOwnProperty("open") &&
+                    customSymbol.hasOwnProperty("close") &&
+                    customSymbol.open !== customSymbol.close;
+                if (isGoodSymbolPairs) {
+                    if (customSymbol.hasOwnProperty("preferredJumpBetweenStrategy")) {
+                        const strategyStr = customSymbol.preferredJumpBetweenStrategy;
+                        const strategy = strategyStr as JumpBetweenStrategy;
+                        const isValidStrategy = allStrategies.indexOf(strategy) >= 0;
+                        if (isValidStrategy) {
+                            // Let's be lazy and use the open as the key. I think it's okay for now.
+                            map.set(customSymbol.open, strategy);
+                        }
+                    }
+                }
+            }
+        }
+        return map;
     }
 }
 

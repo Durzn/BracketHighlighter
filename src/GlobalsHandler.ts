@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { DecorationType } from './DecorationHandler';
 import DecorationOptions from './DecorationOptions';
-import ConfigHandler from './ConfigHandler';
+import { ConfigHandler, JumpBetweenStrategy } from './ConfigHandler';
 
 const enum SearchDirection {
     FORWARDS,
@@ -38,6 +38,8 @@ export default class GlobalsHandler {
     public timeOutValue!: number;
     public ignoreContent!: boolean;
     public regexMode!: boolean;
+    public defaultJumpBetweenStrategy!: JumpBetweenStrategy;
+    public preferredJumpBetweenStrategiesBySymbol!: Map<string, JumpBetweenStrategy>;
 
 
     constructor() {
@@ -71,6 +73,8 @@ export default class GlobalsHandler {
         this.timeOutValue = this.configHandler.getTimeOutValue();
         this.ignoreContent = this.configHandler.ignoreContent();
         this.regexMode = this.configHandler.regexMode();
+        this.defaultJumpBetweenStrategy = this.configHandler.defaultJumpBetweenStrategy();
+        this.preferredJumpBetweenStrategiesBySymbol = this.configHandler.preferredJumpBetweenStrategiesBySymbol();
 
     }
 }

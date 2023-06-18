@@ -224,6 +224,20 @@
 						"default": false,
 						"description": "If enabled, escaped symbols will be ignored.",
 						"scope": "resource"
+					},
+					"BracketHighlighter.defaultJumpBetweenStrategy": {
+						"type": "string",
+						"description": "Specify the default strategy to be used to jump between opening and closing symbols.",
+						"enum": [
+							"toSymbolStart",
+							"toSymbolOppositeSide"
+						],
+						"enumDescriptions": [
+							"Jump to the start of a symbol. This is the same as VS Code's default \"Go to Bracket\" (Ctrl+Shift+\\) behavior.",
+							"Jump to the opposite side of a symbol."
+						],
+						"default": "toSymbolStart",
+						"scope": "resource"
 					}
 				}
 			}

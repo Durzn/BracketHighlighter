@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import { bracketHighlightGlobals } from './GlobalsHandler';
-import { ConfigHandler } from './ConfigHandler';
+import { ConfigHandler, JumpBetweenStrategy } from './ConfigHandler';
 import * as Util from './Util';
 import assert = require('assert');
 
 /*
     foo() {
-          ^ opening symbol
+          ^ opening symbol / start symbol
          ^ start of opening symbol / outside of opening symbol
            ^ end of opening symbol / inside of opening symbol
     }
-    ^ closing symbol
+    ^ closing symbol / end symbol
    ^ start of closing symbol / inside of closing symbol
      ^ end of closing symbol / outside of closing symbol
 */
@@ -98,9 +98,13 @@ export default class HotkeyHandler {
             }
         }
 
-        let newSelectionPositions: vscode.Position[] = [];
+        const newSelectionPositions: vscode.Position[] = [];
         for (const [symbolPair, cusorPosition] of cursorPositionsBySymbolRangePair) {
-            const newCursorPosition = this.calculateOppositeCursorPosition(symbolPair, cusorPosition);
+            const highlightedOpenSymbol = activeEditor.document.getText(symbolPair[0]);
+            let strategy = bracketHighlightGlobals.preferredJumpBetweenStrategiesBySymbol.get(highlightedOpenSymbol);
+            if (strategy === undefined)
+                strategy = bracketHighlightGlobals.defaultJumpBetweenStrategy;
+            const newCursorPosition = this.calculateOppositeCursorPosition(symbolPair, cusorPosition, strategy);
             newSelectionPositions.push(newCursorPosition);
         }
         this.setSelectionPositions(activeEditor, newSelectionPositions, true);
@@ -177,39 +181,50 @@ export default class HotkeyHandler {
         return newSelectionPositions;
     }
 
-    private calculateOppositeCursorPosition(symbolPairs: SymbolRangePair, cursorPosition: vscode.Position): vscode.Position {
+    private calculateOppositeCursorPosition(symbolPairs: SymbolRangePair, cursorPosition: vscode.Position, strategy: JumpBetweenStrategy): vscode.Position {
         const opening = symbolPairs[0];
         const closing = symbolPairs[1];
         let newCursorPosition: vscode.Position;
-        switch (cursorPosition) {
-            case opening.start: newCursorPosition = closing.end; break;
-            case closing.end: newCursorPosition = opening.start; break;
-            case opening.end: newCursorPosition = closing.start; break;
-            case closing.start: newCursorPosition = opening.end; break;
-            default:
-                if (opening.contains(cursorPosition)) {
-                    const distanceToStart = cursorPosition.character - opening.start.character;
-                    const distanceToEnd = opening.end.character - cursorPosition.character;
-                    assert(distanceToStart >= 0);
-                    assert(distanceToEnd >= 0);
-                    if (distanceToStart < distanceToEnd)
-                        newCursorPosition = closing.end;
-                    else
-                        newCursorPosition = closing.start;
-                }
-                else if (closing.contains(cursorPosition)) {
-                    const distanceToStart = cursorPosition.character - closing.start.character;
-                    const distanceToEnd = closing.end.character - cursorPosition.character;
-                    assert(distanceToStart >= 0);
-                    assert(distanceToEnd >= 0);
-                    if (distanceToStart < distanceToEnd)
-                        newCursorPosition = opening.end;
-                    else
-                        newCursorPosition = opening.start;
-                }
-                else {
-                    newCursorPosition = cursorPosition;
-                }
+
+        if (strategy == JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE) {
+            switch (cursorPosition) {
+                case opening.start: newCursorPosition = closing.end; break;
+                case closing.end: newCursorPosition = opening.start; break;
+                case opening.end: newCursorPosition = closing.start; break;
+                case closing.start: newCursorPosition = opening.end; break;
+                default:
+                    if (opening.contains(cursorPosition)) {
+                        const distanceToStart = cursorPosition.character - opening.start.character;
+                        const distanceToEnd = opening.end.character - cursorPosition.character;
+                        assert(distanceToStart >= 0);
+                        assert(distanceToEnd >= 0);
+                        if (distanceToStart < distanceToEnd)
+                            newCursorPosition = closing.end;
+                        else
+                            newCursorPosition = closing.start;
+                    }
+                    else if (closing.contains(cursorPosition)) {
+                        const distanceToStart = cursorPosition.character - closing.start.character;
+                        const distanceToEnd = closing.end.character - cursorPosition.character;
+                        assert(distanceToStart >= 0);
+                        assert(distanceToEnd >= 0);
+                        if (distanceToStart < distanceToEnd)
+                            newCursorPosition = opening.end;
+                        else
+                            newCursorPosition = opening.start;
+                    }
+                    else {
+                        newCursorPosition = cursorPosition;
+                    }
+            }
+        }
+        else {
+            if (opening.contains(cursorPosition))
+                newCursorPosition = closing.start;
+            else if (closing.contains(cursorPosition))
+                newCursorPosition = opening.start;
+            else
+                newCursorPosition = cursorPosition;
         }
         return newCursorPosition;
     }
