@@ -4,6 +4,19 @@ import { ConfigHandler } from './ConfigHandler';
 import * as Util from './Util';
 import assert = require('assert');
 
+/*
+    foo() {
+          ^ opening symbol
+         ^ start of opening symbol / outside of opening symbol
+           ^ end of opening symbol / inside of opening symbol
+    }
+    ^ closing symbol
+   ^ start of closing symbol / inside of closing symbol
+     ^ end of closing symbol / outside of closing symbol
+*/
+
+type SymbolRangePair = [opening: vscode.Range, closing: vscode.Range];
+
 export default class HotkeyHandler {
 
     public onActivateHotkey() {
@@ -53,66 +66,44 @@ export default class HotkeyHandler {
             return;
         }
 
-        let openingOutsideSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions();
-        let closingOutsideSelectionPositions = this.getClosingSymbolOutsideSelectionPositions();
-        let openingInsideSelectionPositions = this.getOpeningSymbolInsideSelectionPositions();
-        let closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions();
+        const openingOutsideSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions();
+        const closingOutsideSelectionPositions = this.getClosingSymbolOutsideSelectionPositions();
+        const openingInsideSelectionPositions = this.getOpeningSymbolInsideSelectionPositions();
+        const closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions();
+        assert(openingOutsideSelectionPositions.length === openingInsideSelectionPositions.length
+            && closingOutsideSelectionPositions.length === closingInsideSelectionPositions.length
+            && openingOutsideSelectionPositions.length === closingInsideSelectionPositions.length);
         assert(openingOutsideSelectionPositions[0].line === openingInsideSelectionPositions[0].line);
         assert(closingOutsideSelectionPositions[0].line === closingInsideSelectionPositions[0].line);
 
-        let newSelectionPositions: vscode.Position[];
-        let cursorPosition = activeEditor.selection.active;
-        switch (cursorPosition) {
-            case openingOutsideSelectionPositions[0]:
-                newSelectionPositions = closingOutsideSelectionPositions;
-                break;
-            case closingOutsideSelectionPositions[0]:
-                newSelectionPositions = openingOutsideSelectionPositions;
-                break;
-            case openingInsideSelectionPositions[0]:
-                newSelectionPositions = closingInsideSelectionPositions;
-                break;
-            case closingInsideSelectionPositions[0]:
-                newSelectionPositions = openingInsideSelectionPositions;
-                break;
-
-            default:
-                let openingSymbolRange = new vscode.Range(openingOutsideSelectionPositions[0], openingInsideSelectionPositions[0]);
-                let closingSymbolRange = new vscode.Range(closingInsideSelectionPositions[0], closingOutsideSelectionPositions[0]);
-                if (openingSymbolRange.contains(cursorPosition)) {
-                    let distanceToStart = cursorPosition.character - openingSymbolRange.start.character;
-                    let distanceToEnd = openingSymbolRange.end.character - cursorPosition.character;
-                    assert(distanceToStart >= 0);
-                    assert(distanceToEnd >= 0);
-                    if (distanceToStart < distanceToEnd)
-                        newSelectionPositions = closingOutsideSelectionPositions;
-                    else
-                        newSelectionPositions = closingInsideSelectionPositions;
-                }
-                else if (closingSymbolRange.contains(cursorPosition)) {
-                    let distanceToStart = cursorPosition.character - closingSymbolRange.start.character;
-                    let distanceToEnd = closingSymbolRange.end.character - cursorPosition.character;
-                    assert(distanceToStart >= 0);
-                    assert(distanceToEnd >= 0);
-                    if (distanceToStart < distanceToEnd)
-                        newSelectionPositions = openingInsideSelectionPositions;
-                    else
-                        newSelectionPositions = openingOutsideSelectionPositions;
-                }
-                else {
-                    // If the cursor moves fast, there will be situations where the highlighting
-                    // is still on (= some symbols are green) but the cursor is not in the range
-                    // of any of the opening or closing symbols.
-                    // If the user still desires the cursor to jump in this situation, I do not
-                    // know where the jump destination should be.
-                    // I do not see myself needing this currently. Let's just return here.
-                    return;
-                }
-                break;
+        const symbolRangePairs: SymbolRangePair[] = [];
+        for (let i = 0; i < openingOutsideSelectionPositions.length; i++) {
+            const openingSymbolRange = new vscode.Range(openingOutsideSelectionPositions[i], openingInsideSelectionPositions[i]); 
+            const closingSymbolRange = new vscode.Range(closingInsideSelectionPositions[i], closingOutsideSelectionPositions[i]); 
+            const symbolRangePair: SymbolRangePair = [openingSymbolRange, closingSymbolRange];
+            symbolRangePairs.push(symbolRangePair);
         }
 
-        this.setSelectionPositions(activeEditor, newSelectionPositions);
-        activeEditor.revealRange(activeEditor.selections[0]);
+        const cursorPositionsBySymbolRangePair = new Map<SymbolRangePair, vscode.Position>();
+        for (let i = 0; i < activeEditor.selections.length; i++) {
+            const cursorPosition = activeEditor.selections[i].active;
+            for (let j = 0; j < symbolRangePairs.length; j++) {
+                const symbolRangePair = symbolRangePairs[j];
+                if (cursorPositionsBySymbolRangePair.has(symbolRangePair)) {
+                    continue;
+                }
+                if (symbolRangePair[0].contains(cursorPosition) || symbolRangePair[1].contains(cursorPosition)) {
+                    cursorPositionsBySymbolRangePair.set(symbolRangePair, cursorPosition);
+                }
+            }
+        }
+
+        let newSelectionPositions: vscode.Position[] = [];
+        for (const [symbolPair, cusorPosition] of cursorPositionsBySymbolRangePair) {
+            const newCursorPosition = this.calculateOppositeCursorPosition(symbolPair, cusorPosition);
+            newSelectionPositions.push(newCursorPosition);
+        }
+        this.setSelectionPositions(activeEditor, newSelectionPositions, true);
     }
 
     public onSelectTextBetweenSymbolsHotkey() {
@@ -135,17 +126,6 @@ export default class HotkeyHandler {
         }
         this.setSelectionRanges(activeEditor, selectionRanges);
     }
-
-    /*
-        foo() {
-              ^ opening symbol
-             ^ start of opening symbol / outside of opening symbol
-               ^ end of opening symbol / inside of opening symbol
-        }
-        ^ closing symbol
-       ^ start of closing symbol / inside of closing symbol
-         ^ end of closing symbol / outside of closing symbol
-    */
 
     private getOpeningSymbolOutsideSelectionPositions(): vscode.Position[] {
         let newSelectionPositions: vscode.Position[] = [];
@@ -197,12 +177,52 @@ export default class HotkeyHandler {
         return newSelectionPositions;
     }
 
-    private setSelectionPositions(activeEditor: vscode.TextEditor, newPositions: vscode.Position[]) {
+    private calculateOppositeCursorPosition(symbolPairs: SymbolRangePair, cursorPosition: vscode.Position): vscode.Position {
+        const opening = symbolPairs[0];
+        const closing = symbolPairs[1];
+        let newCursorPosition: vscode.Position;
+        switch (cursorPosition) {
+            case opening.start: newCursorPosition = closing.end; break;
+            case closing.end: newCursorPosition = opening.start; break;
+            case opening.end: newCursorPosition = closing.start; break;
+            case closing.start: newCursorPosition = opening.end; break;
+            default:
+                if (opening.contains(cursorPosition)) {
+                    const distanceToStart = cursorPosition.character - opening.start.character;
+                    const distanceToEnd = opening.end.character - cursorPosition.character;
+                    assert(distanceToStart >= 0);
+                    assert(distanceToEnd >= 0);
+                    if (distanceToStart < distanceToEnd)
+                        newCursorPosition = closing.end;
+                    else
+                        newCursorPosition = closing.start;
+                }
+                else if (closing.contains(cursorPosition)) {
+                    const distanceToStart = cursorPosition.character - closing.start.character;
+                    const distanceToEnd = closing.end.character - cursorPosition.character;
+                    assert(distanceToStart >= 0);
+                    assert(distanceToEnd >= 0);
+                    if (distanceToStart < distanceToEnd)
+                        newCursorPosition = opening.end;
+                    else
+                        newCursorPosition = opening.start;
+                }
+                else {
+                    newCursorPosition = cursorPosition;
+                }
+        }
+        return newCursorPosition;
+    }
+
+    private setSelectionPositions(activeEditor: vscode.TextEditor, newPositions: vscode.Position[], revealRange: boolean = false) {
         let newSelections: vscode.Selection[] = [];
         for (let i = 0; i < newPositions.length; i++) {
             newSelections.push(new vscode.Selection(newPositions[i], newPositions[i]));
         }
         activeEditor.selections = newSelections;
+        if (revealRange) {
+            activeEditor.revealRange(activeEditor.selections[0]);
+        }
     }
 
 
