@@ -95,7 +95,7 @@ export default class ConfigHandler {
     private isDifferentSymbolHighlightingUsed(): boolean {
         const config = this.getConfiguration();
         let differentHighlightingUsed: boolean | undefined = config.get("differentSymbolHighlightingUsed");
-        if(!differentHighlightingUsed) {
+        if (!differentHighlightingUsed) {
             differentHighlightingUsed = false;
         }
         return differentHighlightingUsed;
@@ -250,15 +250,16 @@ export default class ConfigHandler {
         let config = this.getConfiguration();
         let strategy: JumpBetweenStrategy;
         let strategyStr: string | undefined = config.get("defaultJumpBetweenStrategy");
+        let defaultStrategy: JumpBetweenStrategy = JumpBetweenStrategy.TO_SYMBOL_START;
         if (strategyStr === undefined) {
-            strategy = JumpBetweenStrategy.TO_SYMBOL_START;
+            strategy = defaultStrategy;
         }
         else {
             const allStrategies = Object.values(JumpBetweenStrategy);
             strategy = strategyStr as JumpBetweenStrategy;
             const isValidStrategy = allStrategies.indexOf(strategy) >= 0;
             if (!isValidStrategy) {
-                strategy = JumpBetweenStrategy.TO_SYMBOL_START;
+                strategy = defaultStrategy;
             }
         }
         return strategy;

@@ -78,8 +78,8 @@ export default class HotkeyHandler {
 
         const symbolRangePairs: SymbolRangePair[] = [];
         for (let i = 0; i < openingOutsideSelectionPositions.length; i++) {
-            const openingSymbolRange = new vscode.Range(openingOutsideSelectionPositions[i], openingInsideSelectionPositions[i]); 
-            const closingSymbolRange = new vscode.Range(closingInsideSelectionPositions[i], closingOutsideSelectionPositions[i]); 
+            const openingSymbolRange = new vscode.Range(openingOutsideSelectionPositions[i], openingInsideSelectionPositions[i]);
+            const closingSymbolRange = new vscode.Range(closingInsideSelectionPositions[i], closingOutsideSelectionPositions[i]);
             const symbolRangePair: SymbolRangePair = [openingSymbolRange, closingSymbolRange];
             symbolRangePairs.push(symbolRangePair);
         }
@@ -234,9 +234,11 @@ export default class HotkeyHandler {
         for (let i = 0; i < newPositions.length; i++) {
             newSelections.push(new vscode.Selection(newPositions[i], newPositions[i]));
         }
-        activeEditor.selections = newSelections;
-        if (revealRange) {
-            activeEditor.revealRange(activeEditor.selections[0]);
+        if (newSelections.length > 0) {
+            activeEditor.selections = newSelections;
+            if (revealRange) {
+                activeEditor.revealRange(activeEditor.selections[0]);
+            }
         }
     }
 
