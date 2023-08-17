@@ -363,6 +363,7 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 		bracketHighlightGlobals.decorationStatus = false;
 		bracketHighlightGlobals.highlightSymbols = [];
 		bracketHighlightGlobals.highlightRanges = [];
+		bracketHighlightGlobals.decorationTypes = [];
 	}
 }
 

@@ -1,0 +1,9 @@
+# Remove everything
+**/**
+
+# Only allow necessary files
+!out/*.js
+!CHANGELOG.md
+!LICENSE
+!README.md
+!assets/**

@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.4.1]
+  Fixed performance issue
+
 ## [2.4.0]
   Added new hotkey action to jump between opening and closing symbols.  
   Special thanks to [@Kotsuha](https://github.com/Kotsuha) for implementing this.
