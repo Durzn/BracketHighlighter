@@ -29,6 +29,9 @@ export function activate(context: vscode.ExtensionContext) {
 	let onJumpToClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToClosingSymbol', () => {
 		actionHandler.onJumpToClosingSymbolHotkey();
 	});
+	let onjumpBetweenOpeningAndClosingSymbolsDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpBetweenOpeningAndClosingSymbols', () => {
+		actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey();
+	});
 	let onSelectTextBetweenSymbols = vscode.commands.registerCommand('BracketHighlighter.selectTextInSymbols', () => {
 		actionHandler.onSelectTextBetweenSymbolsHotkey();
 	});
@@ -39,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(onJumpOutOfClosingSymbolDisposable);
 	context.subscriptions.push(onJumpToOpeningSymbolDisposable);
 	context.subscriptions.push(onJumpToClosingSymbolDisposable);
+	context.subscriptions.push(onjumpBetweenOpeningAndClosingSymbolsDisposable);
 	context.subscriptions.push(onSelectTextBetweenSymbols);
 }
 
@@ -91,32 +95,34 @@ function handleTextSelectionEvent() {
 
 
 	removePreviousDecorations();
-	let rangesForBlur: Array<vscode.Range>[] = [];
-	let rangesForHighlight: Array<vscode.Range>[] = [];
 	let startSymbol: Util.SymbolWithOffset = { symbol: "", relativeOffset: 0, absoluteOffset: 0 };
 	let symbolHandler = new SymbolHandler();
 	for (let selection of activeEditor.selections) {
+		let rangesForBlur: Array<vscode.Range>[] = [];
+		let rangesForHighlight: Array<vscode.Range>[] = [];
+
 		let symbolType: Util.SymbolType = bracketHighlightGlobals.reverseSearchEnabled ? Util.SymbolType.ALLSYMBOLS : Util.SymbolType.STARTSYMBOL;
 		startSymbol = Util.getSymbolFromPosition(activeEditor, selection.active, symbolType);
 		let scopeRanges = getScopeRanges(activeEditor, selection, startSymbol);
 		if (scopeRanges.highlightRanges.length === 0) {
-			return;
+			continue;
 		}
+
 		rangesForHighlight.push(scopeRanges.highlightRanges);
 		rangesForBlur.push(scopeRanges.blurRanges);
-		bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
+
+		let endSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
+		let endSymbol = "";
+		let usedRange = rangesForHighlight[0][0];
+		if (symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
+			usedRange = rangesForHighlight[rangesForHighlight.length - 1][rangesForHighlight[rangesForHighlight.length - 1].length - 1];
+		}
+		endSymbol = getUsedCounterPartSymbol(activeEditor, endSymbols, usedRange)
+		rangesForHighlight = rangesForHighlight.filter(range => range.length > 0);
+		rangesForBlur = rangesForBlur.filter(range => range.length > 0);
+		handleHighlightRanges(activeEditor, rangesForHighlight, startSymbol.symbol, endSymbol);
+		blurNonHighlightedRanges(activeEditor, rangesForBlur);
 	}
-	let endSymbols = symbolHandler.getCounterParts(startSymbol.symbol);
-	let endSymbol = "";
-	let usedRange = rangesForHighlight[0][0];
-	if (symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
-		usedRange = rangesForHighlight[rangesForHighlight.length - 1][rangesForHighlight[rangesForHighlight.length - 1].length - 1];
-	}
-	endSymbol = getUsedCounterPartSymbol(activeEditor, endSymbols, usedRange)
-	rangesForHighlight = rangesForHighlight.filter(range => range.length > 0);
-	rangesForBlur = rangesForBlur.filter(range => range.length > 0);
-	handleHighlightRanges(activeEditor, rangesForHighlight, startSymbol, endSymbol);
-	blurNonHighlightedRanges(activeEditor, rangesForBlur);
 }
 
 function getUsedCounterPartSymbol(activeEditor: vscode.TextEditor, endSymbols: Array<string>, range: vscode.Range): string {
@@ -190,7 +196,6 @@ function getScopeRanges(activeEditor: vscode.TextEditor, selection: vscode.Selec
 			currentIndex++;
 		}
 	}
-	bracketHighlightGlobals.highlightSymbols.push(startSymbol.symbol);
 	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
 		selectionRange.selectionRange = selectionRange.selectionRange.reverse();
 	}
@@ -303,9 +308,8 @@ function filterSymbols(textRanges: vscode.Range[], startSymbolLength: number, co
 *	activeEditor: Editor containing the ranges
 *	textRanges: Ranges to highlight
 ******************************************************************************************************************************************/
-function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Array<vscode.Range>[], startSymbol: Util.SymbolWithOffset, endSymbol: string) {
+function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Array<vscode.Range>[], startSymbol: string, endSymbol: string) {
 	let highlighter = new Highlighter();
-	let symbolHandler = new SymbolHandler();
 	let contentDecorationHandler = new DecorationHandler(DecorationType.CONTENT);
 	let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
 	let decorationTypes: Array<vscode.TextEditorDecorationType> = [];
@@ -317,16 +321,16 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 	let firstRange = contentRanges[0][0];
 	let lastRange = contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1];
 
-	contentRanges[0][0] = new vscode.Range(firstRange.start.translate(0, startSymbol.symbol.length), firstRange.end);
-	contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1] = new vscode.Range(lastRange.start, lastRange.end.translate(0, -endSymbol.length));
-
-	if (!symbolHandler.isValidStartSymbol(startSymbol.symbol)) {
-		let tempRange = firstRange;
-		firstRange = lastRange;
-		lastRange = tempRange;
+	if (bracketHighlightGlobals.searchDirection === SearchDirection.BACKWARDS) {
+		[startSymbol, endSymbol] = [endSymbol, startSymbol];
 	}
 
-	let startOffset = firstRange.start.translate(0, startSymbol.symbol.length);
+	bracketHighlightGlobals.highlightSymbols.push(startSymbol);
+
+	contentRanges[0][0] = new vscode.Range(firstRange.start.translate(0, startSymbol.length), firstRange.end);
+	contentRanges[contentRanges.length - 1][contentRanges[contentRanges.length - 1].length - 1] = new vscode.Range(lastRange.start, lastRange.end.translate(0, -endSymbol.length));
+
+	let startOffset = firstRange.start.translate(0, startSymbol.length);
 
 	startSymbolRange.push(new vscode.Range(firstRange.start, startOffset));
 	endSymbolRange.push(new vscode.Range(lastRange.start, lastRange.start.translate(0, endSymbol.length)));
@@ -344,9 +348,9 @@ function handleHighlightRanges(activeEditor: vscode.TextEditor, textRanges: Arra
 		decorationTypes = decorationTypes.concat(highlighter.highlightRanges(activeEditor, contentDecorationHandler, contentRange));
 	}
 
-	bracketHighlightGlobals.decorationTypes = decorationTypes;
+	bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(decorationTypes);
 	bracketHighlightGlobals.decorationStatus = true;
-	bracketHighlightGlobals.highlightRanges = textRanges;
+	bracketHighlightGlobals.highlightRanges = bracketHighlightGlobals.highlightRanges.concat(textRanges);
 }
 
 /******************************************************************************************************************************************

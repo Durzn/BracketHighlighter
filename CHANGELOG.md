@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.4.0]
+  Added new hotkey action to jump between opening and closing symbols.  
+  Special thanks to [@Kotsuha](https://github.com/Kotsuha) for implementing this.
+
+## [2.3.2]
+  Fixed issue where the backwards search would incorrectly highlight text.
+
 ## [2.3.1]
   Fixed issue with text selection between symbols.
 

@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "2.3.1",
+	"version": "2.4.0",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -17,10 +17,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onStartupFinished",
-		"onCommand:BracketHighlighter.toggleExtensionStatus",
-		"onCommand:BracketHighlighter.jumpToOpeningSymbol",
-		"onCommand:BracketHighlighter.jumpToClosingSymbol"
+		"onStartupFinished"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -227,6 +224,20 @@
 						"default": false,
 						"description": "If enabled, escaped symbols will be ignored.",
 						"scope": "resource"
+					},
+					"BracketHighlighter.defaultJumpBetweenStrategy": {
+						"type": "string",
+						"description": "Specify the default strategy to be used to jump between opening and closing symbols.",
+						"enum": [
+							"toSymbolStart",
+							"toSymbolOppositeSide"
+						],
+						"enumDescriptions": [
+							"Jump to the start of a symbol. This is the same as VS Code's default \"Go to Bracket\" (Ctrl+Shift+\\) behavior.",
+							"Jump to the opposite side of a symbol."
+						],
+						"default": "toSymbolStart",
+						"scope": "resource"
 					}
 				}
 			}
@@ -261,6 +272,11 @@
 				"command": "BracketHighlighter.selectTextInSymbols",
 				"title": "Selects the whole text between symbols.",
 				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpBetweenOpeningAndClosingSymbols",
+				"title": "Jump between opening and closing symbols.",
+				"when": "editorTextFocus"
 			}
 		],
 		"keybindings": [
@@ -293,6 +309,11 @@
 				"command": "BracketHighlighter.selectTextInSymbols",
 				"key": "ctrl+alt+k",
 				"when": "editorTextFocus"
+			},
+			{
+				"command": "BracketHighlighter.jumpBetweenOpeningAndClosingSymbols",
+				"key": "ctrl+alt+\\",
+				"when": "editorTextFocus"
 			}
 		]
 	},
@@ -317,7 +338,7 @@
 		"@types/vscode": "^1.40.0",
 		"glob": "^7.1.4",
 		"tslint": "^5.12.1",
-		"typescript": "^3.9.9",
+		"typescript": "^4.0.0",
 		"vscode-test": "^1.0.2"
 	},
 	"dependencies": {

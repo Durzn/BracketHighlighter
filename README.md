@@ -123,6 +123,7 @@ This extension provides several hotkeys to work with highlighted symbols.
 * `BracketHighlighter.jumpToClosingSymbol`: Jumps to the inside of the closing symbol. (Default hotkey: Ctrl + Alt + RightArrow)
 * `BracketHighlighter.jumpToOpeningSymbol`: Jumps to the inside of the opening symbol. (Default hotkey: Ctrl + Alt + LeftArrow)
 * `BracketHighlighter.selectTextInSymbols`: Selects the whole text between (and not including) the symbols. (Default hotkey: Ctrl + Alt + K)
+* `BracketHighlighter.jumpBetweenOpeningAndClosingSymbols`: Jumps between the opening and closing symbols. (Default hotkey: Ctrl + Alt + \\)
 
 
 Refer to https://www.w3schools.com/cssref/ for all CSS options.
@@ -138,18 +139,6 @@ This will likely not be fixed.
 
 # Release Notes
 For all notes please refer to the changelog.
-Only the latest 3 releases will be shown here.
-
-## [2.3.1]
-  Fixed issue with text selection between symbols.
-  
-## [2.3.0]
-  Added an option to have separate highlighting options for symbols and content.
-
-## [2.2.4]
-  If a symbol with no end symbol was included within a different symbol, nothing would get highlighted when trying to highlight from the scope of the symbols.  
-  Example: { [ | }  
-  Expected behavior: The cursor ("|") is placed within {}, therefore this should be highlighted, even though "[" is the closest symbol to the cursor  
 
 # Planned improvements
 - This extension is feature complete. If you think something is missing please refer to the next paragraph.
