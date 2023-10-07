@@ -1,26 +1,30 @@
 import * as vscode from 'vscode';
 import { DecorationType } from './DecorationHandler';
 import DecorationOptions from './DecorationOptions';
-import { ConfigHandler, JumpBetweenStrategy } from './ConfigHandler';
+import { ConfigHandler, HighlightSymbol, JumpBetweenStrategy } from './ConfigHandler';
 
 const enum SearchDirection {
     FORWARDS,
     BACKWARDS
 }
 
+export const enum DecorationStatus {
+    active,
+    inactive
+}
+
 export default class GlobalsHandler {
 
     public configHandler: ConfigHandler;
 
-    public decorationStatus: boolean;
+    public decorationStatus: DecorationStatus;
     public decorationTypes: Array<vscode.TextEditorDecorationType>;
-    public searchDirection: SearchDirection;
     public handleTextSelectionEventActive: boolean;
     public disableTimer: any;
-    public highlightRanges: Array<vscode.Range>[];
-    public highlightSymbols: Array<string>;
+    public highlightRanges: vscode.Range[];
 
     /* Config parameters */
+    public configuredSymbols!: HighlightSymbol[];
     public textColor!: string;
     public blurOutOfScopeText!: boolean;
     public opacity!: string;
@@ -30,8 +34,6 @@ export default class GlobalsHandler {
     public contentDecorationOptions!: DecorationOptions;
     public enabledLanguages!: Array<string>;
     public reverseSearchEnabled!: boolean;
-    public allowedStartSymbols!: Array<string>;
-    public allowedEndSymbols!: Array<string>;
     public highlightScopeFromText!: boolean;
     public extensionEnabled!: boolean;
     public lastSelection!: vscode.Selection | undefined;
@@ -44,13 +46,11 @@ export default class GlobalsHandler {
 
     constructor() {
         this.configHandler = new ConfigHandler();
-        this.decorationStatus = false;
+        this.decorationStatus = DecorationStatus.inactive;
         this.decorationTypes = [];
-        this.searchDirection = SearchDirection.FORWARDS;
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
         this.highlightRanges = [];
-        this.highlightSymbols = [];
 
         this.onConfigChange();
     }
@@ -66,8 +66,6 @@ export default class GlobalsHandler {
         this.contentDecorationOptions = this.configHandler.getDecorationOptions(DecorationType.CONTENT);
         this.enabledLanguages = this.configHandler.getEnabledLanguages();
         this.reverseSearchEnabled = this.configHandler.reverseSearchEnabled();
-        this.allowedStartSymbols = this.configHandler.getAllowedStartSymbols();
-        this.allowedEndSymbols = this.configHandler.getAllowedEndSymbols();
         this.highlightScopeFromText = this.configHandler.highlightScopeFromText();
         this.extensionEnabled = this.configHandler.isExtensionEnabled();
         this.timeOutValue = this.configHandler.getTimeOutValue();
@@ -75,6 +73,7 @@ export default class GlobalsHandler {
         this.regexMode = this.configHandler.regexMode();
         this.defaultJumpBetweenStrategy = this.configHandler.defaultJumpBetweenStrategy();
         this.preferredJumpBetweenStrategiesBySymbol = this.configHandler.preferredJumpBetweenStrategiesBySymbol();
+        this.configuredSymbols = this.configHandler.getConfiguredSymbols();
 
     }
 }

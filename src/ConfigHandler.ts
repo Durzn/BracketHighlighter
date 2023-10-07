@@ -7,6 +7,16 @@ export enum JumpBetweenStrategy {
     TO_SYMBOL_OPPOSITE_SIDE = "toSymbolOppositeSide"
 }
 
+export class HighlightEntry {
+    constructor(public readonly symbol: string, public readonly isRegex: boolean, public readonly canBeSubstring: boolean) {
+
+    }
+}
+
+export class HighlightSymbol {
+    constructor(public readonly startSymbol: HighlightEntry, public readonly endSymbol: HighlightEntry) { }
+}
+
 export default class ConfigHandler {
     constructor() { }
 
@@ -121,79 +131,29 @@ export default class ConfigHandler {
         return reverseSearchEnabled;
     }
 
-    private getCustomSymbols(): {
-        startSymbols: Array<string>, endSymbols: Array<string>
-    } {
+    public getConfiguredSymbols(): HighlightSymbol[] {
         const config = this.getConfiguration();
-        let customSymbols: any = config.get("customSymbols");
-        if (customSymbols === undefined) {
-            customSymbols = [{}];
+        let configuredSymbols: any[] | undefined = config.get("customSymbols");
+        let acceptedSymbols: HighlightSymbol[] = [];
+        if (configuredSymbols === undefined) {
+            configuredSymbols = [];
         }
-        let customStartSymbols: Array<string> = [];
-        let customEndSymbols: Array<string> = [];
-        for (let customSymbol of customSymbols) {
-            const isGoodSymbolPairs =
-                customSymbol.hasOwnProperty("open") &&
-                customSymbol.hasOwnProperty("close") &&
-                customSymbol.open !== customSymbol.close;
-            if (isGoodSymbolPairs) {
-                customStartSymbols.push(customSymbol.open);
-                customEndSymbols.push(customSymbol.close);
+        for (let customSymbol of configuredSymbols) {
+            const isValidSymbol =
+                customSymbol.hasOwnProperty("start") &&
+                customSymbol.hasOwnProperty("end");
+            if (isValidSymbol) {
+                let isRegex = customSymbol.hasOwnProperty("isRegex") ? customSymbol.isRegex : false;
+                let canBeSubstring = customSymbol.hasOwnProperty("canBeSubstring") ? customSymbol.canBeSubstring : false;
+                if(!isRegex) {
+                    
+                }
+                let startEntry = new HighlightEntry();
+                let endEntry = new HighlightEntry();
+                acceptedSymbols.push(new HighlightSymbol(startEntry, endEntry));
             }
         }
-        return {
-            startSymbols: customStartSymbols,
-            endSymbols: customEndSymbols
-        };
-    }
-
-    public getAllowedStartSymbols(): Array<string> {
-        const config = this.getConfiguration();
-        let validStartSymbols: Array<string> = [];
-        let useForSymbols: boolean | undefined;
-        useForSymbols = config.get("useParentheses");
-        if (useForSymbols === true) {
-            validStartSymbols.push("(");
-        }
-        useForSymbols = config.get("useBraces");
-        if (useForSymbols === true) {
-            validStartSymbols.push("{");
-        }
-        useForSymbols = config.get("useBrackets");
-        if (useForSymbols === true) {
-            validStartSymbols.push("[");
-        }
-        useForSymbols = config.get("useAngularBrackets");
-        if (useForSymbols === true) {
-            validStartSymbols.push("<");
-
-        }
-        validStartSymbols = validStartSymbols.concat(this.getCustomSymbols().startSymbols);
-        return validStartSymbols;
-    }
-
-    public getAllowedEndSymbols(): Array<string> {
-        const config = this.getConfiguration();
-        let validEndSymbols: Array<string> = [];
-        let useForSymbols: boolean | undefined;
-        useForSymbols = config.get("useParentheses");
-        if (useForSymbols === true) {
-            validEndSymbols.push(")");
-        }
-        useForSymbols = config.get("useBraces");
-        if (useForSymbols === true) {
-            validEndSymbols.push("}");
-        }
-        useForSymbols = config.get("useBrackets");
-        if (useForSymbols === true) {
-            validEndSymbols.push("]");
-        }
-        useForSymbols = config.get("useAngularBrackets");
-        if (useForSymbols === true) {
-            validEndSymbols.push(">");
-        }
-        validEndSymbols = validEndSymbols.concat(this.getCustomSymbols().endSymbols);
-        return validEndSymbols;
+        return acceptedSymbols;
     }
 
     public isExtensionEnabled(): boolean {
