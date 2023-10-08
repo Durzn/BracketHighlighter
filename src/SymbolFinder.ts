@@ -9,21 +9,13 @@ export type SearchFuncType = (line: string, regex: RegExp, cursorPosition: vscod
 
 export default class SymbolFinder {
 
-    public static regexIndexOf(text: string, regex: RegExp): SymbolWithIndex | undefined {
-        let match = regex.exec(text);
-        if (match) {
-            return new SymbolWithIndex(match[0], match.index);
+    public static regexIndicesOf(text: string, regex: RegExp): SymbolWithIndex[] {
+        let symbols: SymbolWithIndex[] = [];
+        let matches: RegExpExecArray | null;
+        while ((matches = regex.exec(text)) !== null) {
+            symbols.push(new SymbolWithIndex(matches[0], matches.index));
         }
-        return undefined;
-    }
-
-    public static findIndicesOfSymbolRegExp(line: string, regex: RegExp, startPos: number): SymbolWithIndex[] {
-        let indices: SymbolWithIndex[] = [];
-        let index: SymbolWithIndex | undefined = SymbolFinder.regexIndexOf(line.slice(startPos), regex);
-        if (index) {
-            indices.push(index);
-        }
-        return indices;
+        return symbols;
     }
 
     public static isSymbolEscaped(symbol: string): boolean {
@@ -46,12 +38,13 @@ export default class SymbolFinder {
      */
     public static getRangeOfRegexClosestToPositionBehind(line: string, regex: RegExp, cursorPosition: vscode.Position): vscode.Range | undefined {
         let range: vscode.Range | undefined = undefined;
-        let symbolsWithIndex = SymbolFinder.findIndicesOfSymbolRegExp(line, regex, 0);
-        if (symbolsWithIndex.length > 0) {
-            let closestOffsetToPosition = symbolsWithIndex.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) < Math.abs(prev.start - cursorPosition.character) ? curr : prev);
-            let rangeStart = line.length + cursorPosition.character + closestOffsetToPosition.start;
+        let symbolsWithIndex = SymbolFinder.regexIndicesOf(line, regex);
+        let possibleIndices = symbolsWithIndex.filter((symbol) => { return symbol.start > cursorPosition.character });
+        if (possibleIndices.length > 0) {
+            let closestOffsetToPosition = possibleIndices.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) <= Math.abs(prev.start - cursorPosition.character) ? curr : prev);
+            let rangeStart = cursorPosition.character - closestOffsetToPosition.start;
             let rangeLength = closestOffsetToPosition.symbol.length;
-            range = new vscode.Range(cursorPosition.translate(0, rangeStart), cursorPosition.with(0, rangeStart + rangeLength));
+            range = new vscode.Range(cursorPosition.with(cursorPosition.line, rangeStart), cursorPosition.with(cursorPosition.line, rangeStart + rangeLength));
         }
         return range;
     }
@@ -65,26 +58,32 @@ export default class SymbolFinder {
      */
     public static getRangeOfRegexClosestToPositionBefore(line: string, regex: RegExp, cursorPosition: vscode.Position): vscode.Range | undefined {
         let range: vscode.Range | undefined = undefined;
-        let symbolsWithIndex = SymbolFinder.findIndicesOfSymbolRegExp(line, regex, 0);
-        if (symbolsWithIndex.length > 0) {
-            let closestOffsetToPosition = symbolsWithIndex.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) < Math.abs(prev.start - cursorPosition.character) ? curr : prev);
-            let rangeStart = line.length - cursorPosition.character + closestOffsetToPosition.start;
+        let symbolsWithIndex = SymbolFinder.regexIndicesOf(line, regex);
+        let possibleIndices = symbolsWithIndex.filter((symbol) => { return symbol.start < cursorPosition.character });
+        if (possibleIndices.length > 0) {
+            let closestOffsetToPosition = possibleIndices.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) <= Math.abs(prev.start - cursorPosition.character) ? curr : prev);
+            let rangeStart = closestOffsetToPosition.start;
             let rangeLength = closestOffsetToPosition.symbol.length;
-            range = new vscode.Range(cursorPosition.translate(0, rangeStart), cursorPosition.translate(0, rangeStart + rangeLength));
+            range = new vscode.Range(cursorPosition.with(cursorPosition.line, rangeStart), cursorPosition.with(cursorPosition.line, rangeStart + rangeLength));
         }
         return range;
     }
 
-    public static getMatchRangeClosestToPosition(line: string, entry: HighlightEntry, cursorPosition: vscode.Position, searchFunc: SearchFuncType): vscode.Range | undefined {
-        let symbolToCheck: string = entry.symbol;
+    public static makeRegexString(entry: HighlightEntry): string {
+        let symbol: string = entry.symbol;
         if (!entry.isRegex) {
             if (entry.canBeSubstring) {
-                symbolToCheck = `${SymbolFinder.escapeSymbol(entry.symbol)}`;
+                symbol = `${SymbolFinder.escapeSymbol(entry.symbol)}`;
             }
             else {
-                symbolToCheck = `\\b${SymbolFinder.escapeSymbol(entry.symbol)}\\b`;
+                symbol = `\\b${SymbolFinder.escapeSymbol(entry.symbol)}\\b`;
             }
         }
+        return symbol;
+    }
+
+    public static getMatchRangeClosestToPosition(line: string, entry: HighlightEntry, cursorPosition: vscode.Position, searchFunc: SearchFuncType): vscode.Range | undefined {
+        let symbolToCheck: string = SymbolFinder.makeRegexString(entry);
         return searchFunc(line, new RegExp(`${symbolToCheck}`, "g"), cursorPosition);
     }
 }

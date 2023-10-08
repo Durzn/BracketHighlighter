@@ -1,8 +1,4 @@
 import * as vscode from 'vscode';
-import { bracketHighlightGlobals } from './GlobalsHandler';
-import { ConfigHandler, JumpBetweenStrategy } from './ConfigHandler';
-import * as Util from './Util';
-import assert = require('assert');
 
 /*
     foo() {
