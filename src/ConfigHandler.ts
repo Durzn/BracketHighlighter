@@ -131,29 +131,36 @@ export default class ConfigHandler {
         return reverseSearchEnabled;
     }
 
-    public getConfiguredSymbols(): HighlightSymbol[] {
-        const config = this.getConfiguration();
-        let configuredSymbols: any[] | undefined = config.get("customSymbols");
+    private getAcceptedSymbols(configuredSymbols: any[]): HighlightSymbol[] {
         let acceptedSymbols: HighlightSymbol[] = [];
-        if (configuredSymbols === undefined) {
-            configuredSymbols = [];
-        }
         for (let customSymbol of configuredSymbols) {
-            const isValidSymbol =
-                customSymbol.hasOwnProperty("start") &&
-                customSymbol.hasOwnProperty("end");
-            if (isValidSymbol) {
-                let isRegex = customSymbol.hasOwnProperty("isRegex") ? customSymbol.isRegex : false;
-                let canBeSubstring = customSymbol.hasOwnProperty("canBeSubstring") ? customSymbol.canBeSubstring : false;
-                if(!isRegex) {
-                    
+            if (customSymbol.hasOwnProperty("highlightPair")) {
+                let entries: HighlightEntry[] = [];
+                for (let pair of customSymbol.highlightPair) {
+                    if (pair.hasOwnProperty("symbol")) {
+                        let isRegex = pair.hasOwnProperty("isRegex") ? pair.isRegex : false;
+                        let canBeSubstring = pair.hasOwnProperty("canBeSubstring") ? pair.canBeSubstring : false;
+                        if (isRegex) {
+                            canBeSubstring = false;
+                        }
+                        entries.push(new HighlightEntry(pair.symbol, isRegex, canBeSubstring));
+                    }
                 }
-                let startEntry = new HighlightEntry();
-                let endEntry = new HighlightEntry();
-                acceptedSymbols.push(new HighlightSymbol(startEntry, endEntry));
+                if (entries.length === 2) {
+                    acceptedSymbols.push(new HighlightSymbol(entries[0], entries[1]));
+                }
             }
         }
         return acceptedSymbols;
+    }
+
+    public getConfiguredSymbols(): HighlightSymbol[] {
+        const config = this.getConfiguration();
+        let configuredSymbols: any[] | undefined = config.get("customSymbols");
+        if (configuredSymbols === undefined) {
+            configuredSymbols = [];
+        }
+        return this.getAcceptedSymbols(configuredSymbols);
     }
 
     public isExtensionEnabled(): boolean {

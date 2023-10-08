@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { HighlightSymbol } from './ConfigHandler';
+import { HighlightEntry, HighlightSymbol } from './ConfigHandler';
 
 export enum SymbolType {
     STARTSYMBOL,
@@ -11,7 +11,7 @@ export class SymbolWithPosition {
     constructor(public readonly symbol: HighlightSymbol, public readonly position: vscode.Position) {
     }
 }
-export class SymbolWithRange {
-    constructor(public readonly symbol: HighlightSymbol, public readonly range: vscode.Range) {
+export class EntryWithRange {
+    constructor(public readonly symbol: HighlightEntry, public readonly range: vscode.Range) {
     }
 }

@@ -7,7 +7,7 @@ import { bracketHighlightGlobals, DecorationStatus } from './GlobalsHandler';
 import SymbolFinder from './SymbolFinder';
 import ActionHandler from './ActionHandler';
 import * as Util from './Util';
-import ConfigHandler, { HighlightSymbol } from './ConfigHandler';
+import ConfigHandler, { HighlightEntry, HighlightSymbol } from './ConfigHandler';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -70,7 +70,7 @@ function handleTextSelectionEvent() {
 
 	removePreviousDecorations();
 
-	let symbolStart: Util.SymbolWithRange | undefined = undefined;
+	let symbolStart: Util.EntryWithRange | undefined = undefined;
 	let symbolAtCursor = getSymbolAtCursor(activeEditor, currentSelection.active, configuredSymbols);
 	if (symbolAtCursor) {
 		symbolStart = symbolAtCursor;
@@ -118,38 +118,42 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 /**
  * 
  */
-function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): Util.SymbolWithRange | undefined {
+function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): Util.EntryWithRange | undefined {
 	let maxLineSearch = new ConfigHandler().getMaxLineSearchCount();
 	let text: string = activeEditor.document.getText(new vscode.Range(selectionStart.translate(-maxLineSearch), selectionStart));
-	let textArray: string[] = text.split('\n');
+	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
+	let textArray: string[] = text.split(eolCharacter);
 	let reversedText = textArray.reverse(); /* Reverse the text as the expectation is that the symbol is usually closer to the cursor. */
 	let lineCounter = 0;
 	for (let line of reversedText) {
 		for (let symbol of configuredSymbols) {
-			let symbolInLine = getSymbolInLine(line, symbol, symbol.start, selectionStart.line + lineCounter);
+			let symbolInLine = getSymbolInLine(line, symbol.startSymbol, selectionStart);
 			if (symbolInLine) {
 				return symbolInLine;
 			}
 		}
 		lineCounter++;
+		selectionStart = selectionStart.with(selectionStart.line + lineCounter, 0);
 	}
 	return undefined;
 }
 /**
  * 
  */
-function findSymbolDownwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): Util.SymbolWithRange | undefined {
+function findSymbolDownwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): Util.EntryWithRange | undefined {
 	let maxLineSearch = new ConfigHandler().getMaxLineSearchCount();
-	let text: string[] = activeEditor.document.getText(new vscode.Range(selectionStart, selectionStart.translate(maxLineSearch))).split('\n');
+	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
+	let text: string[] = activeEditor.document.getText(new vscode.Range(selectionStart, selectionStart.translate(maxLineSearch))).split(eolCharacter);
 	let lineCounter = 0;
 	for (let line of text) {
 		for (let symbol of configuredSymbols) {
-			let symbolInLine = getSymbolInLine(line, symbol, symbol.end, selectionStart.line + lineCounter);
+			let symbolInLine = getSymbolInLine(line, symbol.endSymbol, selectionStart);
 			if (symbolInLine) {
 				return symbolInLine;
 			}
 		}
 		lineCounter++;
+		selectionStart = selectionStart.with(selectionStart.line + lineCounter, 0);
 	}
 	return undefined;
 }
@@ -157,11 +161,11 @@ function findSymbolDownwards(activeEditor: vscode.TextEditor, selectionStart: vs
 /**
  * 
  */
-function getSymbolInLine(line: string, symbol: HighlightSymbol, symbolStartOrEnd: string, lineNumber: number): Util.SymbolWithRange | undefined {
-	let matchRange = SymbolFinder.getMatchRangeClosestToPosition(line, symbol, symbolStartOrEnd, new vscode.Position(lineNumber, 0));
+function getSymbolInLine(line: string, entry: HighlightEntry, cursorPosition: vscode.Position): Util.EntryWithRange | undefined {
+	let matchRange = SymbolFinder.getMatchRangeClosestToPosition(line, entry, cursorPosition, SymbolFinder.getRangeOfRegexClosestToPositionBehind);
 	if (matchRange) {
 		/* Always take the latest finding */
-		return new Util.SymbolWithRange(symbol, matchRange);
+		return new Util.EntryWithRange(entry, matchRange);
 	}
 	return undefined;
 }
@@ -173,32 +177,29 @@ function getSymbolInLine(line: string, symbol: HighlightSymbol, symbolStartOrEnd
 *	startSymbol: Symbol to search for
 *	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
 ******************************************************************************************************************************************/
-function getSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): Util.SymbolWithRange | undefined {
+function getSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): Util.EntryWithRange | undefined {
 	let lineText = activeEditor.document.lineAt(selectionStart).text;
-	let textStart: number | undefined = undefined;
-	let textEnd: number | undefined = undefined;
+	let textStart: number = 0;
+	let textEnd: number = lineText.length;
 	/* Find start of text ahead of cursor */
-	for (let i = selectionStart.character - 1; i >= 0; i--) {
-		if (i === 0 || lineText[i] === ' ') {
+	for (let i = selectionStart.character - 1; i > 0; i--) {
+		if (lineText[i] === ' ') {
 			textStart = i;
 		}
 	}
 	/* Find start of text ahead of cursor */
-	for (let i = selectionStart.character - 1; i <= lineText.length; i++) {
-		if (i === lineText.length || lineText[i] === ' ') {
+	for (let i = selectionStart.character - 1; i < lineText.length; i++) {
+		if (lineText[i] === ' ') {
 			textEnd = i;
 		}
-	}
-	if (textStart === undefined || textEnd === undefined) {
-		return undefined;
 	}
 	let selectionTextRange = new vscode.Range(selectionStart.with(selectionStart.line, textStart), selectionStart.with(selectionStart.line, textEnd));
 	let selectionTextRangeText = activeEditor.document.getText(selectionTextRange);
 	for (let symbol of configuredSymbols) {
-		let matchRange = SymbolFinder.getMatchRangeClosestToPosition(selectionTextRangeText, symbol, symbol.start, new vscode.Position(selectionStart.line, 0));
+		let matchRange = SymbolFinder.getMatchRangeClosestToPosition(selectionTextRangeText, symbol.startSymbol, selectionStart, SymbolFinder.getRangeOfRegexClosestToPositionBefore);
 		if (matchRange) {
 			/* Always take the latest finding */
-			return new Util.SymbolWithRange(symbol, matchRange);
+			return new Util.EntryWithRange(symbol.startSymbol, matchRange);
 		}
 	}
 
