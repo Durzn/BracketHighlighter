@@ -39,12 +39,11 @@ export default class SymbolFinder {
     public static getRangeOfRegexClosestToPositionBehind(line: string, regex: RegExp, cursorPosition: vscode.Position): vscode.Range | undefined {
         let range: vscode.Range | undefined = undefined;
         let symbolsWithIndex = SymbolFinder.regexIndicesOf(line, regex);
-        let possibleIndices = symbolsWithIndex.filter((symbol) => { return symbol.start > cursorPosition.character });
-        if (possibleIndices.length > 0) {
-            let closestOffsetToPosition = possibleIndices.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) <= Math.abs(prev.start - cursorPosition.character) ? curr : prev);
-            let rangeStart = cursorPosition.character - closestOffsetToPosition.start;
+        if (symbolsWithIndex.length > 0) {
+            let closestOffsetToPosition = symbolsWithIndex.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) < Math.abs(prev.start - cursorPosition.character) ? curr : prev);
+            let rangeStart = closestOffsetToPosition.start;
             let rangeLength = closestOffsetToPosition.symbol.length;
-            range = new vscode.Range(cursorPosition.with(cursorPosition.line, rangeStart), cursorPosition.with(cursorPosition.line, rangeStart + rangeLength));
+            range = new vscode.Range(cursorPosition.translate(0, rangeStart), cursorPosition.translate(0, rangeStart + rangeLength));
         }
         return range;
     }
@@ -59,9 +58,8 @@ export default class SymbolFinder {
     public static getRangeOfRegexClosestToPositionBefore(line: string, regex: RegExp, cursorPosition: vscode.Position): vscode.Range | undefined {
         let range: vscode.Range | undefined = undefined;
         let symbolsWithIndex = SymbolFinder.regexIndicesOf(line, regex);
-        let possibleIndices = symbolsWithIndex.filter((symbol) => { return symbol.start < cursorPosition.character });
-        if (possibleIndices.length > 0) {
-            let closestOffsetToPosition = possibleIndices.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) <= Math.abs(prev.start - cursorPosition.character) ? curr : prev);
+        if (symbolsWithIndex.length > 0) {
+            let closestOffsetToPosition = symbolsWithIndex.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) < Math.abs(prev.start - cursorPosition.character) ? curr : prev);
             let rangeStart = closestOffsetToPosition.start;
             let rangeLength = closestOffsetToPosition.symbol.length;
             range = new vscode.Range(cursorPosition.with(cursorPosition.line, rangeStart), cursorPosition.with(cursorPosition.line, rangeStart + rangeLength));
