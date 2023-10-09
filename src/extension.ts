@@ -5,7 +5,7 @@ import Highlighter from './Highlighter';
 import DecorationHandler, { DecorationType } from './DecorationHandler';
 import { bracketHighlightGlobals, DecorationStatus } from './GlobalsHandler';
 import SymbolFinder, { SearchFuncType } from './SymbolFinder';
-import { SymbolWithRangeInDepth, EntryWithRangeInDepth } from './Util';
+import { SymbolWithRangeInDepth, EntryWithRange, EntryWithDepth, SymbolWithRange } from './Util';
 import ConfigHandler, { HighlightEntry, HighlightSymbol } from './ConfigHandler';
 
 
@@ -69,7 +69,7 @@ function handleTextSelectionEvent() {
 
 	removePreviousDecorations();
 
-	let symbolStart: SymbolWithRangeInDepth | undefined = undefined;
+	let symbolStart: SymbolWithRange | undefined = undefined;
 	let symbolAtCursor = getSymbolAtCursor(activeEditor, currentSelection.active, configuredSymbols);
 	if (symbolAtCursor) {
 		symbolStart = symbolAtCursor;
@@ -78,7 +78,7 @@ function handleTextSelectionEvent() {
 		symbolStart = findSymbolUpwards(activeEditor, currentSelection.active, configuredSymbols);
 	}
 	if (symbolStart) {
-		let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol.endSymbol, currentSelection.active, configuredSymbols);
+		let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, currentSelection.active);
 		if (symbolEnd) {
 			let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
 			let rangeToHighlight = new vscode.Range(symbolStart.range.start, symbolEnd.range.end);
@@ -117,7 +117,7 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 /**
  * 
  */
-function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRangeInDepth | undefined {
+function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRange | undefined {
 	let maxLineSearch = new ConfigHandler().getMaxLineSearchCount();
 	let text: string = activeEditor.document.getText(new vscode.Range(selectionStart.translate(-Math.min(...[maxLineSearch, selectionStart.line])), selectionStart));
 	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
@@ -127,9 +127,9 @@ function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vsco
 	let tempSelection = selectionStart;
 	for (let line of reversedText) {
 		for (let symbol of configuredSymbols) {
-			let symbolInLine = getSymbolInLine(line, symbol.startSymbol, tempSelection, SymbolFinder.getRangeOfRegexClosestToPositionBefore);
+			let symbolInLine = getSymbolInLineWithDepth(line, symbol.startSymbol, symbol.endSymbol, tempSelection, SymbolFinder.getRangeOfRegexClosestToPositionBefore);
 			if (symbolInLine) {
-				return new SymbolWithRangeInDepth(symbol, symbolInLine.range);
+				return new SymbolWithRange(symbol, symbolInLine.range);
 			}
 		}
 		lineCounter++;
@@ -144,17 +144,17 @@ function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vsco
 /**
  * 
  */
-function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: HighlightEntry, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): EntryWithRangeInDepth | undefined {
+function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: HighlightSymbol, selectionStart: vscode.Position): EntryWithRange | undefined {
 	let maxLineSearch = new ConfigHandler().getMaxLineSearchCount();
 	let stringStartOffset = selectionStart.character;
 	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
 	/* If the cursor is on the right of the symbol, it would not be found without this offset! */
-	let cursorBehindSymbolOffset = targetSymbol.symbol.length < selectionStart.character ? targetSymbol.symbol.length : 0;
+	let cursorBehindSymbolOffset = targetSymbol.endSymbol.symbol.length < selectionStart.character ? targetSymbol.endSymbol.symbol.length : 0;
 	let text: string[] = activeEditor.document.getText(new vscode.Range(selectionStart.translate(0, -cursorBehindSymbolOffset), selectionStart.translate(Math.min(...[maxLineSearch, activeEditor.document.lineCount])))).split(eolCharacter);
 	let lineCounter = 0;
 	let tempSelection = selectionStart;
 	for (let line of text) {
-		let symbolInLine = getSymbolInLine(line, targetSymbol, tempSelection, SymbolFinder.getRangeOfRegexClosestToPositionBehind);
+		let symbolInLine = getSymbolInLineWithDepth(line, targetSymbol.endSymbol, targetSymbol.startSymbol, tempSelection, SymbolFinder.getRangeOfRegexClosestToPositionBehind);
 		if (symbolInLine) {
 			return symbolInLine;
 		}
@@ -172,11 +172,11 @@ function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: High
 /**
  * 
  */
-function getSymbolInLine(line: string, entry: HighlightEntry, cursorPosition: vscode.Position, searchFunc: SearchFuncType): EntryWithRangeInDepth | undefined {
-	let matchRange = SymbolFinder.getMatchRangeClosestToPosition(line, entry, cursorPosition, searchFunc);
+function getSymbolInLineWithDepth(line: string, entryToSearch: HighlightEntry, counterPartEntry: HighlightEntry, cursorPosition: vscode.Position, searchFunc: SearchFuncType): EntryWithRange | undefined {
+	let matchRange = SymbolFinder.getMatchRangeClosestToPosition(line, entryToSearch, counterPartEntry, cursorPosition, searchFunc);
 	if (matchRange) {
 		/* Always take the latest finding */
-		return new EntryWithRangeInDepth(entry, matchRange);
+		return new EntryWithRange(entryToSearch, matchRange);
 	}
 	return undefined;
 }
@@ -188,7 +188,7 @@ function getSymbolInLine(line: string, entry: HighlightEntry, cursorPosition: vs
 *	startSymbol: Symbol to search for
 *	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
 ******************************************************************************************************************************************/
-function getSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRangeInDepth | undefined {
+function getSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRange | undefined {
 	let lineText = activeEditor.document.lineAt(selectionStart).text;
 	let selectionTextRange = new vscode.Range(selectionStart.with(selectionStart.line, 0), selectionStart.with(selectionStart.line, lineText.length));
 	let selectionTextRangeText = activeEditor.document.getText(selectionTextRange);
@@ -200,7 +200,7 @@ function getSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vsco
 			for (let index of indices) {
 				if ((selectionStart.character >= index) && (selectionStart.character <= (index + symbolLength))) {
 					let range = new vscode.Range(selectionStart.with(selectionStart.line, index), selectionStart.with(selectionStart.line, index + symbolLength));
-					return new SymbolWithRangeInDepth(symbol, range);
+					return new SymbolWithRange(symbol, range);
 				}
 			}
 		}

@@ -30,25 +30,6 @@ export default class SymbolFinder {
     }
 
     /**
-     * Get the complete symbol (potentially multiple characters long => a range) closest behind the given position
-     * @param line 
-     * @param regex 
-     * @param cursorPosition 
-     * @returns The range closest to the given position
-     */
-    public static getRangeOfRegexClosestToPositionBehind(line: string, regex: RegExp, cursorPosition: vscode.Position): vscode.Range | undefined {
-        let range: vscode.Range | undefined = undefined;
-        let symbolsWithIndex = SymbolFinder.regexIndicesOf(line, regex);
-        if (symbolsWithIndex.length > 0) {
-            let closestOffsetToPosition = symbolsWithIndex.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) < Math.abs(prev.start - cursorPosition.character) ? curr : prev);
-            let rangeStart = closestOffsetToPosition.start;
-            let rangeLength = closestOffsetToPosition.symbol.length;
-            range = new vscode.Range(cursorPosition.translate(0, rangeStart), cursorPosition.translate(0, rangeStart + rangeLength));
-        }
-        return range;
-    }
-
-    /**
      * Get the complete symbol (potentially multiple characters long => a range) closest before the given position
      * @param line 
      * @param regex 
@@ -63,6 +44,25 @@ export default class SymbolFinder {
             let rangeStart = closestOffsetToPosition.start;
             let rangeLength = closestOffsetToPosition.symbol.length;
             range = new vscode.Range(cursorPosition.with(cursorPosition.line, rangeStart), cursorPosition.with(cursorPosition.line, rangeStart + rangeLength));
+        }
+        return range;
+    }
+
+    /**
+     * Get the complete symbol (potentially multiple characters long => a range) closest behind the given position
+     * @param line 
+     * @param regex 
+     * @param cursorPosition 
+     * @returns The range closest to the given position
+     */
+    public static getRangeOfRegexClosestToPositionBehind(line: string, regex: RegExp, cursorPosition: vscode.Position): vscode.Range | undefined {
+        let range: vscode.Range | undefined = undefined;
+        let symbolsWithIndex = SymbolFinder.regexIndicesOf(line, regex);
+        if (symbolsWithIndex.length > 0) {
+            let closestOffsetToPosition = symbolsWithIndex.reduce((prev, curr) => Math.abs(curr.start - cursorPosition.character) < Math.abs(prev.start - cursorPosition.character) ? curr : prev);
+            let rangeStart = closestOffsetToPosition.start;
+            let rangeLength = closestOffsetToPosition.symbol.length;
+            range = new vscode.Range(cursorPosition.translate(0, rangeStart), cursorPosition.translate(0, rangeStart + rangeLength));
         }
         return range;
     }
