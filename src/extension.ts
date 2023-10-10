@@ -69,26 +69,28 @@ function handleTextSelectionEvent() {
 
 	removePreviousDecorations();
 
-	let symbolStart: SymbolWithRange | undefined = undefined;
-	let selection = currentSelection.active
-	let symbolAtCursor = findSymbolAtRightOfCursor(activeEditor, selection, configuredSymbols);
-	if (symbolAtCursor) {
-		symbolStart = symbolAtCursor;
-	}
-	else {
-		/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
-		symbolStart = findSymbolUpwards(activeEditor, selection, configuredSymbols);
-	}
-	if (symbolStart) {
-		/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
-		selection = selection.translate(0, symbolStart.symbol.startSymbol.symbol.length);
-		let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, selection);
-		if (symbolEnd) {
-			let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
-			let rangeToHighlight = new vscode.Range(symbolStart.range.start, symbolEnd.range.end);
-			bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, symbolDecorationHandler, [rangeToHighlight]));
-			bracketHighlightGlobals.highlightRanges.push(rangeToHighlight);
-			bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
+	for (let selection of activeEditor.selections) {
+		let symbolStart: SymbolWithRange | undefined = undefined;
+		let activeSelection = selection.active
+		let symbolAtCursor = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
+		if (symbolAtCursor) {
+			symbolStart = symbolAtCursor;
+		}
+		else {
+			/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
+			symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
+		}
+		if (symbolStart) {
+			/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
+			activeSelection = activeSelection.translate(0, symbolStart.symbol.startSymbol.symbol.length);
+			let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, activeSelection);
+			if (symbolEnd) {
+				let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
+				let rangeToHighlight = new vscode.Range(symbolStart.range.start, symbolEnd.range.end);
+				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, symbolDecorationHandler, [rangeToHighlight]));
+				bracketHighlightGlobals.highlightRanges.push(rangeToHighlight);
+				bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
+			}
 		}
 	}
 }
