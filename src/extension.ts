@@ -71,14 +71,17 @@ function handleTextSelectionEvent() {
 
 	let symbolStart: SymbolWithRange | undefined = undefined;
 	let selection = currentSelection.active
-	let symbolAtCursor = getSymbolAtCursor(activeEditor, selection, configuredSymbols);
+	let symbolAtCursor = findSymbolAtRightOfCursor(activeEditor, selection, configuredSymbols);
 	if (symbolAtCursor) {
 		symbolStart = symbolAtCursor;
 	}
 	else {
+		/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
 		symbolStart = findSymbolUpwards(activeEditor, selection, configuredSymbols);
 	}
 	if (symbolStart) {
+		/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
+		selection = selection.translate(0, symbolStart.symbol.startSymbol.symbol.length);
 		let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, selection);
 		if (symbolEnd) {
 			let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
@@ -88,6 +91,48 @@ function handleTextSelectionEvent() {
 			bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
 		}
 	}
+}
+
+/******************************************************************************************************************************************
+* Corrects the start position to the symbol. Will put the cursor before a starting symbol (includes it) and behind a closing symbol (includes it). Differentiates between forward and backward search
+*	activeEditor: Currently used editor
+*	selectionStart: Selection from where to start the search
+*	startSymbol: Symbol to search for
+*	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
+******************************************************************************************************************************************/
+function findSymbolAtRightOfCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRange | undefined {
+	let line = activeEditor.document.lineAt(selectionStart);
+	let selectionRangeText = line.text;
+	for (let symbol of configuredSymbols) {
+		let indicesOfSymbol = SymbolFinder.regexIndicesOf(selectionRangeText, new RegExp(Util.makeRegexString(symbol.startSymbol), "g"));
+		if (indicesOfSymbol.length > 0) {
+			let indices = indicesOfSymbol.map((index) => index.start);
+			let symbolLength = indicesOfSymbol[0].symbol.length;
+			for (let index of indices) {
+				let cursorIsLeftOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
+				if (cursorIsLeftOfSymbol) {
+					let range = new vscode.Range(selectionStart.with(selectionStart.line, index), selectionStart.with(selectionStart.line, index + symbolLength));
+					return new SymbolWithRange(symbol, range);
+				}
+			}
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * Corrects the cursor position so that the selection will be AFTER the symbol.
+ */
+function correctCursorPosition(activeEditor: vscode.TextEditor, selection: vscode.Position, foundEntry: HighlightEntry): vscode.Position {
+	let currentSelection = selection;
+	let text = activeEditor.document.getText(new vscode.Range(new vscode.Position(currentSelection.line, currentSelection.character - 1), new vscode.Position(currentSelection.line, currentSelection.character + foundEntry.symbol.length)));
+	let foundEntryRegex: RegExp = new RegExp(Util.makeRegexString(foundEntry), "g");
+	let match = foundEntryRegex.exec(text);
+	if (match) {
+		currentSelection = currentSelection.translate(0, foundEntry.symbol.length + 1);
+	}
+	return currentSelection;
 }
 
 /******************************************************************************************************************************************
@@ -238,34 +283,6 @@ function getSymbolInLineWithDepthBehind(line: string, entryToSearch: HighlightEn
 	}
 
 	return new EntryWithRangeInDepth(entryToSearch, undefined, currentDepth);
-}
-
-/******************************************************************************************************************************************
-* Corrects the start position to the symbol. Will put the cursor before a starting symbol (includes it) and behind a closing symbol (includes it). Differentiates between forward and backward search
-*	activeEditor: Currently used editor
-*	selectionStart: Selection from where to start the search
-*	startSymbol: Symbol to search for
-*	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
-******************************************************************************************************************************************/
-function getSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRange | undefined {
-	let lineText = activeEditor.document.lineAt(selectionStart).text;
-	let selectionTextRange = new vscode.Range(selectionStart.with(selectionStart.line, 0), selectionStart.with(selectionStart.line, lineText.length));
-	let selectionTextRangeText = activeEditor.document.getText(selectionTextRange);
-	for (let symbol of configuredSymbols) {
-		let indicesOfSymbol = SymbolFinder.regexIndicesOf(selectionTextRangeText, new RegExp(Util.makeRegexString(symbol.startSymbol), "g"));
-		if (indicesOfSymbol.length > 0) {
-			let indices = indicesOfSymbol.map((index) => index.start);
-			let symbolLength = indicesOfSymbol[0].symbol.length;
-			for (let index of indices) {
-				if ((selectionStart.character >= index) && (selectionStart.character <= (index + symbolLength))) {
-					let range = new vscode.Range(selectionStart.with(selectionStart.line, index), selectionStart.with(selectionStart.line, index + symbolLength));
-					return new SymbolWithRange(symbol, range);
-				}
-			}
-		}
-	}
-
-	return undefined;
 }
 
 /******************************************************************************************************************************************
