@@ -24,15 +24,6 @@ export default class ConfigHandler {
         return vscode.workspace.getConfiguration("BracketHighlighter", null);
     }
 
-    public highlightScopeFromText(): boolean {
-        const config = this.getConfiguration();
-        let highlightScopeFromText: boolean | undefined = config.get("highlightScopeFromText");
-        if (highlightScopeFromText === undefined) {
-            highlightScopeFromText = false;
-        }
-        return highlightScopeFromText;
-    }
-
     public blurOutOfScopeText(): boolean {
         const config = this.getConfiguration();
         let blurOutOfScopeText: boolean | undefined = config.get("blurOutOfScopeText");
@@ -122,15 +113,6 @@ export default class ConfigHandler {
         return allowedLanguageIds;
     }
 
-    public reverseSearchEnabled(): boolean {
-        const config = this.getConfiguration();
-        let reverseSearchEnabled: boolean | undefined = config.get("reverseSearchEnabled");
-        if (reverseSearchEnabled === undefined) {
-            reverseSearchEnabled = true;
-        }
-        return reverseSearchEnabled;
-    }
-
     private getAcceptedSymbols(configuredSymbols: any[]): HighlightSymbol[] {
         let acceptedSymbols: HighlightSymbol[] = [];
         for (let customSymbol of configuredSymbols) {
@@ -202,15 +184,6 @@ export default class ConfigHandler {
             textColor = '';
         }
         return textColor;
-    }
-
-    public regexMode(): boolean {
-        let config = this.getConfiguration();
-        let regexMode: boolean | undefined = config.get("regexMode");
-        if (regexMode === undefined) {
-            regexMode = false;
-        }
-        return regexMode;
     }
 
     public defaultJumpBetweenStrategy(): JumpBetweenStrategy {

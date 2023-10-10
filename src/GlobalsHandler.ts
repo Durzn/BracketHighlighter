@@ -33,13 +33,10 @@ export default class GlobalsHandler {
     public symbolDecorationOptions!: DecorationOptions;
     public contentDecorationOptions!: DecorationOptions;
     public enabledLanguages!: Array<string>;
-    public reverseSearchEnabled!: boolean;
-    public highlightScopeFromText!: boolean;
     public extensionEnabled!: boolean;
     public lastSelection!: vscode.Selection | undefined;
     public timeOutValue!: number;
     public ignoreContent!: boolean;
-    public regexMode!: boolean;
     public defaultJumpBetweenStrategy!: JumpBetweenStrategy;
     public preferredJumpBetweenStrategiesBySymbol!: Map<string, JumpBetweenStrategy>;
 
@@ -65,12 +62,9 @@ export default class GlobalsHandler {
         this.symbolDecorationOptions = this.configHandler.getDecorationOptions(DecorationType.SYMBOLS);
         this.contentDecorationOptions = this.configHandler.getDecorationOptions(DecorationType.CONTENT);
         this.enabledLanguages = this.configHandler.getEnabledLanguages();
-        this.reverseSearchEnabled = this.configHandler.reverseSearchEnabled();
-        this.highlightScopeFromText = this.configHandler.highlightScopeFromText();
         this.extensionEnabled = this.configHandler.isExtensionEnabled();
         this.timeOutValue = this.configHandler.getTimeOutValue();
         this.ignoreContent = this.configHandler.ignoreContent();
-        this.regexMode = this.configHandler.regexMode();
         this.defaultJumpBetweenStrategy = this.configHandler.defaultJumpBetweenStrategy();
         this.preferredJumpBetweenStrategiesBySymbol = this.configHandler.preferredJumpBetweenStrategiesBySymbol();
         this.configuredSymbols = this.configHandler.getConfiguredSymbols();
