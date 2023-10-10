@@ -5,7 +5,7 @@ import Highlighter from './Highlighter';
 import DecorationHandler, { DecorationType } from './DecorationHandler';
 import { bracketHighlightGlobals, DecorationStatus } from './GlobalsHandler';
 import SymbolFinder, { SearchFuncType } from './SymbolFinder';
-import { SymbolWithRangeInDepth, EntryWithRange, EntryWithDepth, SymbolWithRange } from './Util';
+import { SymbolWithRangeInDepth, EntryWithRange, EntryWithDepth, SymbolWithRange, SymbolWithIndex, EntryWithRangeInDepth, Util } from './Util';
 import ConfigHandler, { HighlightEntry, HighlightSymbol } from './ConfigHandler';
 
 
@@ -70,15 +70,16 @@ function handleTextSelectionEvent() {
 	removePreviousDecorations();
 
 	let symbolStart: SymbolWithRange | undefined = undefined;
-	let symbolAtCursor = getSymbolAtCursor(activeEditor, currentSelection.active, configuredSymbols);
+	let selection = currentSelection.active
+	let symbolAtCursor = getSymbolAtCursor(activeEditor, selection, configuredSymbols);
 	if (symbolAtCursor) {
 		symbolStart = symbolAtCursor;
 	}
 	else {
-		symbolStart = findSymbolUpwards(activeEditor, currentSelection.active, configuredSymbols);
+		symbolStart = findSymbolUpwards(activeEditor, selection, configuredSymbols);
 	}
 	if (symbolStart) {
-		let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, currentSelection.active);
+		let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, selection);
 		if (symbolEnd) {
 			let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
 			let rangeToHighlight = new vscode.Range(symbolStart.range.start, symbolEnd.range.end);
@@ -123,21 +124,24 @@ function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vsco
 	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
 	let textArray: string[] = text.split(eolCharacter);
 	let reversedText = textArray.reverse(); /* Reverse the text as the expectation is that the symbol is usually closer to the cursor. */
-	let lineCounter = 0;
-	let tempSelection = selectionStart;
-	for (let line of reversedText) {
-		for (let symbol of configuredSymbols) {
-			let symbolInLine = getSymbolInLineWithDepth(line, symbol.startSymbol, symbol.endSymbol, tempSelection, SymbolFinder.getRangeOfRegexClosestToPositionBefore);
-			if (symbolInLine) {
+
+	for (let symbol of configuredSymbols) {
+		let currentDepth = 0;
+		let lineCounter = 0;
+		let tempSelection = selectionStart;
+		for (let line of reversedText) {
+			let symbolInLine = getSymbolInLineWithDepthBefore(line, symbol.startSymbol, symbol.endSymbol, tempSelection, currentDepth);
+			currentDepth = symbolInLine.depth;
+			if (symbolInLine.range) {
 				return new SymbolWithRange(symbol, symbolInLine.range);
 			}
+			lineCounter++;
+			let newLine = selectionStart.line - lineCounter;
+			if (newLine < 0) {
+				break;
+			}
+			tempSelection = selectionStart.with(newLine, 0);
 		}
-		lineCounter++;
-		let newLine = selectionStart.line - lineCounter;
-		if (newLine < 0) {
-			return undefined;
-		}
-		tempSelection = selectionStart.with(newLine, 0);
 	}
 	return undefined;
 }
@@ -153,10 +157,12 @@ function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: High
 	let text: string[] = activeEditor.document.getText(new vscode.Range(selectionStart.translate(0, -cursorBehindSymbolOffset), selectionStart.translate(Math.min(...[maxLineSearch, activeEditor.document.lineCount])))).split(eolCharacter);
 	let lineCounter = 0;
 	let tempSelection = selectionStart;
+	let currentDepth = 0;
 	for (let line of text) {
-		let symbolInLine = getSymbolInLineWithDepth(line, targetSymbol.endSymbol, targetSymbol.startSymbol, tempSelection, SymbolFinder.getRangeOfRegexClosestToPositionBehind);
-		if (symbolInLine) {
-			return symbolInLine;
+		let symbolInLine = getSymbolInLineWithDepthBehind(line, targetSymbol.endSymbol, targetSymbol.startSymbol, tempSelection, currentDepth);
+		currentDepth = symbolInLine.depth;
+		if (symbolInLine.range) {
+			return new EntryWithRange(symbolInLine.symbol, symbolInLine.range);
 		}
 		lineCounter++;
 		let newLine = selectionStart.line + lineCounter;
@@ -172,13 +178,66 @@ function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: High
 /**
  * 
  */
-function getSymbolInLineWithDepth(line: string, entryToSearch: HighlightEntry, counterPartEntry: HighlightEntry, cursorPosition: vscode.Position, searchFunc: SearchFuncType): EntryWithRange | undefined {
-	let matchRange = SymbolFinder.getMatchRangeClosestToPosition(line, entryToSearch, counterPartEntry, cursorPosition, searchFunc);
-	if (matchRange) {
-		/* Always take the latest finding */
-		return new EntryWithRange(entryToSearch, matchRange);
+function getSymbolInLineWithDepthBefore(line: string, entryToSearch: HighlightEntry, counterPartEntry: HighlightEntry, cursorPosition: vscode.Position, currentDepth: number): EntryWithRangeInDepth {
+	let regexToCheck: RegExp = new RegExp(`${Util.makeRegexString(entryToSearch)}`, "g");
+	let counterPartRegex: RegExp = new RegExp(`${Util.makeRegexString(counterPartEntry)}`, "g");
+	let matchIndices = SymbolFinder.regexIndicesOf(line, regexToCheck);
+	let counterPartIndices = SymbolFinder.regexIndicesOf(line, counterPartRegex);
+
+	let allIndices = matchIndices.concat(counterPartIndices);
+	allIndices = allIndices.sort(function (a, b) {
+		let line = cursorPosition.line;
+		let pos1 = new vscode.Position(line, a.start);
+		let pos2 = new vscode.Position(line, b.start);
+		return pos1.compareTo(pos2);
+	}).reverse();
+
+	for (let i = 0; i < allIndices.length; i++) {
+		if (matchIndices.includes(allIndices[i])) {
+			currentDepth++;
+			if (currentDepth === 1) {
+				let rangeStart = allIndices[i].start;
+				let rangeLength = allIndices[i].symbol.length;
+				return new EntryWithRangeInDepth(entryToSearch, new vscode.Range(cursorPosition.with(cursorPosition.line, rangeStart), cursorPosition.with(cursorPosition.line, rangeStart + rangeLength)), currentDepth);
+			}
+		}
+		else {
+			currentDepth--;
+		}
+
 	}
-	return undefined;
+
+	return new EntryWithRangeInDepth(entryToSearch, undefined, currentDepth);
+}
+
+/**
+ * 
+ */
+function getSymbolInLineWithDepthBehind(line: string, entryToSearch: HighlightEntry, counterPartEntry: HighlightEntry, cursorPosition: vscode.Position, currentDepth: number): EntryWithRangeInDepth {
+	let regexToCheck: RegExp = new RegExp(`${Util.makeRegexString(entryToSearch)}`, "g");
+	let counterPartRegex: RegExp = new RegExp(`${Util.makeRegexString(counterPartEntry)}`, "g");
+	let matchIndices = SymbolFinder.regexIndicesOf(line, regexToCheck);
+	let counterPartIndices = SymbolFinder.regexIndicesOf(line, counterPartRegex);
+
+	let allIndices = matchIndices.concat(counterPartIndices);
+	allIndices = allIndices.sort(function (a, b) { return new vscode.Position(cursorPosition.line, a.start).compareTo(new vscode.Position(cursorPosition.line, b.start)); });
+
+	for (let i = 0; i < allIndices.length; i++) {
+		if (matchIndices.includes(allIndices[i])) {
+			currentDepth++;
+			if (currentDepth === 1) {
+				let rangeStart = allIndices[i].start;
+				let rangeLength = allIndices[i].symbol.length;
+				return new EntryWithRangeInDepth(entryToSearch, new vscode.Range(cursorPosition.translate(0, rangeStart), cursorPosition.translate(0, rangeStart + rangeLength)), currentDepth);
+			}
+		}
+		else {
+			currentDepth--;
+		}
+
+	}
+
+	return new EntryWithRangeInDepth(entryToSearch, undefined, currentDepth);
 }
 
 /******************************************************************************************************************************************
@@ -193,7 +252,7 @@ function getSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vsco
 	let selectionTextRange = new vscode.Range(selectionStart.with(selectionStart.line, 0), selectionStart.with(selectionStart.line, lineText.length));
 	let selectionTextRangeText = activeEditor.document.getText(selectionTextRange);
 	for (let symbol of configuredSymbols) {
-		let indicesOfSymbol = SymbolFinder.regexIndicesOf(selectionTextRangeText, new RegExp(SymbolFinder.makeRegexString(symbol.startSymbol), "g"));
+		let indicesOfSymbol = SymbolFinder.regexIndicesOf(selectionTextRangeText, new RegExp(Util.makeRegexString(symbol.startSymbol), "g"));
 		if (indicesOfSymbol.length > 0) {
 			let indices = indicesOfSymbol.map((index) => index.start);
 			let symbolLength = indicesOfSymbol[0].symbol.length;
