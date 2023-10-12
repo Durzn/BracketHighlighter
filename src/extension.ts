@@ -4,9 +4,10 @@ import * as vscode from 'vscode';
 import Highlighter from './Highlighter';
 import DecorationHandler, { DecorationType } from './DecorationHandler';
 import { bracketHighlightGlobals, DecorationStatus } from './GlobalsHandler';
-import SymbolFinder, { SearchFuncType } from './SymbolFinder';
-import { SymbolWithRangeInDepth, EntryWithRange, EntryWithDepth, SymbolWithRange, SymbolWithIndex, EntryWithRangeInDepth, Util } from './Util';
+import SymbolFinder from './SymbolFinder';
+import { EntryWithRange, SymbolWithRange, EntryWithRangeInDepth, Util } from './Util';
 import ConfigHandler, { HighlightEntry, HighlightSymbol } from './ConfigHandler';
+import { configCache } from './ConfigCache';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -21,7 +22,7 @@ export function deactivate() { }
 * Handles the config change event
 ******************************************************************************************************************************************/
 function handleConfigChangeEvent() {
-	bracketHighlightGlobals.onConfigChange();
+	configCache.onConfigChange();
 	removePreviousDecorations();
 }
 
@@ -30,10 +31,10 @@ function handleConfigChangeEvent() {
 ******************************************************************************************************************************************/
 function handleTextSelectionEvent() {
 
-	let configuredSymbols = bracketHighlightGlobals.configuredSymbols;
+	let configuredSymbols = configCache.configuredSymbols;
 
 	/******************************************* Early abort reasons **********************************************************************/
-	if (bracketHighlightGlobals.extensionEnabled === false) {
+	if (configCache.extensionEnabled === false) {
 		return;
 	}
 	let activeEditor = vscode.window.activeTextEditor;
@@ -41,13 +42,13 @@ function handleTextSelectionEvent() {
 		return;
 	}
 	let debugMode = vscode.debug.activeDebugSession;
-	if (debugMode !== undefined && bracketHighlightGlobals.activeWhenDebugging === false) {
+	if (debugMode !== undefined && configCache.activeWhenDebugging === false) {
 		removePreviousDecorations();
 		return;
 	}
-	if (bracketHighlightGlobals.enabledLanguages.length === 1 && bracketHighlightGlobals.enabledLanguages.includes("")) {
+	if (configCache.enabledLanguages.length === 1 && configCache.enabledLanguages.includes("")) {
 	}
-	else if (bracketHighlightGlobals.enabledLanguages.includes(activeEditor.document.languageId) === false) {
+	else if (configCache.enabledLanguages.includes(activeEditor.document.languageId) === false) {
 		return;
 	}
 	let currentSelection = activeEditor.selection;
@@ -55,7 +56,7 @@ function handleTextSelectionEvent() {
 		bracketHighlightGlobals.lastSelection = currentSelection;
 	}
 	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
-		onSelectionChangeEvent(currentSelection, bracketHighlightGlobals.highlightRanges);
+		onSelectionChangeEvent(currentSelection, bracketHighlightGlobals.symbolRanges);
 	}
 	bracketHighlightGlobals.lastSelection = currentSelection;
 	if (bracketHighlightGlobals.handleTextSelectionEventActive === false) {
@@ -71,27 +72,44 @@ function handleTextSelectionEvent() {
 
 	for (let selection of activeEditor.selections) {
 		let symbolStart: SymbolWithRange | undefined = undefined;
-		let activeSelection = selection.active
-		let symbolAtCursor = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
-		if (symbolAtCursor) {
-			symbolStart = symbolAtCursor;
-		}
-		else {
-			/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
+		let activeSelection = selection.active;
+		let lol = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
+		symbolStart = lol.symbolWithRange;
+		activeSelection = lol.correctedPosition;
+		if (!symbolStart) {
 			symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
 		}
 		if (symbolStart) {
 			/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
-			activeSelection = activeSelection.translate(0, symbolStart.symbol.startSymbol.symbol.length);
+			activeSelection = symbolStart.range.end.translate(0, 1);
 			let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, activeSelection);
 			if (symbolEnd) {
-				let symbolDecorationHandler = new DecorationHandler(DecorationType.SYMBOLS);
-				let rangeToHighlight = new vscode.Range(symbolStart.range.start, symbolEnd.range.end);
-				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, symbolDecorationHandler, [rangeToHighlight]));
-				bracketHighlightGlobals.highlightRanges.push(rangeToHighlight);
-				bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
+				let symbolsToHighlight = [new vscode.Range(symbolStart.range.start, symbolStart.range.end), new vscode.Range(symbolEnd.range.start, symbolEnd.range.end)];
+				let contentToHighlight = [new vscode.Range(symbolStart.range.end, symbolEnd.range.start)];
+
+				/* Do this BEFORE ignoring the content, otherwise it will also be blurred. */
+
+				if (configCache.blurOutOfScopeText) {
+					let blurRanges = getRangesToBlur(activeEditor, symbolsToHighlight.concat(contentToHighlight));
+					for (let range of blurRanges) {
+						//blurRange(activeEditor, range);
+					}
+				}
+
+				if (configCache.ignoreContent) {
+					contentToHighlight = [];
+				}
+
+				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.SYMBOLS), symbolsToHighlight));
+				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.CONTENT), contentToHighlight));
+				bracketHighlightGlobals.symbolRanges = bracketHighlightGlobals.symbolRanges.concat(symbolsToHighlight);
+				bracketHighlightGlobals.contentRanges = bracketHighlightGlobals.contentRanges.concat(contentToHighlight);
 			}
 		}
+	}
+
+	if (bracketHighlightGlobals.symbolRanges.length > 0) {
+		bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
 	}
 }
 
@@ -102,39 +120,72 @@ function handleTextSelectionEvent() {
 *	startSymbol: Symbol to search for
 *	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
 ******************************************************************************************************************************************/
-function findSymbolAtRightOfCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRange | undefined {
+function findSymbolAtRightOfCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): { symbolWithRange: SymbolWithRange | undefined, correctedPosition: vscode.Position } {
 	let line = activeEditor.document.lineAt(selectionStart);
 	let selectionRangeText = line.text;
 	for (let symbol of configuredSymbols) {
-		let indicesOfSymbol = SymbolFinder.regexIndicesOf(selectionRangeText, new RegExp(Util.makeRegexString(symbol.startSymbol), "g"));
-		if (indicesOfSymbol.length > 0) {
-			let indices = indicesOfSymbol.map((index) => index.start);
-			let symbolLength = indicesOfSymbol[0].symbol.length;
+		let indicesOfStartSymbol = SymbolFinder.regexIndicesOf(selectionRangeText, new RegExp(Util.makeRegexString(symbol.startSymbol), "g"));
+		let indicesOfEndSymbol = SymbolFinder.regexIndicesOf(selectionRangeText, new RegExp(Util.makeRegexString(symbol.endSymbol), "g"));
+		if (indicesOfStartSymbol.length > 0) {
+			let indices = indicesOfStartSymbol.map((index) => index.start);
+			let symbolLength = indicesOfStartSymbol[0].symbol.length;
 			for (let index of indices) {
 				let cursorIsLeftOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
 				if (cursorIsLeftOfSymbol) {
 					let range = new vscode.Range(selectionStart.with(selectionStart.line, index), selectionStart.with(selectionStart.line, index + symbolLength));
-					return new SymbolWithRange(symbol, range);
+					return { symbolWithRange: new SymbolWithRange(symbol, range), correctedPosition: selectionStart };
+				}
+			}
+		}
+		if (indicesOfEndSymbol.length > 0) {
+			let indices = indicesOfEndSymbol.map((index) => index.start);
+			let symbolLength = indicesOfEndSymbol[0].symbol.length;
+			for (let index of indices) {
+				let cursorIsLeftOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
+				if (cursorIsLeftOfSymbol) {
+					return { symbolWithRange: undefined, correctedPosition: selectionStart.with(selectionStart.line, index) };
 				}
 			}
 		}
 	}
 
-	return undefined;
+	return { symbolWithRange: undefined, correctedPosition: selectionStart };
 }
 
-/**
- * Corrects the cursor position so that the selection will be AFTER the symbol.
- */
-function correctCursorPosition(activeEditor: vscode.TextEditor, selection: vscode.Position, foundEntry: HighlightEntry): vscode.Position {
-	let currentSelection = selection;
-	let text = activeEditor.document.getText(new vscode.Range(new vscode.Position(currentSelection.line, currentSelection.character - 1), new vscode.Position(currentSelection.line, currentSelection.character + foundEntry.symbol.length)));
-	let foundEntryRegex: RegExp = new RegExp(Util.makeRegexString(foundEntry), "g");
-	let match = foundEntryRegex.exec(text);
-	if (match) {
-		currentSelection = currentSelection.translate(0, foundEntry.symbol.length + 1);
+function getRangesToBlur(activeEditor: vscode.TextEditor, rangesToHighlight: vscode.Range[]): vscode.Range[] {
+	let rangesToBlur = [];
+
+	if (rangesToHighlight.length <= 0) {
+		return [];
 	}
-	return currentSelection;
+	/* Sort the array, so gaps area easy to fill */
+	rangesToHighlight = rangesToHighlight.sort(function (range1, range2) {
+		return range1.start.line - range2.start.line;
+	});
+
+	/* Blur everything to the first highlight range */
+	let startPosition = new vscode.Position(0, 0);
+	let endPosition = new vscode.Position(rangesToHighlight[0].start.line, rangesToHighlight[0].start.character);
+	rangesToBlur.push(new vscode.Range(startPosition, endPosition));
+
+	/* Blur everything between the highlight ranges */
+	let holeIndices: number = rangesToHighlight.length - 1;
+	let currentIndex: number = 0;
+	while (currentIndex < holeIndices) {
+		startPosition = new vscode.Position(rangesToHighlight[currentIndex].end.line, rangesToHighlight[currentIndex].end.character);
+		endPosition = new vscode.Position(rangesToHighlight[currentIndex + 1].start.line, rangesToHighlight[currentIndex + 1].start.character);
+		rangesToBlur.push(new vscode.Range(startPosition, endPosition));
+		currentIndex++;
+	}
+
+	/* Blur everything from the last highlight range to the end of the file */
+	let lineCount: number = activeEditor.document.lineCount;
+	let lastLine: vscode.TextLine = activeEditor.document.lineAt(lineCount - 1);
+	startPosition = new vscode.Position(rangesToHighlight[currentIndex].end.line, rangesToHighlight[currentIndex].end.character);
+	endPosition = new vscode.Position(lastLine.range.start.line, lastLine.range.end.character);
+	rangesToBlur.push(new vscode.Range(startPosition, endPosition));
+
+	return rangesToBlur;
 }
 
 /******************************************************************************************************************************************
@@ -145,7 +196,7 @@ function correctCursorPosition(activeEditor: vscode.TextEditor, selection: vscod
 function blurRange(activeEditor: vscode.TextEditor, range: vscode.Range) {
 	let decorationType: vscode.TextEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
-			opacity: bracketHighlightGlobals.opacity
+			opacity: configCache.opacity
 		});
 	Highlighter.highlightRange(activeEditor, decorationType, range);
 	bracketHighlightGlobals.decorationTypes.push(decorationType);
@@ -158,7 +209,9 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 	if (bracketHighlightGlobals.decorationStatus === DecorationStatus.active) {
 		Highlighter.removeHighlights(bracketHighlightGlobals.decorationTypes);
 		bracketHighlightGlobals.decorationStatus = DecorationStatus.inactive;
-		bracketHighlightGlobals.highlightRanges = [];
+		bracketHighlightGlobals.symbolRanges = [];
+		bracketHighlightGlobals.contentRanges = [];
+		bracketHighlightGlobals.decorationTypes = [];
 	}
 }
 
@@ -337,7 +390,7 @@ function onSelectionChangeEvent(currentSelection: vscode.Selection, previousRang
 		setTextSelectionEventHandling(false);
 		bracketHighlightGlobals.disableTimer = setTimeout(
 			timeoutFunction,
-			bracketHighlightGlobals.timeOutValue
+			configCache.timeOutValue
 		);
 	}
 	else {

@@ -52,6 +52,6 @@ export class Util {
     }
 
     public static sortByProximityToPosition() {
-        
+
     }
 }
