@@ -9,7 +9,7 @@
 	"readme": "README.md",
 	"license": "SEE LICENSE IN LICENSE",
 	"description": "Decorates text inbetween symbols.",
-	"version": "2.4.0",
+	"version": "2.4.1",
 	"engines": {
 		"vscode": "^1.40.0"
 	},
@@ -281,17 +281,21 @@
 		"decoration"
 	],
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^5.2.6",
 		"@types/node": "^10.12.21",
 		"@types/vscode": "^1.40.0",
+		"esbuild": "^0.19.2",
 		"glob": "^7.1.4",
 		"tslint": "^5.12.1",
 		"typescript": "^4.0.0",
