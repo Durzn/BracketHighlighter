@@ -3,16 +3,68 @@
 import * as vscode from 'vscode';
 import Highlighter from './Highlighter';
 import DecorationHandler, { DecorationType } from './DecorationHandler';
-import { bracketHighlightGlobals, DecorationStatus, SymbolAndContentRange } from './GlobalsHandler';
+import { bracketHighlightGlobals, DecorationStatus, RangeIndex, SymbolAndContentRange } from './GlobalsHandler';
 import SymbolFinder from './SymbolFinder';
 import { EntryWithRange, SymbolWithRange, EntryWithRangeInDepth, Util } from './Util';
 import ConfigHandler, { HighlightEntry, HighlightSymbol } from './ConfigHandler';
 import { configCache } from './ConfigCache';
+import ActionHandler from './ActionHandler';
 
 
 export function activate(context: vscode.ExtensionContext) {
+	let actionHandler = new ActionHandler();
+	let onToggleExtensionStatusDisposable = vscode.commands.registerCommand('BracketHighlighter.toggleExtensionStatus', () => {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			actionHandler.onActivateHotkey(editor);
+		}
+		removePreviousDecorations();
+	});
+	let onJumpOutOfOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfOpeningSymbol', () => {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			actionHandler.onJumpOutOfOpeningSymbolHotkey(editor);
+		}
+	});
+	let onJumpOutOfClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfClosingSymbol', () => {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			actionHandler.onJumpOutOfClosingSymbolHotkey(editor);
+		}
+	});
+	let onJumpToOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToOpeningSymbol', () => {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			actionHandler.onJumpToOpeningSymbolHotkey(editor);
+		}
+	});
+	let onJumpToClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToClosingSymbol', () => {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			actionHandler.onJumpToClosingSymbolHotkey(editor);
+		}
+	});
+	let onjumpBetweenOpeningAndClosingSymbolsDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpBetweenOpeningAndClosingSymbols', () => {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor);
+		}
+	});
+	let onSelectTextBetweenSymbols = vscode.commands.registerCommand('BracketHighlighter.selectTextInSymbols', () => {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			actionHandler.onSelectTextBetweenSymbolsHotkey(editor);
+		}
+	});
 	vscode.workspace.onDidChangeConfiguration(handleConfigChangeEvent);
 	vscode.window.onDidChangeTextEditorSelection(handleTextSelectionEvent);
+	context.subscriptions.push(onToggleExtensionStatusDisposable);
+	context.subscriptions.push(onJumpOutOfOpeningSymbolDisposable);
+	context.subscriptions.push(onJumpOutOfClosingSymbolDisposable);
+	context.subscriptions.push(onJumpToOpeningSymbolDisposable);
+	context.subscriptions.push(onJumpToClosingSymbolDisposable);
+	context.subscriptions.push(onjumpBetweenOpeningAndClosingSymbolsDisposable);
+	context.subscriptions.push(onSelectTextBetweenSymbols);
 }
 
 export function deactivate() { }
@@ -76,9 +128,9 @@ function handleTextSelectionEvent() {
 	for (let selection of activeEditor.selections) {
 		let symbolStart: SymbolWithRange | undefined = undefined;
 		let activeSelection = selection.active;
-		let lol = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
-		symbolStart = lol.symbolWithRange;
-		activeSelection = lol.correctedPosition;
+		let startSymbolObj = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
+		symbolStart = startSymbolObj.symbolWithRange;
+		activeSelection = startSymbolObj.correctedPosition;
 		if (!symbolStart) {
 			symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
 		}
@@ -92,10 +144,10 @@ function handleTextSelectionEvent() {
 				let endPosition = symbolEnd.range.start;
 
 				/* Fix weird edge case when ranges overlap where single characters would be highlighted according to content colors instead of symbol colors. */
-				if (symbolEnd.range.start.character > 0) {
+				if (symbolEnd.range.start.character > 0 && (symbolEnd.range.end.character - symbolEnd.range.start.character) === 1) {
 					endPosition = symbolEnd.range.start.translate(0, -1);
 				}
-				
+
 				let contentToHighlight = [new vscode.Range(startPosition, endPosition)];
 				if (configCache.ignoreContent) {
 					contentToHighlight = [];
@@ -116,7 +168,7 @@ function handleTextSelectionEvent() {
 		let combinedRanges = [];
 		for (let highlightPair of bracketHighlightGlobals.ranges) {
 			/* Highlighting always consists of startSymbol and endSymbol! */
-			combinedRanges.push(new vscode.Range(highlightPair.symbolRanges[0].start, highlightPair.symbolRanges[1].end));
+			combinedRanges.push(new vscode.Range(highlightPair.symbolRanges[RangeIndex.OPENSYMBOL].start, highlightPair.symbolRanges[RangeIndex.CLOSESYMBOL].end));
 		}
 		let blurRanges = getRangesToBlur(activeEditor, combinedRanges);
 		for (let rangeToBlur of blurRanges) {

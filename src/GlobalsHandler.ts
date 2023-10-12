@@ -11,6 +11,11 @@ export class SymbolAndContentRange {
         public contentRanges: vscode.Range[]) { }
 }
 
+export const enum RangeIndex {
+    OPENSYMBOL = 0,
+    CLOSESYMBOL = 1
+}
+
 export default class GlobalsHandler {
 
     public decorationStatus: DecorationStatus;
