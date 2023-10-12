@@ -5,14 +5,19 @@ export const enum DecorationStatus {
     inactive
 }
 
+export class SymbolAndContentRange {
+    constructor(
+        public symbolRanges: vscode.Range[],
+        public contentRanges: vscode.Range[]) { }
+}
+
 export default class GlobalsHandler {
 
     public decorationStatus: DecorationStatus;
     public decorationTypes: Array<vscode.TextEditorDecorationType>;
     public handleTextSelectionEventActive: boolean;
     public disableTimer: any;
-    public symbolRanges: vscode.Range[];
-    public contentRanges: vscode.Range[];
+    public ranges: SymbolAndContentRange[];
     public lastSelection!: vscode.Selection | undefined;
 
     constructor() {
@@ -20,8 +25,7 @@ export default class GlobalsHandler {
         this.decorationTypes = [];
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
-        this.symbolRanges = [];
-        this.contentRanges = [];
+        this.ranges = [];
     }
 }
 
