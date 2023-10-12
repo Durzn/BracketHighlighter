@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import Highlighter from './Highlighter';
 import DecorationHandler, { DecorationType } from './DecorationHandler';
-import { bracketHighlightGlobals, DecorationStatus } from './GlobalsHandler';
+import { bracketHighlightGlobals, DecorationStatus, SymbolAndContentRange } from './GlobalsHandler';
 import SymbolFinder from './SymbolFinder';
 import { EntryWithRange, SymbolWithRange, EntryWithRangeInDepth, Util } from './Util';
 import ConfigHandler, { HighlightEntry, HighlightSymbol } from './ConfigHandler';
@@ -56,7 +56,10 @@ function handleTextSelectionEvent() {
 		bracketHighlightGlobals.lastSelection = currentSelection;
 	}
 	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
-		onSelectionChangeEvent(currentSelection, bracketHighlightGlobals.symbolRanges);
+		for (let range of bracketHighlightGlobals.ranges) {
+			let ranges = range.contentRanges.concat(range.symbolRanges);
+			onSelectionChangeEvent(currentSelection, ranges);
+		}
 	}
 	bracketHighlightGlobals.lastSelection = currentSelection;
 	if (bracketHighlightGlobals.handleTextSelectionEventActive === false) {
@@ -84,32 +87,41 @@ function handleTextSelectionEvent() {
 			activeSelection = symbolStart.range.end.translate(0, 1);
 			let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, activeSelection);
 			if (symbolEnd) {
-				let symbolsToHighlight = [new vscode.Range(symbolStart.range.start, symbolStart.range.end), new vscode.Range(symbolEnd.range.start, symbolEnd.range.end)];
-				let contentToHighlight = [new vscode.Range(symbolStart.range.end, symbolEnd.range.start)];
+				let symbolsToHighlight = [symbolStart.range, symbolEnd.range];
+				let startPosition = symbolStart.range.end;
+				let endPosition = symbolEnd.range.start;
 
-				/* Do this BEFORE ignoring the content, otherwise it will also be blurred. */
-
-				if (configCache.blurOutOfScopeText) {
-					let blurRanges = getRangesToBlur(activeEditor, symbolsToHighlight.concat(contentToHighlight));
-					for (let range of blurRanges) {
-						//blurRange(activeEditor, range);
-					}
+				/* Fix weird edge case when ranges overlap where single characters would be highlighted according to content colors instead of symbol colors. */
+				if (symbolEnd.range.start.character > 0) {
+					endPosition = symbolEnd.range.start.translate(0, -1);
 				}
-
+				
+				let contentToHighlight = [new vscode.Range(startPosition, endPosition)];
 				if (configCache.ignoreContent) {
 					contentToHighlight = [];
 				}
 
 				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.SYMBOLS), symbolsToHighlight));
 				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.CONTENT), contentToHighlight));
-				bracketHighlightGlobals.symbolRanges = bracketHighlightGlobals.symbolRanges.concat(symbolsToHighlight);
-				bracketHighlightGlobals.contentRanges = bracketHighlightGlobals.contentRanges.concat(contentToHighlight);
+				bracketHighlightGlobals.ranges.push(new SymbolAndContentRange(symbolsToHighlight, contentToHighlight));
 			}
 		}
 	}
 
-	if (bracketHighlightGlobals.symbolRanges.length > 0) {
+	if (bracketHighlightGlobals.ranges.length > 0) {
 		bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
+	}
+
+	if (configCache.blurOutOfScopeText) {
+		let combinedRanges = [];
+		for (let highlightPair of bracketHighlightGlobals.ranges) {
+			/* Highlighting always consists of startSymbol and endSymbol! */
+			combinedRanges.push(new vscode.Range(highlightPair.symbolRanges[0].start, highlightPair.symbolRanges[1].end));
+		}
+		let blurRanges = getRangesToBlur(activeEditor, combinedRanges);
+		for (let rangeToBlur of blurRanges) {
+			blurRange(activeEditor, rangeToBlur);
+		}
 	}
 }
 
@@ -209,8 +221,7 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 	if (bracketHighlightGlobals.decorationStatus === DecorationStatus.active) {
 		Highlighter.removeHighlights(bracketHighlightGlobals.decorationTypes);
 		bracketHighlightGlobals.decorationStatus = DecorationStatus.inactive;
-		bracketHighlightGlobals.symbolRanges = [];
-		bracketHighlightGlobals.contentRanges = [];
+		bracketHighlightGlobals.ranges = [];
 		bracketHighlightGlobals.decorationTypes = [];
 	}
 }
