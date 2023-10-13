@@ -109,7 +109,10 @@ function handleTextSelectionEvent() {
 	}
 	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
 		for (let range of bracketHighlightGlobals.ranges) {
-			let ranges = range.contentRanges.concat(range.symbolRanges);
+			let ranges: vscode.Range[] = range.symbolRanges;
+			if (range.contentRange) {
+				ranges = ranges.concat(range.contentRange);
+			}
 			onSelectionChangeEvent(currentSelection, ranges);
 		}
 	}
@@ -130,8 +133,10 @@ function handleTextSelectionEvent() {
 		let activeSelection = selection.active;
 		let startSymbolObj = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
 		symbolStart = startSymbolObj.symbolWithRange;
-		activeSelection = startSymbolObj.correctedPosition;
-		if (!symbolStart) {
+		if (symbolStart) {
+			activeSelection = startSymbolObj.correctedPosition;
+		}
+		else {
 			symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
 		}
 		if (symbolStart) {
@@ -143,19 +148,17 @@ function handleTextSelectionEvent() {
 				let startPosition = symbolStart.range.end;
 				let endPosition = symbolEnd.range.start;
 
-				/* Fix weird edge case when ranges overlap where single characters would be highlighted according to content colors instead of symbol colors. */
-				if (symbolEnd.range.start.character > 0 && (symbolEnd.range.end.character - symbolEnd.range.start.character) === 1) {
-					endPosition = symbolEnd.range.start.translate(0, -1);
-				}
-
-				let contentToHighlight = [new vscode.Range(startPosition, endPosition)];
-				if (configCache.ignoreContent) {
-					contentToHighlight = [];
-				}
-
+				let contentToHighlight: vscode.Range | undefined = new vscode.Range(startPosition, endPosition);
 				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.SYMBOLS), symbolsToHighlight));
-				bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.CONTENT), contentToHighlight));
-				bracketHighlightGlobals.ranges.push(new SymbolAndContentRange(symbolsToHighlight, contentToHighlight));
+
+				if (configCache.ignoreContent) {
+					contentToHighlight = undefined;
+				}
+				else {
+					bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.CONTENT), [contentToHighlight]));
+				}
+
+				bracketHighlightGlobals.ranges.push(new SymbolAndContentRange([symbolStart.range, symbolEnd.range], contentToHighlight));
 			}
 		}
 	}
