@@ -316,13 +316,12 @@ function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vsco
  */
 function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: HighlightSymbol, selectionStart: vscode.Position): EntryWithRange | undefined {
 	let maxLineSearch = new ConfigHandler().getMaxLineSearchCount();
-	let stringStartOffset = selectionStart.character;
 	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
 	/* If the cursor is on the right of the symbol, it would not be found without this offset! */
 	let cursorBehindSymbolOffset = targetSymbol.endSymbol.symbol.length < selectionStart.character ? targetSymbol.endSymbol.symbol.length : 0;
-	let text: string[] = activeEditor.document.getText(new vscode.Range(selectionStart.translate(0, -cursorBehindSymbolOffset), selectionStart.translate(Math.min(...[maxLineSearch, activeEditor.document.lineCount])))).split(eolCharacter);
+	let tempSelection = selectionStart.translate(0, -cursorBehindSymbolOffset);
+	let text: string[] = activeEditor.document.getText(new vscode.Range(tempSelection, selectionStart.translate(Math.min(...[maxLineSearch, activeEditor.document.lineCount])))).split(eolCharacter);
 	let lineCounter = 0;
-	let tempSelection = selectionStart;
 	let currentDepth = 0;
 	for (let line of text) {
 		let symbolInLine = getSymbolInLineWithDepthBehind(line, targetSymbol.endSymbol, targetSymbol.startSymbol, tempSelection, currentDepth);
@@ -336,7 +335,6 @@ function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: High
 			return undefined;
 		}
 		tempSelection = selectionStart.with(newLine, 0);
-		stringStartOffset = 0;
 	}
 	return undefined;
 }
