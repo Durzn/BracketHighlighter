@@ -131,11 +131,13 @@ function handleTextSelectionEvent() {
 	for (let selection of activeEditor.selections) {
 		let symbolStart: SymbolWithRange | undefined = undefined;
 		let activeSelection = selection.active;
-		let startSymbolObj = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
+		let startSymbolObj = findSymbolAtCursor(activeEditor, activeSelection, configuredSymbols);
 		symbolStart = startSymbolObj.symbolWithRange;
 		activeSelection = startSymbolObj.correctedPosition;
 		if (!symbolStart) {
-			symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
+			if (configCache.highlightScopeFromText || startSymbolObj.overrideScopeSearch) {
+				symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
+			}
 		}
 		if (symbolStart) {
 			/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
@@ -190,7 +192,7 @@ function handleTextSelectionEvent() {
 *	startSymbol: Symbol to search for
 *	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
 ******************************************************************************************************************************************/
-function findSymbolAtRightOfCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): { symbolWithRange: SymbolWithRange | undefined, correctedPosition: vscode.Position } {
+function findSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): { symbolWithRange: SymbolWithRange | undefined, correctedPosition: vscode.Position, overrideScopeSearch: boolean } {
 	let line = activeEditor.document.lineAt(selectionStart);
 	let selectionRangeText = line.text;
 	for (let symbol of configuredSymbols) {
@@ -200,10 +202,20 @@ function findSymbolAtRightOfCursor(activeEditor: vscode.TextEditor, selectionSta
 			let indices = indicesOfStartSymbol.map((index) => index.start);
 			let symbolLength = indicesOfStartSymbol[0].symbol.length;
 			for (let index of indices) {
-				let cursorIsLeftOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
-				if (cursorIsLeftOfSymbol) {
+				let cursorIsOutsideOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
+				let cursorIsInsideOfSymbol = (selectionStart.character > index) && (selectionStart.character === (index + symbolLength));
+				if (cursorIsInsideOfSymbol) {
+					if (configCache.isInsideOfOpeningSymbolIgnored) {
+						/* Move cursor to the very begining of the file, so nothing else will be found! */
+						return { symbolWithRange: undefined, correctedPosition: selectionStart.with(0, 0), overrideScopeSearch: false };
+					}
+					else {
+						return { symbolWithRange: undefined, correctedPosition: selectionStart.translate(0, 0), overrideScopeSearch: true };
+					}
+				}
+				if (cursorIsOutsideOfSymbol) {
 					let range = new vscode.Range(selectionStart.with(selectionStart.line, index), selectionStart.with(selectionStart.line, index + symbolLength));
-					return { symbolWithRange: new SymbolWithRange(symbol, range), correctedPosition: selectionStart };
+					return { symbolWithRange: new SymbolWithRange(symbol, range), correctedPosition: selectionStart, overrideScopeSearch: false };
 				}
 			}
 		}
@@ -211,19 +223,25 @@ function findSymbolAtRightOfCursor(activeEditor: vscode.TextEditor, selectionSta
 			let indices = indicesOfEndSymbol.map((index) => index.start);
 			let symbolLength = indicesOfEndSymbol[0].symbol.length;
 			for (let index of indices) {
-				let cursorIsLeftOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
-				let cursorIsRightOfSymbol = (selectionStart.character > index) && (selectionStart.character === (index + symbolLength));
-				if (cursorIsRightOfSymbol) {
-					return { symbolWithRange: undefined, correctedPosition: selectionStart.translate(0, -symbolLength) };
+				let cursorIsInsideOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
+				let cursorIsOutsideOfSymbol = (selectionStart.character > index) && (selectionStart.character === (index + symbolLength));
+				if (cursorIsOutsideOfSymbol) {
+					return { symbolWithRange: undefined, correctedPosition: selectionStart.translate(0, -symbolLength), overrideScopeSearch: true };
 				}
-				if (cursorIsLeftOfSymbol) {
-					return { symbolWithRange: undefined, correctedPosition: selectionStart.with(selectionStart.line, index) };
+				if (cursorIsInsideOfSymbol) {
+					if (configCache.isInsideOfClosingSymbolIgnored) {
+						/* Move cursor to the very begining of the file, so nothing else will be found! */
+						return { symbolWithRange: undefined, correctedPosition: selectionStart.with(0, 0), overrideScopeSearch: false };
+					}
+					else {
+						return { symbolWithRange: undefined, correctedPosition: selectionStart.with(selectionStart.line, index), overrideScopeSearch: true };
+					}
 				}
 			}
 		}
 	}
 
-	return { symbolWithRange: undefined, correctedPosition: selectionStart };
+	return { symbolWithRange: undefined, correctedPosition: selectionStart, overrideScopeSearch: false };
 }
 
 function getRangesToBlur(activeEditor: vscode.TextEditor, rangesToHighlight: vscode.Range[]): vscode.Range[] {
