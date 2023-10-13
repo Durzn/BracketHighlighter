@@ -142,10 +142,7 @@ export default class HotkeyHandler {
   private getOpeningSymbolInsideSelectionPositions(activeEditor: vscode.TextEditor): vscode.Position[] {
     let newSelectionPositions: vscode.Position[] = [];
     for (let index = 0; index < bracketHighlightGlobals.ranges.length; index++) {
-      let range = bracketHighlightGlobals.ranges[index];
-      let newSelectionPosition = range.symbolRanges[RangeIndex.OPENSYMBOL].start;
-      newSelectionPosition = newSelectionPosition.translate(0, 1);
-      newSelectionPositions.push(newSelectionPosition);
+      newSelectionPositions.push(bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.OPENSYMBOL].end);
     }
     return newSelectionPositions;
   }
@@ -154,10 +151,7 @@ export default class HotkeyHandler {
     let newSelectionPositions: vscode.Position[] = [];
     if (activeEditor && bracketHighlightGlobals.ranges.length > 0) {
       for (let index = 0; index < bracketHighlightGlobals.ranges.length; index++) {
-        let range = bracketHighlightGlobals.ranges[index];
-        let offset = range.symbolRanges[RangeIndex.OPENSYMBOL].end.character - range.symbolRanges[RangeIndex.OPENSYMBOL].start.character;
-        let newSelectionPosition = range.symbolRanges[RangeIndex.CLOSESYMBOL].end.translate(0, -offset);
-        newSelectionPositions.push(newSelectionPosition);
+        newSelectionPositions.push(bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.CLOSESYMBOL].start);
       }
     }
     return newSelectionPositions;
