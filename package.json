@@ -43,6 +43,24 @@
 						"description": "Enables the extension.",
 						"scope": "resource"
 					},
+					"BracketHighlighter.isInsideOfOpeningSymbolIgnored": {
+						"type": "boolean",
+						"default": false,
+						"description": "Disables highlighting when the cursor is on the inner side of the symbol.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.isInsideOfClosingSymbolIgnored": {
+						"type": "boolean",
+						"default": false,
+						"description": "Disables highlighting when the cursor is on the inner side of the symbol.",
+						"scope": "resource"
+					},
+					"BracketHighlighter.highlightScopeFromText": {
+						"type": "boolean",
+						"default": true,
+						"description": "Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.",
+						"scope": "resource"
+					},
 					"BracketHighlighter.maxLineSearchCount": {
 						"type": "number",
 						"default": 1000,

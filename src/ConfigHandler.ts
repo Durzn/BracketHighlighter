@@ -58,6 +58,33 @@ export default class ConfigHandler {
             maxLineSearchCount = 1000;
         }
         return maxLineSearchCount;
+    }    
+    
+    public highlightScopeFromText(): boolean {
+        const config = this.getConfiguration();
+        let highlightScopeFromText: boolean | undefined = config.get("highlightScopeFromText");
+        if (highlightScopeFromText === undefined) {
+            highlightScopeFromText = false;
+        }
+        return highlightScopeFromText;
+    }
+
+    public isInsideOfOpeningSymbolIgnored(): boolean {
+        const config = this.getConfiguration();
+        let isIgnored: boolean | undefined = config.get("isInsideOfOpeningSymbolIgnored");
+        if (isIgnored === undefined) {
+            isIgnored = false;
+        }
+        return isIgnored
+    }
+
+    public isInsideOfClosingSymbolIgnored(): boolean {
+        const config = this.getConfiguration();
+        let isIgnored: boolean | undefined = config.get("isInsideOfClosingSymbolIgnored");
+        if (isIgnored === undefined) {
+            isIgnored = false;
+        }
+        return isIgnored
     }
 
     public getDecorationOptions(decorationType: DecorationType): DecorationOptions {

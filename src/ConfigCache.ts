@@ -22,6 +22,9 @@ export default class ConfigCache {
     public ignoreContent!: boolean;
     public defaultJumpBetweenStrategy!: JumpBetweenStrategy;
     public preferredJumpBetweenStrategiesBySymbol!: Map<string, JumpBetweenStrategy>;
+    public isInsideOfOpeningSymbolIgnored!: boolean;
+    public isInsideOfClosingSymbolIgnored!: boolean;
+    public highlightScopeFromText!: boolean;
 
 
     constructor() {
@@ -45,7 +48,9 @@ export default class ConfigCache {
         this.defaultJumpBetweenStrategy = this.configHandler.defaultJumpBetweenStrategy();
         this.preferredJumpBetweenStrategiesBySymbol = this.configHandler.preferredJumpBetweenStrategiesBySymbol();
         this.configuredSymbols = this.configHandler.getConfiguredSymbols();
-
+        this.isInsideOfOpeningSymbolIgnored = this.configHandler.isInsideOfOpeningSymbolIgnored();
+        this.isInsideOfClosingSymbolIgnored = this.configHandler.isInsideOfClosingSymbolIgnored();
+        this.highlightScopeFromText = this.configHandler.highlightScopeFromText();
     }
 }
 
