@@ -1,10 +1,8 @@
 import * as vscode from 'vscode';
 import { RangeIndex, bracketHighlightGlobals } from './GlobalsHandler';
-import { ConfigHandler, HighlightEntry, HighlightSymbol, JumpBetweenStrategy } from './ConfigHandler';
+import { ConfigHandler, JumpBetweenStrategy } from './ConfigHandler';
 import { configCache } from './ConfigCache';
-import { Util } from './Util';
 import assert = require('assert');
-import SymbolFinder from './SymbolFinder';
 
 /*
     foo() {
@@ -113,8 +111,11 @@ export default class HotkeyHandler {
     }
     let selectionRanges: vscode.Range[] = [];
     for (let index = 0; index < bracketHighlightGlobals.ranges.length; index++) {
-      let range = bracketHighlightGlobals.ranges[index];
-      selectionRanges.push(range.contentRanges[index]);
+      /* Do NOT use the contentRanges here, as they can be disabled! */
+      let startRange = bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.OPENSYMBOL].end;
+      let endRange = bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.CLOSESYMBOL].start;
+      let range = new vscode.Range(startRange, endRange);
+      selectionRanges.push(range);
     }
     this.setSelectionRanges(activeEditor, selectionRanges);
   }
@@ -220,14 +221,11 @@ export default class HotkeyHandler {
   private setSelectionRanges(activeEditor: vscode.TextEditor, newRanges: vscode.Range[]) {
     let newSelections: vscode.Selection[] = [];
     for (let i = 0; i < newRanges.length; i++) {
-      let startOffset = 1;
-      let endOffset = -1;
-      if (newRanges[i].end.character === 0) {
-        endOffset = 0;
-      }
-      newSelections.push(new vscode.Selection(newRanges[i].end.translate(0, endOffset), newRanges[i].start.translate(0, startOffset)));
+      newSelections.push(new vscode.Selection(newRanges[i].end, newRanges[i].start));
     }
-    activeEditor.selections = newSelections;
+    if (newSelections.length > 0) {
+      activeEditor.selections = newSelections;
+    }
   }
 }
 
