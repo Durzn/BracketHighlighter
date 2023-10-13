@@ -133,10 +133,8 @@ function handleTextSelectionEvent() {
 		let activeSelection = selection.active;
 		let startSymbolObj = findSymbolAtRightOfCursor(activeEditor, activeSelection, configuredSymbols);
 		symbolStart = startSymbolObj.symbolWithRange;
-		if (symbolStart) {
-			activeSelection = startSymbolObj.correctedPosition;
-		}
-		else {
+		activeSelection = startSymbolObj.correctedPosition;
+		if (!symbolStart) {
 			symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
 		}
 		if (symbolStart) {
@@ -158,7 +156,12 @@ function handleTextSelectionEvent() {
 					bracketHighlightGlobals.decorationTypes = bracketHighlightGlobals.decorationTypes.concat(Highlighter.highlightRanges(activeEditor, new DecorationHandler(DecorationType.CONTENT), [contentToHighlight]));
 				}
 
-				bracketHighlightGlobals.ranges.push(new SymbolAndContentRange([symbolStart.range, symbolEnd.range], contentToHighlight));
+				let symbolPair = new SymbolAndContentRange([symbolStart.range, symbolEnd.range], contentToHighlight);
+				let rangeAlreadyIncluded: boolean = bracketHighlightGlobals.ranges.some(pair => pair.symbolRanges[0]?.isEqual(symbolPair.symbolRanges[0]) && pair.symbolRanges[1]?.isEqual(symbolPair.symbolRanges[1]));
+				/* Prevent the same symbol pairs being added twice */
+				if (!rangeAlreadyIncluded) {
+					bracketHighlightGlobals.ranges.push(symbolPair);
+				}
 			}
 		}
 	}
@@ -209,6 +212,10 @@ function findSymbolAtRightOfCursor(activeEditor: vscode.TextEditor, selectionSta
 			let symbolLength = indicesOfEndSymbol[0].symbol.length;
 			for (let index of indices) {
 				let cursorIsLeftOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
+				let cursorIsRightOfSymbol = (selectionStart.character > index) && (selectionStart.character === (index + symbolLength));
+				if (cursorIsRightOfSymbol) {
+					return { symbolWithRange: undefined, correctedPosition: selectionStart.translate(0, -symbolLength) };
+				}
 				if (cursorIsLeftOfSymbol) {
 					return { symbolWithRange: undefined, correctedPosition: selectionStart.with(selectionStart.line, index) };
 				}
@@ -226,8 +233,8 @@ function getRangesToBlur(activeEditor: vscode.TextEditor, rangesToHighlight: vsc
 		return [];
 	}
 	/* Sort the array, so gaps area easy to fill */
-	rangesToHighlight = rangesToHighlight.sort(function (range1, range2) {
-		return range1.start.line - range2.start.line;
+	rangesToHighlight = rangesToHighlight.sort((range1: vscode.Range, range2: vscode.Range) => {
+		return range1.start.compareTo(range2.start);
 	});
 
 	/* Blur everything to the first highlight range */
@@ -238,18 +245,17 @@ function getRangesToBlur(activeEditor: vscode.TextEditor, rangesToHighlight: vsc
 	/* Blur everything between the highlight ranges */
 	let holeIndices: number = rangesToHighlight.length - 1;
 	let currentIndex: number = 0;
-	while (currentIndex < holeIndices) {
-		startPosition = new vscode.Position(rangesToHighlight[currentIndex].end.line, rangesToHighlight[currentIndex].end.character);
-		endPosition = new vscode.Position(rangesToHighlight[currentIndex + 1].start.line, rangesToHighlight[currentIndex + 1].start.character);
+	for (; currentIndex < holeIndices; currentIndex++) {
+		startPosition = rangesToHighlight[currentIndex].end;
+		endPosition = rangesToHighlight[currentIndex + 1].start;
 		rangesToBlur.push(new vscode.Range(startPosition, endPosition));
-		currentIndex++;
 	}
 
 	/* Blur everything from the last highlight range to the end of the file */
 	let lineCount: number = activeEditor.document.lineCount;
 	let lastLine: vscode.TextLine = activeEditor.document.lineAt(lineCount - 1);
-	startPosition = new vscode.Position(rangesToHighlight[currentIndex].end.line, rangesToHighlight[currentIndex].end.character);
-	endPosition = new vscode.Position(lastLine.range.start.line, lastLine.range.end.character);
+	startPosition = rangesToHighlight[currentIndex].end;
+	endPosition = lastLine.range.end;
 	rangesToBlur.push(new vscode.Range(startPosition, endPosition));
 
 	return rangesToBlur;
