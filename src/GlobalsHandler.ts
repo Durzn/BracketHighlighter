@@ -7,8 +7,8 @@ export const enum DecorationStatus {
 
 export class SymbolAndContentRange {
     constructor(
-        public symbolRanges: vscode.Range[],
-        public contentRanges: vscode.Range[]) { }
+        public symbolRanges: [open: vscode.Range, close: vscode.Range],
+        public contentRange: vscode.Range | undefined) { }
 }
 
 export const enum RangeIndex {
