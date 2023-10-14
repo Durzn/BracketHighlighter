@@ -52,7 +52,7 @@ export default class HotkeyHandler {
     if (ranges.length <= 0) {
       return;
     }
-    let newSelectionPositions = this.getClosingSymbolInsideSelectionPositions(activeEditor, ranges);
+    let newSelectionPositions = this.getClosingSymbolInsideSelectionPositions(ranges);
     this.setSelectionPositions(activeEditor, newSelectionPositions);
   }
 
@@ -64,7 +64,7 @@ export default class HotkeyHandler {
     const openingOutsideSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions(ranges);
     const closingOutsideSelectionPositions = this.getClosingSymbolOutsideSelectionPositions(ranges);
     const openingInsideSelectionPositions = this.getOpeningSymbolInsideSelectionPositions(ranges);
-    const closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions(activeEditor, ranges);
+    const closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions(ranges);
     assert(openingOutsideSelectionPositions.length === openingInsideSelectionPositions.length
       && closingOutsideSelectionPositions.length === closingInsideSelectionPositions.length
       && openingOutsideSelectionPositions.length === closingInsideSelectionPositions.length);
@@ -144,9 +144,9 @@ export default class HotkeyHandler {
     return newSelectionPositions;
   }
 
-  private getClosingSymbolInsideSelectionPositions(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]): vscode.Position[] {
+  private getClosingSymbolInsideSelectionPositions(ranges: SymbolAndContentRange[]): vscode.Position[] {
     let newSelectionPositions: vscode.Position[] = [];
-    if (activeEditor && ranges.length > 0) {
+    if (ranges.length > 0) {
       for (let index = 0; index < ranges.length; index++) {
         newSelectionPositions.push(ranges[index].symbolRanges[RangeIndex.CLOSESYMBOL].start);
       }
