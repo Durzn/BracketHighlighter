@@ -5,8 +5,7 @@ import Highlighter from './Highlighter';
 import DecorationHandler, { DecorationType } from './DecorationHandler';
 import { bracketHighlightGlobals, DecorationStatus, RangeIndex, SymbolAndContentRange } from './GlobalsHandler';
 import SymbolFinder from './SymbolFinder';
-import { EntryWithRange, SymbolWithRange, EntryWithRangeInDepth, Util } from './Util';
-import ConfigHandler, { HighlightEntry, HighlightSymbol } from './ConfigHandler';
+import { SymbolWithRange } from './Util';
 import { configCache } from './ConfigCache';
 import ActionHandler from './ActionHandler';
 
@@ -14,10 +13,7 @@ import ActionHandler from './ActionHandler';
 export function activate(context: vscode.ExtensionContext) {
 	let actionHandler = new ActionHandler();
 	let onToggleExtensionStatusDisposable = vscode.commands.registerCommand('BracketHighlighter.toggleExtensionStatus', () => {
-		let editor = vscode.window.activeTextEditor;
-		if (editor) {
-			actionHandler.onActivateHotkey(editor);
-		}
+		actionHandler.onActivateHotkey();
 		removePreviousDecorations();
 	});
 	let onJumpOutOfOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfOpeningSymbol', () => {

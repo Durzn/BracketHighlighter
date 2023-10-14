@@ -19,7 +19,7 @@ type SymbolRangePair = [opening: vscode.Range, closing: vscode.Range];
 
 export default class HotkeyHandler {
 
-  public onActivateHotkey(activeEditor: vscode.TextEditor) {
+  public onActivateHotkey() {
     configCache.extensionEnabled = !configCache.extensionEnabled;
     let configHandler = new ConfigHandler();
     configHandler.setExtensionEnabledStatus(configCache.extensionEnabled);
