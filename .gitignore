@@ -4,3 +4,4 @@
 /out/**
 *.js
 *.js.map
+.vscode-test
