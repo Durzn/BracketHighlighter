@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { RangeIndex, SymbolAndContentRange, bracketHighlightGlobals } from './GlobalsHandler';
+import { RangeIndex, SymbolAndContentRange } from './GlobalsHandler';
 import { ConfigHandler, JumpBetweenStrategy } from './ConfigHandler';
 import { configCache } from './ConfigCache';
 import assert = require('assert');
@@ -42,14 +42,14 @@ export default class HotkeyHandler {
   }
 
   public onJumpToOpeningSymbolHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
-    if (this.isRangesEmpty()) {
+    if (ranges.length <= 0) {
       return;
     }
     let newSelectionPositions = this.getOpeningSymbolInsideSelectionPositions(ranges);
     this.setSelectionPositions(activeEditor, newSelectionPositions);
   }
   public onJumpToClosingSymbolHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
-    if (this.isRangesEmpty()) {
+    if (ranges.length <= 0) {
       return;
     }
     let newSelectionPositions = this.getClosingSymbolInsideSelectionPositions(activeEditor, ranges);
@@ -57,7 +57,7 @@ export default class HotkeyHandler {
   }
 
   public onjumpBetweenOpeningAndClosingSymbolsHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
-    if (this.isRangesEmpty()) {
+    if (ranges.length <= 0) {
       return;
     }
 
@@ -106,7 +106,7 @@ export default class HotkeyHandler {
   }
 
   public onSelectTextBetweenSymbolsHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
-    if (this.isRangesEmpty()) {
+    if (ranges.length <= 0) {
       return;
     }
     let selectionRanges: vscode.Range[] = [];
@@ -118,10 +118,6 @@ export default class HotkeyHandler {
       selectionRanges.push(range);
     }
     this.setSelectionRanges(activeEditor, selectionRanges);
-  }
-
-  private isRangesEmpty(): boolean {
-    return bracketHighlightGlobals.ranges.length <= 0;
   }
 
   private getOpeningSymbolOutsideSelectionPositions(ranges: SymbolAndContentRange[]): vscode.Position[] {
