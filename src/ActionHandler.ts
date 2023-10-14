@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { RangeIndex, bracketHighlightGlobals } from './GlobalsHandler';
+import { RangeIndex, SymbolAndContentRange, bracketHighlightGlobals } from './GlobalsHandler';
 import { ConfigHandler, JumpBetweenStrategy } from './ConfigHandler';
 import { configCache } from './ConfigCache';
 import assert = require('assert');
@@ -25,46 +25,46 @@ export default class HotkeyHandler {
     configHandler.setExtensionEnabledStatus(configCache.extensionEnabled);
   }
 
-  public onJumpOutOfOpeningSymbolHotkey(activeEditor: vscode.TextEditor) {
-    if (bracketHighlightGlobals.ranges.length <= 0) {
+  public onJumpOutOfOpeningSymbolHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
+    if (ranges.length <= 0) {
       return;
     }
-    let newSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions(activeEditor);
+    let newSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions(activeEditor, ranges);
     this.setSelectionPositions(activeEditor, newSelectionPositions);
   }
 
-  public onJumpOutOfClosingSymbolHotkey(activeEditor: vscode.TextEditor) {
-    if (bracketHighlightGlobals.ranges.length <= 0) {
+  public onJumpOutOfClosingSymbolHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
+    if (ranges.length <= 0) {
       return;
     }
-    let newSelectionPositions = this.getClosingSymbolOutsideSelectionPositions(activeEditor);
+    let newSelectionPositions = this.getClosingSymbolOutsideSelectionPositions(activeEditor, ranges);
     this.setSelectionPositions(activeEditor, newSelectionPositions);
   }
 
-  public onJumpToOpeningSymbolHotkey(activeEditor: vscode.TextEditor) {
+  public onJumpToOpeningSymbolHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
     if (this.isRangesEmpty()) {
       return;
     }
-    let newSelectionPositions = this.getOpeningSymbolInsideSelectionPositions(activeEditor);
+    let newSelectionPositions = this.getOpeningSymbolInsideSelectionPositions(activeEditor, ranges);
     this.setSelectionPositions(activeEditor, newSelectionPositions);
   }
-  public onJumpToClosingSymbolHotkey(activeEditor: vscode.TextEditor) {
+  public onJumpToClosingSymbolHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
     if (this.isRangesEmpty()) {
       return;
     }
-    let newSelectionPositions = this.getClosingSymbolInsideSelectionPositions(activeEditor);
+    let newSelectionPositions = this.getClosingSymbolInsideSelectionPositions(activeEditor, ranges);
     this.setSelectionPositions(activeEditor, newSelectionPositions);
   }
 
-  public onjumpBetweenOpeningAndClosingSymbolsHotkey(activeEditor: vscode.TextEditor) {
+  public onjumpBetweenOpeningAndClosingSymbolsHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
     if (this.isRangesEmpty()) {
       return;
     }
 
-    const openingOutsideSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions(activeEditor);
-    const closingOutsideSelectionPositions = this.getClosingSymbolOutsideSelectionPositions(activeEditor);
-    const openingInsideSelectionPositions = this.getOpeningSymbolInsideSelectionPositions(activeEditor);
-    const closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions(activeEditor);
+    const openingOutsideSelectionPositions = this.getOpeningSymbolOutsideSelectionPositions(activeEditor, ranges);
+    const closingOutsideSelectionPositions = this.getClosingSymbolOutsideSelectionPositions(activeEditor, ranges);
+    const openingInsideSelectionPositions = this.getOpeningSymbolInsideSelectionPositions(activeEditor, ranges);
+    const closingInsideSelectionPositions = this.getClosingSymbolInsideSelectionPositions(activeEditor, ranges);
     assert(openingOutsideSelectionPositions.length === openingInsideSelectionPositions.length
       && closingOutsideSelectionPositions.length === closingInsideSelectionPositions.length
       && openingOutsideSelectionPositions.length === closingInsideSelectionPositions.length);
@@ -105,15 +105,15 @@ export default class HotkeyHandler {
     this.setSelectionPositions(activeEditor, newSelectionPositions, true);
   }
 
-  public onSelectTextBetweenSymbolsHotkey(activeEditor: vscode.TextEditor) {
+  public onSelectTextBetweenSymbolsHotkey(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]) {
     if (this.isRangesEmpty()) {
       return;
     }
     let selectionRanges: vscode.Range[] = [];
-    for (let index = 0; index < bracketHighlightGlobals.ranges.length; index++) {
+    for (let index = 0; index < ranges.length; index++) {
       /* Do NOT use the contentRanges here, as they can be disabled! */
-      let startRange = bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.OPENSYMBOL].end;
-      let endRange = bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.CLOSESYMBOL].start;
+      let startRange = ranges[index].symbolRanges[RangeIndex.OPENSYMBOL].end;
+      let endRange = ranges[index].symbolRanges[RangeIndex.CLOSESYMBOL].start;
       let range = new vscode.Range(startRange, endRange);
       selectionRanges.push(range);
     }
@@ -124,35 +124,35 @@ export default class HotkeyHandler {
     return bracketHighlightGlobals.ranges.length <= 0;
   }
 
-  private getOpeningSymbolOutsideSelectionPositions(activeEditor: vscode.TextEditor): vscode.Position[] {
+  private getOpeningSymbolOutsideSelectionPositions(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]): vscode.Position[] {
     let newSelectionPositions: vscode.Position[] = [];
-    for (let range of bracketHighlightGlobals.ranges) {
+    for (let range of ranges) {
       newSelectionPositions.push(range.symbolRanges[RangeIndex.OPENSYMBOL].start);
     }
     return newSelectionPositions;
   }
 
-  private getClosingSymbolOutsideSelectionPositions(activeEditor: vscode.TextEditor): vscode.Position[] {
+  private getClosingSymbolOutsideSelectionPositions(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]): vscode.Position[] {
     let newSelectionPositions: vscode.Position[] = [];
-    for (let range of bracketHighlightGlobals.ranges) {
+    for (let range of ranges) {
       newSelectionPositions.push(range.symbolRanges[RangeIndex.CLOSESYMBOL].end);
     }
     return newSelectionPositions;
   }
 
-  private getOpeningSymbolInsideSelectionPositions(activeEditor: vscode.TextEditor): vscode.Position[] {
+  private getOpeningSymbolInsideSelectionPositions(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]): vscode.Position[] {
     let newSelectionPositions: vscode.Position[] = [];
-    for (let index = 0; index < bracketHighlightGlobals.ranges.length; index++) {
-      newSelectionPositions.push(bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.OPENSYMBOL].end);
+    for (let index = 0; index < ranges.length; index++) {
+      newSelectionPositions.push(ranges[index].symbolRanges[RangeIndex.OPENSYMBOL].end);
     }
     return newSelectionPositions;
   }
 
-  private getClosingSymbolInsideSelectionPositions(activeEditor: vscode.TextEditor): vscode.Position[] {
+  private getClosingSymbolInsideSelectionPositions(activeEditor: vscode.TextEditor, ranges: SymbolAndContentRange[]): vscode.Position[] {
     let newSelectionPositions: vscode.Position[] = [];
-    if (activeEditor && bracketHighlightGlobals.ranges.length > 0) {
-      for (let index = 0; index < bracketHighlightGlobals.ranges.length; index++) {
-        newSelectionPositions.push(bracketHighlightGlobals.ranges[index].symbolRanges[RangeIndex.CLOSESYMBOL].start);
+    if (activeEditor && ranges.length > 0) {
+      for (let index = 0; index < ranges.length; index++) {
+        newSelectionPositions.push(ranges[index].symbolRanges[RangeIndex.CLOSESYMBOL].start);
       }
     }
     return newSelectionPositions;

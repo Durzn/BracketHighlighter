@@ -23,37 +23,37 @@ export function activate(context: vscode.ExtensionContext) {
 	let onJumpOutOfOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfOpeningSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpOutOfOpeningSymbolHotkey(editor);
+			actionHandler.onJumpOutOfOpeningSymbolHotkey(editor, bracketHighlightGlobals.ranges);
 		}
 	});
 	let onJumpOutOfClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfClosingSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpOutOfClosingSymbolHotkey(editor);
+			actionHandler.onJumpOutOfClosingSymbolHotkey(editor, bracketHighlightGlobals.ranges);
 		}
 	});
 	let onJumpToOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToOpeningSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpToOpeningSymbolHotkey(editor);
+			actionHandler.onJumpToOpeningSymbolHotkey(editor, bracketHighlightGlobals.ranges);
 		}
 	});
 	let onJumpToClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToClosingSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpToClosingSymbolHotkey(editor);
+			actionHandler.onJumpToClosingSymbolHotkey(editor, bracketHighlightGlobals.ranges);
 		}
 	});
 	let onjumpBetweenOpeningAndClosingSymbolsDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpBetweenOpeningAndClosingSymbols', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor);
+			actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor, bracketHighlightGlobals.ranges);
 		}
 	});
 	let onSelectTextBetweenSymbols = vscode.commands.registerCommand('BracketHighlighter.selectTextInSymbols', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onSelectTextBetweenSymbolsHotkey(editor);
+			actionHandler.onSelectTextBetweenSymbolsHotkey(editor, bracketHighlightGlobals.ranges);
 		}
 	});
 	vscode.workspace.onDidChangeConfiguration(handleConfigChangeEvent);
@@ -78,35 +78,51 @@ function handleConfigChangeEvent() {
 	removePreviousDecorations();
 }
 
+function preconditionsFulfilled(): boolean {
+
+	let configuredSymbols = configCache.configuredSymbols;
+	let activeEditor = vscode.window.activeTextEditor;
+	let debugMode = vscode.debug.activeDebugSession;
+
+	if (!activeEditor) {
+		return false;
+	}
+
+	if (configCache.extensionEnabled === false) {
+		return false;
+	}
+	if (debugMode !== undefined && configCache.activeWhenDebugging === false) {
+		return false;
+	}
+	if (configCache.enabledLanguages.length === 1 && configCache.enabledLanguages.includes("")) {
+	}
+	else if (configCache.enabledLanguages.includes(activeEditor.document.languageId) === false) {
+		return false;
+	}
+	if (bracketHighlightGlobals.handleTextSelectionEventActive === false) {
+		return false;
+	}
+	if (configuredSymbols.length <= 0) {
+		return false;
+	}
+
+	return true;
+}
+
 /******************************************************************************************************************************************
 * Handles the text selection event
 ******************************************************************************************************************************************/
 function handleTextSelectionEvent() {
 
-	let configuredSymbols = configCache.configuredSymbols;
+	if (!preconditionsFulfilled()) {
+		return;
+	}
 
-	/******************************************* Early abort reasons **********************************************************************/
-	if (configCache.extensionEnabled === false) {
-		return;
-	}
-	let activeEditor = vscode.window.activeTextEditor;
-	if (activeEditor === undefined || !activeEditor) {
-		return;
-	}
-	let debugMode = vscode.debug.activeDebugSession;
-	if (debugMode !== undefined && configCache.activeWhenDebugging === false) {
-		removePreviousDecorations();
-		return;
-	}
-	if (configCache.enabledLanguages.length === 1 && configCache.enabledLanguages.includes("")) {
-	}
-	else if (configCache.enabledLanguages.includes(activeEditor.document.languageId) === false) {
-		return;
-	}
+	let activeEditor = vscode.window.activeTextEditor!; /* Assured not to be undefined by preconditions */
+	let configuredSymbols = configCache.configuredSymbols;
 	let currentSelection = activeEditor.selection;
-	if (bracketHighlightGlobals.lastSelection === undefined) {
-		bracketHighlightGlobals.lastSelection = currentSelection;
-	}
+	bracketHighlightGlobals.lastSelection = currentSelection;
+
 	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
 		for (let range of bracketHighlightGlobals.ranges) {
 			let ranges: vscode.Range[] = range.symbolRanges;
@@ -116,14 +132,6 @@ function handleTextSelectionEvent() {
 			onSelectionChangeEvent(currentSelection, ranges);
 		}
 	}
-	bracketHighlightGlobals.lastSelection = currentSelection;
-	if (bracketHighlightGlobals.handleTextSelectionEventActive === false) {
-		return;
-	}
-	if (configuredSymbols.length <= 0) {
-		return;
-	}
-	/*************************************************************************************************************************************/
 
 
 	removePreviousDecorations();
@@ -131,18 +139,18 @@ function handleTextSelectionEvent() {
 	for (let selection of activeEditor.selections) {
 		let symbolStart: SymbolWithRange | undefined = undefined;
 		let activeSelection = selection.active;
-		let startSymbolObj = findSymbolAtCursor(activeEditor, activeSelection, configuredSymbols);
+		let startSymbolObj = SymbolFinder.findSymbolAtCursor(activeEditor, activeSelection, configuredSymbols, configCache.isInsideOfOpeningSymbolIgnored, configCache.isInsideOfClosingSymbolIgnored);
 		symbolStart = startSymbolObj.symbolWithRange;
 		activeSelection = startSymbolObj.correctedPosition;
 		if (!symbolStart) {
 			if (configCache.highlightScopeFromText || startSymbolObj.overrideScopeSearch) {
-				symbolStart = findSymbolUpwards(activeEditor, activeSelection, configuredSymbols);
+				symbolStart = SymbolFinder.findSymbolUpwards(activeEditor, activeSelection, configuredSymbols, configCache.maxLineSearchCount);
 			}
 		}
 		if (symbolStart) {
 			/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
 			activeSelection = symbolStart.range.end.translate(0, 1);
-			let symbolEnd = findSymbolDownwards(activeEditor, symbolStart.symbol, activeSelection);
+			let symbolEnd = SymbolFinder.findSymbolDownwards(activeEditor, symbolStart.symbol, activeSelection, configCache.maxLineSearchCount);
 			if (symbolEnd) {
 				let symbolsToHighlight = [symbolStart.range, symbolEnd.range];
 				let startPosition = symbolStart.range.end;
@@ -185,64 +193,6 @@ function handleTextSelectionEvent() {
 	}
 }
 
-/******************************************************************************************************************************************
-* Corrects the start position to the symbol. Will put the cursor before a starting symbol (includes it) and behind a closing symbol (includes it). Differentiates between forward and backward search
-*	activeEditor: Currently used editor
-*	selectionStart: Selection from where to start the search
-*	startSymbol: Symbol to search for
-*	offset: Offset where the symbol around the selection was found (Gives information where the symbol is relative to the cursor)
-******************************************************************************************************************************************/
-function findSymbolAtCursor(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): { symbolWithRange: SymbolWithRange | undefined, correctedPosition: vscode.Position, overrideScopeSearch: boolean } {
-	let line = activeEditor.document.lineAt(selectionStart);
-	let selectionRangeText = line.text;
-	for (let symbol of configuredSymbols) {
-		let indicesOfStartSymbol = SymbolFinder.regexIndicesOf(selectionRangeText, new RegExp(Util.makeRegexString(symbol.startSymbol), "g"));
-		let indicesOfEndSymbol = SymbolFinder.regexIndicesOf(selectionRangeText, new RegExp(Util.makeRegexString(symbol.endSymbol), "g"));
-		if (indicesOfStartSymbol.length > 0) {
-			let indices = indicesOfStartSymbol.map((index) => index.start);
-			let symbolLength = indicesOfStartSymbol[0].symbol.length;
-			for (let index of indices) {
-				let cursorIsOutsideOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
-				let cursorIsInsideOfSymbol = (selectionStart.character > index) && (selectionStart.character === (index + symbolLength));
-				if (cursorIsInsideOfSymbol) {
-					if (configCache.isInsideOfOpeningSymbolIgnored) {
-						/* Move cursor to the very begining of the file, so nothing else will be found! */
-						return { symbolWithRange: undefined, correctedPosition: selectionStart.with(0, 0), overrideScopeSearch: false };
-					}
-					else {
-						return { symbolWithRange: undefined, correctedPosition: selectionStart.translate(0, 0), overrideScopeSearch: true };
-					}
-				}
-				if (cursorIsOutsideOfSymbol) {
-					let range = new vscode.Range(selectionStart.with(selectionStart.line, index), selectionStart.with(selectionStart.line, index + symbolLength));
-					return { symbolWithRange: new SymbolWithRange(symbol, range), correctedPosition: selectionStart, overrideScopeSearch: false };
-				}
-			}
-		}
-		if (indicesOfEndSymbol.length > 0) {
-			let indices = indicesOfEndSymbol.map((index) => index.start);
-			let symbolLength = indicesOfEndSymbol[0].symbol.length;
-			for (let index of indices) {
-				let cursorIsInsideOfSymbol = (selectionStart.character >= index) && (selectionStart.character < (index + symbolLength));
-				let cursorIsOutsideOfSymbol = (selectionStart.character > index) && (selectionStart.character === (index + symbolLength));
-				if (cursorIsOutsideOfSymbol) {
-					return { symbolWithRange: undefined, correctedPosition: selectionStart.translate(0, -symbolLength), overrideScopeSearch: true };
-				}
-				if (cursorIsInsideOfSymbol) {
-					if (configCache.isInsideOfClosingSymbolIgnored) {
-						/* Move cursor to the very begining of the file, so nothing else will be found! */
-						return { symbolWithRange: undefined, correctedPosition: selectionStart.with(0, 0), overrideScopeSearch: false };
-					}
-					else {
-						return { symbolWithRange: undefined, correctedPosition: selectionStart.with(selectionStart.line, index), overrideScopeSearch: true };
-					}
-				}
-			}
-		}
-	}
-
-	return { symbolWithRange: undefined, correctedPosition: selectionStart, overrideScopeSearch: false };
-}
 
 function getRangesToBlur(activeEditor: vscode.TextEditor, rangesToHighlight: vscode.Range[]): vscode.Range[] {
 	let rangesToBlur = [];
@@ -303,129 +253,6 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 		bracketHighlightGlobals.ranges = [];
 		bracketHighlightGlobals.decorationTypes = [];
 	}
-}
-
-/**
- * 
- */
-function findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[]): SymbolWithRange | undefined {
-	let maxLineSearch = new ConfigHandler().getMaxLineSearchCount();
-	let text: string = activeEditor.document.getText(new vscode.Range(selectionStart.translate(-Math.min(...[maxLineSearch, selectionStart.line])), selectionStart));
-	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
-	let textArray: string[] = text.split(eolCharacter);
-	let reversedText = textArray.reverse(); /* Reverse the text as the expectation is that the symbol is usually closer to the cursor. */
-
-	for (let symbol of configuredSymbols) {
-		let currentDepth = 0;
-		let lineCounter = 0;
-		let tempSelection = selectionStart;
-		for (let line of reversedText) {
-			let symbolInLine = getSymbolInLineWithDepthBefore(line, symbol.startSymbol, symbol.endSymbol, tempSelection, currentDepth);
-			currentDepth = symbolInLine.depth;
-			if (symbolInLine.range) {
-				return new SymbolWithRange(symbol, symbolInLine.range);
-			}
-			lineCounter++;
-			let newLine = selectionStart.line - lineCounter;
-			if (newLine < 0) {
-				break;
-			}
-			tempSelection = selectionStart.with(newLine, 0);
-		}
-	}
-	return undefined;
-}
-/**
- * 
- */
-function findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: HighlightSymbol, selectionStart: vscode.Position): EntryWithRange | undefined {
-	let maxLineSearch = new ConfigHandler().getMaxLineSearchCount();
-	let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
-	/* If the cursor is on the right of the symbol, it would not be found without this offset! */
-	let cursorBehindSymbolOffset = targetSymbol.endSymbol.symbol.length < selectionStart.character ? targetSymbol.endSymbol.symbol.length : 0;
-	let tempSelection = selectionStart.translate(0, -cursorBehindSymbolOffset);
-	let text: string[] = activeEditor.document.getText(new vscode.Range(tempSelection, selectionStart.translate(Math.min(...[maxLineSearch, activeEditor.document.lineCount])))).split(eolCharacter);
-	let lineCounter = 0;
-	let currentDepth = 0;
-	for (let line of text) {
-		let symbolInLine = getSymbolInLineWithDepthBehind(line, targetSymbol.endSymbol, targetSymbol.startSymbol, tempSelection, currentDepth);
-		currentDepth = symbolInLine.depth;
-		if (symbolInLine.range) {
-			return new EntryWithRange(symbolInLine.symbol, symbolInLine.range);
-		}
-		lineCounter++;
-		let newLine = selectionStart.line + lineCounter;
-		if (newLine > activeEditor.document.lineCount) {
-			return undefined;
-		}
-		tempSelection = selectionStart.with(newLine, 0);
-	}
-	return undefined;
-}
-
-/**
- * 
- */
-function getSymbolInLineWithDepthBefore(line: string, entryToSearch: HighlightEntry, counterPartEntry: HighlightEntry, cursorPosition: vscode.Position, currentDepth: number): EntryWithRangeInDepth {
-	let regexToCheck: RegExp = new RegExp(`${Util.makeRegexString(entryToSearch)}`, "g");
-	let counterPartRegex: RegExp = new RegExp(`${Util.makeRegexString(counterPartEntry)}`, "g");
-	let matchIndices = SymbolFinder.regexIndicesOf(line, regexToCheck);
-	let counterPartIndices = SymbolFinder.regexIndicesOf(line, counterPartRegex);
-
-	let allIndices = matchIndices.concat(counterPartIndices);
-	allIndices = allIndices.sort(function (a, b) {
-		let line = cursorPosition.line;
-		let pos1 = new vscode.Position(line, a.start);
-		let pos2 = new vscode.Position(line, b.start);
-		return pos1.compareTo(pos2);
-	}).reverse();
-
-	for (let i = 0; i < allIndices.length; i++) {
-		if (matchIndices.includes(allIndices[i])) {
-			currentDepth++;
-			if (currentDepth === 1) {
-				let rangeStart = allIndices[i].start;
-				let rangeLength = allIndices[i].symbol.length;
-				return new EntryWithRangeInDepth(entryToSearch, new vscode.Range(cursorPosition.with(cursorPosition.line, rangeStart), cursorPosition.with(cursorPosition.line, rangeStart + rangeLength)), currentDepth);
-			}
-		}
-		else {
-			currentDepth--;
-		}
-
-	}
-
-	return new EntryWithRangeInDepth(entryToSearch, undefined, currentDepth);
-}
-
-/**
- * 
- */
-function getSymbolInLineWithDepthBehind(line: string, entryToSearch: HighlightEntry, counterPartEntry: HighlightEntry, cursorPosition: vscode.Position, currentDepth: number): EntryWithRangeInDepth {
-	let regexToCheck: RegExp = new RegExp(`${Util.makeRegexString(entryToSearch)}`, "g");
-	let counterPartRegex: RegExp = new RegExp(`${Util.makeRegexString(counterPartEntry)}`, "g");
-	let matchIndices = SymbolFinder.regexIndicesOf(line, regexToCheck);
-	let counterPartIndices = SymbolFinder.regexIndicesOf(line, counterPartRegex);
-
-	let allIndices = matchIndices.concat(counterPartIndices);
-	allIndices = allIndices.sort(function (a, b) { return new vscode.Position(cursorPosition.line, a.start).compareTo(new vscode.Position(cursorPosition.line, b.start)); });
-
-	for (let i = 0; i < allIndices.length; i++) {
-		if (matchIndices.includes(allIndices[i])) {
-			currentDepth++;
-			if (currentDepth === 1) {
-				let rangeStart = allIndices[i].start;
-				let rangeLength = allIndices[i].symbol.length;
-				return new EntryWithRangeInDepth(entryToSearch, new vscode.Range(cursorPosition.translate(0, rangeStart), cursorPosition.translate(0, rangeStart + rangeLength)), currentDepth);
-			}
-		}
-		else {
-			currentDepth--;
-		}
-
-	}
-
-	return new EntryWithRangeInDepth(entryToSearch, undefined, currentDepth);
 }
 
 /******************************************************************************************************************************************
