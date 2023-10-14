@@ -2,3 +2,5 @@
 /settings.json
 /node_modules/**
 /out/**
+/test/*.js
+/test/*.js.map
