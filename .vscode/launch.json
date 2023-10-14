@@ -27,12 +27,12 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
-				"--disable-extensions"
+				"-n",
+				"./src/test/testFile.txt"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
-			],
-			"preLaunchTask": "npm: watch"
+			]
 		}
 	]
 }
