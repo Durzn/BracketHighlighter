@@ -309,7 +309,6 @@
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
   },
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
     "@types/glob": "^7.1.1",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.12.21",
@@ -317,9 +316,7 @@
     "@vscode/test-electron": "^2.3.5",
     "esbuild": "^0.19.2",
     "glob": "^7.1.4",
-    "jest": "^29.7.0",
     "minimist": "^1.2.8",
-    "ts-jest": "^29.1.1",
     "tslint": "^5.12.1",
     "typescript": "^4.0.0",
     "vscode-test": "^1.0.2"
