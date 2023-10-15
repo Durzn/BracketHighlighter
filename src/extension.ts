@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let onjumpBetweenOpeningAndClosingSymbolsDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpBetweenOpeningAndClosingSymbols', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor, bracketHighlightGlobals.ranges);
+			actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor, bracketHighlightGlobals.ranges, configCache.configuredSymbols);
 		}
 	});
 	let onSelectTextBetweenSymbols = vscode.commands.registerCommand('BracketHighlighter.selectTextInSymbols', () => {
