@@ -37,13 +37,13 @@ suite('SymbolFinder will correctly', () => {
 });
 suite('SymbolFinder upwards search will correctly', () => {
 
-    test('find the correct symbol on the upwards search when.', () => {
+    test('find the correct symbol on the upwards search when the symbol is on the inside of it.', () => {
         /* Environment */
         let editor = vscode.window.activeTextEditor!;
         assert.notStrictEqual(editor, undefined);
 
         /* Setup */
-        let selectionStart: vscode.Position = new vscode.Position(38, 1);
+        let selectionStart: vscode.Position = new vscode.Position(27, 1);
         let maxLineSearchCount = 1000;
 
         /* Expectation setup */
@@ -51,7 +51,32 @@ suite('SymbolFinder upwards search will correctly', () => {
             new HighlightSymbol(new HighlightEntry("{", false, true),
                 new HighlightEntry("}", false, true),
                 JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-            new vscode.Range(new vscode.Position(38, 0), new vscode.Position(38, 1))
+            new vscode.Range(new vscode.Position(27, 0), new vscode.Position(27, 1))
+        );
+
+        /* Execution */
+        let result: SymbolWithRange | undefined = SymbolFinder.findSymbolUpwards(editor, selectionStart, configuredSymbols, maxLineSearchCount);
+
+        /* Asserts */
+        assert.notStrictEqual(result, undefined);
+        assert.deepStrictEqual(result, expectedSymbol);
+    });
+
+    test('find the correct symbol on the upwards search when in a nested scope', () => {
+        /* Environment */
+        let editor = vscode.window.activeTextEditor!;
+        assert.notStrictEqual(editor, undefined);
+
+        /* Setup */
+        let selectionStart: vscode.Position = new vscode.Position(7, 0);
+        let maxLineSearchCount = 1000;
+
+        /* Expectation setup */
+        let expectedSymbol: SymbolWithRange = new SymbolWithRange(
+            new HighlightSymbol(new HighlightEntry("{", false, true),
+                new HighlightEntry("}", false, true),
+                JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
+            new vscode.Range(new vscode.Position(6, 4), new vscode.Position(6, 5))
         );
 
         /* Execution */
