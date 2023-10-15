@@ -38,7 +38,7 @@ suite('SymbolFinder will correctly', () => {
 
 suite('SymbolFinder upwards search will correctly', () => {
 
-    test('find the correct symbol on the upwards search when the cursor is on the inside of the symbol.', () => {
+    test('find the correct symbol  when the cursor is on the inside of the symbol.', () => {
         /* Environment */
         let editor = vscode.window.activeTextEditor!;
         assert.notStrictEqual(editor, undefined);
@@ -63,7 +63,7 @@ suite('SymbolFinder upwards search will correctly', () => {
         assert.deepStrictEqual(result, expectedSymbol);
     });
 
-    test('find the correct symbol on the upwards search when in a nested scope', () => {
+    test('find the correct symbol search when in a nested scope', () => {
         /* Environment */
         let editor = vscode.window.activeTextEditor!;
         assert.notStrictEqual(editor, undefined);
@@ -97,6 +97,36 @@ suite('SymbolFinder downwards search will correctly', () => {
         assert.notStrictEqual(editor, undefined);
 
         /* Setup */
+        let selectionStart: vscode.Position = new vscode.Position(12, 3);
+        let maxLineSearchCount = 1000;
+
+        /* Expectation setup */
+        let expectedRange = new vscode.Range(new vscode.Position(15, 0), new vscode.Position(15, 3));
+        let expectedEntry: EntryWithRange = new EntryWithRange(
+            new HighlightEntry("dog", false, false),
+            expectedRange
+        );
+        let expectedSymbol: SymbolWithRange = new SymbolWithRange(
+            new HighlightSymbol(new HighlightEntry("cat", false, false),
+                new HighlightEntry("dog", false, false),
+                JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
+            expectedRange
+        );
+
+        /* Execution */
+        let result: EntryWithRange | undefined = SymbolFinder.findSymbolDownwards(editor, expectedSymbol.symbol, selectionStart, maxLineSearchCount);
+
+        /* Asserts */
+        assert.notStrictEqual(result, undefined);
+        assert.deepStrictEqual(result, expectedEntry);
+    });
+
+    test('find the correct symbol in a nested scope', () => {
+        /* Environment */
+        let editor = vscode.window.activeTextEditor!;
+        assert.notStrictEqual(editor, undefined);
+
+        /* Setup */
         let selectionStart: vscode.Position = new vscode.Position(7, 5);
         let maxLineSearchCount = 1000;
 
@@ -119,30 +149,5 @@ suite('SymbolFinder downwards search will correctly', () => {
         /* Asserts */
         assert.notStrictEqual(result, undefined);
         assert.deepStrictEqual(result, expectedEntry);
-    });
-
-    test('find the correct symbol on the upwards search when in a nested scope', () => {
-        /* Environment */
-        let editor = vscode.window.activeTextEditor!;
-        assert.notStrictEqual(editor, undefined);
-
-        /* Setup */
-        let selectionStart: vscode.Position = new vscode.Position(7, 0);
-        let maxLineSearchCount = 1000;
-
-        /* Expectation setup */
-        let expectedSymbol: SymbolWithRange = new SymbolWithRange(
-            new HighlightSymbol(new HighlightEntry("{", false, true),
-                new HighlightEntry("}", false, true),
-                JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-            new vscode.Range(new vscode.Position(6, 4), new vscode.Position(6, 5))
-        );
-
-        /* Execution */
-        let result: SymbolWithRange | undefined = SymbolFinder.findSymbolUpwards(editor, selectionStart, configuredSymbols, maxLineSearchCount);
-
-        /* Asserts */
-        assert.notStrictEqual(result, undefined);
-        assert.deepStrictEqual(result, expectedSymbol);
     });
 });
