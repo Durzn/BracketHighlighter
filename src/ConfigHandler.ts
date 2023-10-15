@@ -145,7 +145,7 @@ export default class ConfigHandler {
         for (let customSymbol of configuredSymbols) {
             if (customSymbol.hasOwnProperty("highlightPair")) {
                 let entries: HighlightEntry[] = [];
-                let strategy = customSymbol.hasOwnProperty("jumpBetweenStrategy") ? customSymbol.jumpBetweenStrategy : JumpBetweenStrategy.TO_SYMBOL_START;
+                let strategy = customSymbol.hasOwnProperty("jumpBetweenStrategy") ? customSymbol.jumpBetweenStrategy : this.getDefaultJumpBetweenStrategy();
                 for (let pair of customSymbol.highlightPair) {
                     if (pair.hasOwnProperty("symbol")) {
                         let isRegex = pair.hasOwnProperty("isRegex") ? pair.isRegex : false;
@@ -215,7 +215,7 @@ export default class ConfigHandler {
         return textColor;
     }
 
-    public defaultJumpBetweenStrategy(): JumpBetweenStrategy {
+    public getDefaultJumpBetweenStrategy(): JumpBetweenStrategy {
         let config = this.getConfiguration();
         let strategy: JumpBetweenStrategy;
         let strategyStr: string | undefined = config.get("defaultJumpBetweenStrategy");

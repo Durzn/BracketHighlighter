@@ -45,7 +45,7 @@ export default class ConfigCache {
         this.extensionEnabled = this.configHandler.isExtensionEnabled();
         this.timeOutValue = this.configHandler.getTimeOutValue();
         this.ignoreContent = this.configHandler.ignoreContent();
-        this.defaultJumpBetweenStrategy = this.configHandler.defaultJumpBetweenStrategy();
+        this.defaultJumpBetweenStrategy = this.configHandler.getDefaultJumpBetweenStrategy();
         this.preferredJumpBetweenStrategiesBySymbol = this.configHandler.preferredJumpBetweenStrategiesBySymbol();
         this.configuredSymbols = this.configHandler.getConfiguredSymbols();
         this.isInsideOfOpeningSymbolIgnored = this.configHandler.isInsideOfOpeningSymbolIgnored();
