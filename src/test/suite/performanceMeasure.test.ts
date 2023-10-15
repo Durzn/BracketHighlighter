@@ -22,10 +22,13 @@ suite('Performance Test Suite', () => {
         }
 
         let sortedTimes = times.sort();
-        let mean: number = sortedTimes.reduce((a, b) => a + b) / sortedTimes.length
+        let totalTime = sortedTimes.reduce((a, b) => a + b);
+        let mean: number = totalTime / sortedTimes.length
         let variance: number = sortedTimes.reduce((a, b) => a + Math.pow(b - mean, 2)) / sortedTimes.length;
         let median: number = sortedTimes[Math.floor(sortedTimes.length / 2)];
+        let longestDuration = Math.max(...sortedTimes);
+        let shortestDuration = Math.min(...sortedTimes);
 
-        console.log(`Mean: ${mean}ms Median: ${median}ms Variance: ${variance}ms`);
-    });
+        console.log(`Total time: ${totalTime / 1000}s Mean: ${mean}ms Median: ${median}ms Variance: ${variance}ms Longest duration: ${longestDuration}ms Shortest duration: ${shortestDuration}ms`);
+    }).timeout(5000000);
 });
