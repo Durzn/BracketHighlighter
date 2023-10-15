@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { RangeIndex, SymbolAndContentRange } from './GlobalsHandler';
 import { ConfigHandler, HighlightSymbol, JumpBetweenStrategy } from './ConfigHandler';
 import { configCache } from './ConfigCache';
-import assert = require('assert');
 import { Util } from './Util';
 
 /*
@@ -15,8 +14,6 @@ import { Util } from './Util';
    ^ start of closing symbol / inside of closing symbol
      ^ end of closing symbol / outside of closing symbol
 */
-
-type SymbolRangePair = [opening: vscode.Range, closing: vscode.Range];
 
 export default class HotkeyHandler {
 
