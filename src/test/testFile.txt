@@ -2,6 +2,14 @@
    */
 
 
+do
+    asd
+    {
+      
+    }
+end
+
+
 cat
    This is a highlight example for user defined 
    opening and closing symbols.
