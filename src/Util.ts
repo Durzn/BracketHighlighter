@@ -5,6 +5,10 @@ export class SymbolWithRange {
     constructor(public readonly symbol: HighlightSymbol, public readonly range: vscode.Range) {
     }
 }
+export class SymbolWithDepth {
+    constructor(public readonly symbol: HighlightSymbol, public depth: number) {
+    }
+}
 
 export class SymbolWithIndex {
     constructor(public readonly symbol: string, public readonly start: number) { }

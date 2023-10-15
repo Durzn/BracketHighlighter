@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { EntryWithRange, EntryWithRangeInDepth, SymbolWithIndex, SymbolWithRange, Util } from './Util';
+import { EntryWithRange, EntryWithRangeInDepth, SymbolWithDepth, SymbolWithIndex, SymbolWithRange, Util } from './Util';
 import { HighlightEntry, HighlightSymbol } from './ConfigHandler';
 
 export type SearchFuncType = (line: string, regex: RegExp, cursorPosition: vscode.Position) => vscode.Range | undefined;
@@ -23,23 +23,26 @@ export default class SymbolFinder {
         let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
         let textArray: string[] = text.split(eolCharacter);
         let reversedText = textArray.reverse(); /* Reverse the text as the expectation is that the symbol is usually closer to the cursor. */
+        let tempSelection = selectionStart;
+        let symbolsWithDepth: SymbolWithDepth[] = [];
 
+        /* Create TEMPORARY objects, so the depth isn't stored globally */
         for (let symbol of configuredSymbols) {
-            let currentDepth = 0;
-            let lineCounter = 0;
-            let tempSelection = selectionStart;
-            for (let line of reversedText) {
-                let symbolInLine = SymbolFinder.getSymbolInLineWithDepthBefore(line, symbol.startSymbol, symbol.endSymbol, tempSelection, currentDepth);
-                currentDepth = symbolInLine.depth;
+            symbolsWithDepth.push(new SymbolWithDepth(symbol, 0));
+        }
+
+        for (let line = 0; line < reversedText.length; line++) {
+            let newLine = selectionStart.line - line;
+            if (newLine < 0) {
+                break;
+            }
+            tempSelection = selectionStart.with(newLine, 0);
+            for (let symbol of symbolsWithDepth) {
+                let symbolInLine = SymbolFinder.getSymbolInLineWithDepthBefore(reversedText[line], symbol.symbol.startSymbol, symbol.symbol.endSymbol, tempSelection, symbol.depth);
+                symbol.depth = symbolInLine.depth;
                 if (symbolInLine.range) {
-                    return new SymbolWithRange(symbol, symbolInLine.range);
+                    return new SymbolWithRange(symbol.symbol, symbolInLine.range);
                 }
-                lineCounter++;
-                let newLine = selectionStart.line - lineCounter;
-                if (newLine < 0) {
-                    break;
-                }
-                tempSelection = selectionStart.with(newLine, 0);
             }
         }
         return undefined;
