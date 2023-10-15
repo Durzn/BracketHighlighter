@@ -145,7 +145,7 @@ export default class ConfigHandler {
         for (let customSymbol of configuredSymbols) {
             if (customSymbol.hasOwnProperty("highlightPair")) {
                 let entries: HighlightEntry[] = [];
-                let strategy = JumpBetweenStrategy.TO_SYMBOL_START;
+                let strategy = customSymbol.hasOwnProperty("jumpBetweenStrategy") ? customSymbol.jumpBetweenStrategy : JumpBetweenStrategy.TO_SYMBOL_START;
                 for (let pair of customSymbol.highlightPair) {
                     if (pair.hasOwnProperty("symbol")) {
                         let isRegex = pair.hasOwnProperty("isRegex") ? pair.isRegex : false;
@@ -153,7 +153,6 @@ export default class ConfigHandler {
                         if (isRegex) {
                             canBeSubstring = false;
                         }
-                        strategy = pair.hasOwnProperty("jumpBetweenStrategy") ? pair.jumpBetweenStrategy : JumpBetweenStrategy.TO_SYMBOL_START;
 
                         entries.push(new HighlightEntry(pair.symbol, isRegex, canBeSubstring));
                     }
