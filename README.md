@@ -99,18 +99,45 @@ This extension contributes the following settings:
 * `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
 * `BracketHighlighter.textColor`: Sets the color of the highlighted text.
 * `BracketHighlighter.customSymbols`: User defined symbols which have to have a defined "open" and "close" value. Open and close values must not be the same. Symbols don't have to be unique, however the first entry in this list will always have priority.
-E.g.
+
+# Custom symbols
+A minimal example for custom symbols - if you don't want to get into the details - looks like the following:
+
+```json
+    "BracketHighlighter.customSymbols": [
+        {
+            "highlightPair": [
+                {
+                    "symbol": "/*",
+                },
+                {
+                    "symbol": "*/",
+                }
+            ]
+        }
+    ]
 ```
-"BracketHighlighter.customSymbols": [
-    {
-        "open": "do",
-        "close": "end"
-    },
-    {
-        "open": "/*",
-        "close": "*/"
-    }
-]
+Note that the order of the highlight pair actually matters. The first entry of the highlight pair will be the opening symbol, the second one the closing symbol.
+
+This configuration can be extended to the following for a more fine-grained control:
+```json
+    "BracketHighlighter.customSymbols": [
+        {
+            "highlightPair": [
+                {
+                    "symbol": "/*",
+                    "isRegex": false,
+                    "canBeSubstring": true
+                },
+                {
+                    "symbol": "*/",
+                    "isRegex": false,
+                    "canBeSubstring": true
+                }
+            ],
+            "jumpBetweenStrategy": "toSymbolOppositeSide"
+        }
+    ]
 ```
 
 # Hotkeys provided by extension
