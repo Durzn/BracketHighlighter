@@ -7,7 +7,12 @@ There are preset options for all kinds of brackets.
 
 # Features
 
-Finds the corresponding symbol for the currently selected configured symbol and adds decorations to the text inbetween or only to the symbols themselves. 
+- Highlights pairs of symbols that are at the cursor or if the cursor is in the scope of the pair
+- Symbols can be configured and support regular expressions
+- Multiple cursors support
+- Hotkey actions to jump to the highlight pairs
+- Hotkey action to select all text between a highlight pair
+
 
 **Decoration examples:**
 
@@ -73,11 +78,6 @@ This extension contributes the following settings:
 * `BracketHighlighter.maxLineSearchCount`: The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.
 * `BracketHighlighter.highlightScopeFromText`: Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.
 * `BracketHighlighter.allowedLanguageIds`: IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java
-* `BracketHighlighter.reverseSearchEnabled`: Enables searching from closing symbols.
-* `BracketHighlighter.useParentheses`: enables highlighting between parentheses '()'.
-* `BracketHighlighter.useBraces`: enables highlighting between braces '{}'.
-* `BracketHighlighter.useBrackets`: enables highlighting between brackets '[]'.
-* `BracketHighlighter.useAngularBrackets`: enables highlighting between angular brackets '<>'.
 * `BracketHighlighter.fontWeight`: fontWeight in CSS style. E.g. 'bold'. If separate highlighting for symbols and content is used, this parameter is used for the content
 * `BracketHighlighter.fontStyle`: fontStyle in CSS style. E.g. 'oblique'. If separate highlighting for symbols and content is used, this parameter is used for the content
 * `BracketHighlighter.letterSpacing`: letterSpacing in CSS style. E.g. '1px'. If separate highlighting for symbols and content is used, this parameter is used for the content
@@ -95,6 +95,9 @@ This extension contributes the following settings:
 * `BracketHighlighter.activeInDebugMode`: Enables the extension when debugging. 
 * `BracketHighlighter.blurOutOfScopeText`: Enables a blur effect on non-highlighted text. (Opacity depends on blurOpacity value)
 * `BracketHighlighter.blurOpacity`: Sets the opacity of the blurred out text. E.g. 0.5
+* `BracketHighlighter.timeOutValue`: Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.
+* `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
+* `BracketHighlighter.textColor`: Sets the color of the highlighted text.
 * `BracketHighlighter.customSymbols`: User defined symbols which have to have a defined "open" and "close" value. Open and close values must not be the same. Symbols don't have to be unique, however the first entry in this list will always have priority.
 E.g.
 ```
@@ -109,9 +112,6 @@ E.g.
     }
 ]
 ```
-* `BracketHighlighter.timeOutValue`: Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.
-* `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
-* `BracketHighlighter.textColor`: Sets the color of the highlighted text.
 
 # Hotkeys provided by extension
 
