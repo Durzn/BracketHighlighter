@@ -14,7 +14,7 @@ export class HighlightEntry {
 }
 
 export class HighlightSymbol {
-    constructor(public readonly startSymbol: HighlightEntry, public readonly endSymbol: HighlightEntry) { }
+    constructor(public readonly startSymbol: HighlightEntry, public readonly endSymbol: HighlightEntry, public readonly jumpBetweenStrategy: JumpBetweenStrategy) { }
 }
 
 export default class ConfigHandler {
@@ -58,8 +58,8 @@ export default class ConfigHandler {
             maxLineSearchCount = 1000;
         }
         return maxLineSearchCount;
-    }    
-    
+    }
+
     public highlightScopeFromText(): boolean {
         const config = this.getConfiguration();
         let highlightScopeFromText: boolean | undefined = config.get("highlightScopeFromText");
@@ -145,6 +145,7 @@ export default class ConfigHandler {
         for (let customSymbol of configuredSymbols) {
             if (customSymbol.hasOwnProperty("highlightPair")) {
                 let entries: HighlightEntry[] = [];
+                let strategy = JumpBetweenStrategy.TO_SYMBOL_START;
                 for (let pair of customSymbol.highlightPair) {
                     if (pair.hasOwnProperty("symbol")) {
                         let isRegex = pair.hasOwnProperty("isRegex") ? pair.isRegex : false;
@@ -152,11 +153,13 @@ export default class ConfigHandler {
                         if (isRegex) {
                             canBeSubstring = false;
                         }
+                        strategy = pair.hasOwnProperty("jumpBetweenStrategy") ? pair.jumpBetweenStrategy : JumpBetweenStrategy.TO_SYMBOL_START;
+
                         entries.push(new HighlightEntry(pair.symbol, isRegex, canBeSubstring));
                     }
                 }
                 if (entries.length === 2) {
-                    acceptedSymbols.push(new HighlightSymbol(entries[0], entries[1]));
+                    acceptedSymbols.push(new HighlightSymbol(entries[0], entries[1], strategy));
                 }
             }
         }
