@@ -108,8 +108,7 @@ function preconditionsFulfilled(): boolean {
 /******************************************************************************************************************************************
 * Handles the text selection event
 ******************************************************************************************************************************************/
-function handleTextSelectionEvent() {
-
+export function handleTextSelectionEvent() {
 	if (!preconditionsFulfilled()) {
 		return;
 	}
@@ -118,7 +117,7 @@ function handleTextSelectionEvent() {
 	let configuredSymbols = configCache.configuredSymbols;
 	let currentSelection = activeEditor.selection;
 	bracketHighlightGlobals.lastSelection = currentSelection;
-	
+
 	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
 		for (let range of bracketHighlightGlobals.activeRanges) {
 			let ranges: vscode.Range[] = range.symbolRanges;
@@ -127,13 +126,13 @@ function handleTextSelectionEvent() {
 			}
 			onSelectionChangeEvent(currentSelection, ranges);
 		}
-		}
-	
+	}
+
 
 	removePreviousDecorations();
 
 	for (let selection of activeEditor.selections) {
-						let symbolStart: SymbolWithRange | undefined = undefined;
+		let symbolStart: SymbolWithRange | undefined = undefined;
 		let activeSelection = selection.active;
 		let startSymbolObj = SymbolFinder.findSymbolAtCursor(activeEditor, activeSelection, configuredSymbols, configCache.isInsideOfOpeningSymbolIgnored, configCache.isInsideOfClosingSymbolIgnored);
 		symbolStart = startSymbolObj.symbolWithRange;
@@ -175,7 +174,7 @@ function handleTextSelectionEvent() {
 	if (bracketHighlightGlobals.activeRanges.length > 0) {
 		bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
 	}
-	
+
 	if (configCache.blurOutOfScopeText) {
 		let combinedRanges = [];
 		for (let highlightPair of bracketHighlightGlobals.activeRanges) {
