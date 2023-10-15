@@ -22,7 +22,7 @@ export default class GlobalsHandler {
     public decorationTypes: Array<vscode.TextEditorDecorationType>;
     public handleTextSelectionEventActive: boolean;
     public disableTimer: any;
-    public ranges: SymbolAndContentRange[];
+    public activeRanges: SymbolAndContentRange[];
     public lastSelection!: vscode.Selection | undefined;
 
     constructor() {
@@ -30,7 +30,7 @@ export default class GlobalsHandler {
         this.decorationTypes = [];
         this.handleTextSelectionEventActive = true;
         this.disableTimer = <any>null;
-        this.ranges = [];
+        this.activeRanges = [];
     }
 }
 

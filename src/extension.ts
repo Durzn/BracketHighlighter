@@ -19,37 +19,37 @@ export function activate(context: vscode.ExtensionContext) {
 	let onJumpOutOfOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfOpeningSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpOutOfOpeningSymbolHotkey(editor, bracketHighlightGlobals.ranges);
+			actionHandler.onJumpOutOfOpeningSymbolHotkey(editor, bracketHighlightGlobals.activeRanges);
 		}
 	});
 	let onJumpOutOfClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpOutOfClosingSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpOutOfClosingSymbolHotkey(editor, bracketHighlightGlobals.ranges);
+			actionHandler.onJumpOutOfClosingSymbolHotkey(editor, bracketHighlightGlobals.activeRanges);
 		}
 	});
 	let onJumpToOpeningSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToOpeningSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpToOpeningSymbolHotkey(editor, bracketHighlightGlobals.ranges);
+			actionHandler.onJumpToOpeningSymbolHotkey(editor, bracketHighlightGlobals.activeRanges);
 		}
 	});
 	let onJumpToClosingSymbolDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpToClosingSymbol', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onJumpToClosingSymbolHotkey(editor, bracketHighlightGlobals.ranges);
+			actionHandler.onJumpToClosingSymbolHotkey(editor, bracketHighlightGlobals.activeRanges);
 		}
 	});
 	let onjumpBetweenOpeningAndClosingSymbolsDisposable = vscode.commands.registerCommand('BracketHighlighter.jumpBetweenOpeningAndClosingSymbols', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor, bracketHighlightGlobals.ranges, configCache.configuredSymbols);
+			actionHandler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor, bracketHighlightGlobals.activeRanges, configCache.configuredSymbols);
 		}
 	});
 	let onSelectTextBetweenSymbols = vscode.commands.registerCommand('BracketHighlighter.selectTextInSymbols', () => {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
-			actionHandler.onSelectTextBetweenSymbolsHotkey(editor, bracketHighlightGlobals.ranges);
+			actionHandler.onSelectTextBetweenSymbolsHotkey(editor, bracketHighlightGlobals.activeRanges);
 		}
 	});
 	vscode.workspace.onDidChangeConfiguration(handleConfigChangeEvent);
@@ -118,22 +118,22 @@ function handleTextSelectionEvent() {
 	let configuredSymbols = configCache.configuredSymbols;
 	let currentSelection = activeEditor.selection;
 	bracketHighlightGlobals.lastSelection = currentSelection;
-
+	
 	if (currentSelection.start !== bracketHighlightGlobals.lastSelection.start) {
-		for (let range of bracketHighlightGlobals.ranges) {
+		for (let range of bracketHighlightGlobals.activeRanges) {
 			let ranges: vscode.Range[] = range.symbolRanges;
 			if (range.contentRange) {
 				ranges = ranges.concat(range.contentRange);
 			}
 			onSelectionChangeEvent(currentSelection, ranges);
 		}
-	}
-
+		}
+	
 
 	removePreviousDecorations();
 
 	for (let selection of activeEditor.selections) {
-		let symbolStart: SymbolWithRange | undefined = undefined;
+						let symbolStart: SymbolWithRange | undefined = undefined;
 		let activeSelection = selection.active;
 		let startSymbolObj = SymbolFinder.findSymbolAtCursor(activeEditor, activeSelection, configuredSymbols, configCache.isInsideOfOpeningSymbolIgnored, configCache.isInsideOfClosingSymbolIgnored);
 		symbolStart = startSymbolObj.symbolWithRange;
@@ -163,22 +163,22 @@ function handleTextSelectionEvent() {
 				}
 
 				let symbolPair = new SymbolAndContentRange([symbolStart.range, symbolEnd.range], contentToHighlight);
-				let rangeAlreadyIncluded: boolean = bracketHighlightGlobals.ranges.some(pair => pair.symbolRanges[0]?.isEqual(symbolPair.symbolRanges[0]) && pair.symbolRanges[1]?.isEqual(symbolPair.symbolRanges[1]));
+				let rangeAlreadyIncluded: boolean = bracketHighlightGlobals.activeRanges.some(pair => pair.symbolRanges[0]?.isEqual(symbolPair.symbolRanges[0]) && pair.symbolRanges[1]?.isEqual(symbolPair.symbolRanges[1]));
 				/* Prevent the same symbol pairs being added twice */
 				if (!rangeAlreadyIncluded) {
-					bracketHighlightGlobals.ranges.push(symbolPair);
+					bracketHighlightGlobals.activeRanges.push(symbolPair);
 				}
 			}
 		}
 	}
 
-	if (bracketHighlightGlobals.ranges.length > 0) {
+	if (bracketHighlightGlobals.activeRanges.length > 0) {
 		bracketHighlightGlobals.decorationStatus = DecorationStatus.active;
 	}
-
+	
 	if (configCache.blurOutOfScopeText) {
 		let combinedRanges = [];
-		for (let highlightPair of bracketHighlightGlobals.ranges) {
+		for (let highlightPair of bracketHighlightGlobals.activeRanges) {
 			/* Highlighting always consists of startSymbol and endSymbol! */
 			combinedRanges.push(new vscode.Range(highlightPair.symbolRanges[RangeIndex.OPENSYMBOL].start, highlightPair.symbolRanges[RangeIndex.CLOSESYMBOL].end));
 		}
@@ -246,7 +246,7 @@ function removePreviousDecorations() { /* TODO: extend this for multiple editors
 	if (bracketHighlightGlobals.decorationStatus === DecorationStatus.active) {
 		Highlighter.removeHighlights(bracketHighlightGlobals.decorationTypes);
 		bracketHighlightGlobals.decorationStatus = DecorationStatus.inactive;
-		bracketHighlightGlobals.ranges = [];
+		bracketHighlightGlobals.activeRanges = [];
 		bracketHighlightGlobals.decorationTypes = [];
 	}
 }
