@@ -19,12 +19,6 @@ export class EntryWithRangeInDepth {
 }
 
 export class Util {
-    public static isSymbolEscaped(symbol: string): boolean {
-        if (symbol.length > 0 && symbol.charAt(0) === "\\") {
-            return true;
-        }
-        return false;
-    }
 
     public static escapeSymbol(symbol: string) {
         return symbol.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
