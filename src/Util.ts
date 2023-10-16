@@ -35,7 +35,7 @@ export class Util {
                 symbol = `${Util.escapeSymbol(entry.symbol)}`;
             }
             else {
-                symbol = `\\B${Util.escapeSymbol(entry.symbol)}\\B`;
+                symbol = `(\\B|\\b)${Util.escapeSymbol(entry.symbol)}(\\B|\\b)`;
             }
         }
         return symbol;
