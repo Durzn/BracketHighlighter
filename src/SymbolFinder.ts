@@ -32,6 +32,8 @@ export default class SymbolFinder {
         }
 
         for (let line = 0; line < reversedText.length; line++) {
+            let symbolFoundInLine = false;
+            let foundSymbols: [symbol: SymbolWithDepth, entry: EntryWithRangeInDepth][] = [];
             let newLine = selectionStart.line - line;
             if (newLine < 0) {
                 break;
@@ -41,8 +43,17 @@ export default class SymbolFinder {
                 let symbolInLine = SymbolFinder.getSymbolInLineWithDepthBefore(reversedText[line], symbol.symbol.startSymbol, symbol.symbol.endSymbol, tempSelection, symbol.depth);
                 symbol.depth = symbolInLine.depth;
                 if (symbolInLine.range) {
-                    return new SymbolWithRange(symbol.symbol, symbolInLine.range);
+                    /* Symbols must be buffered and checked later in case there are multiple configured symbols on the same line. The latest one in the line needs to be taken. */
+                    symbolFoundInLine = true;
+                    foundSymbols.push([symbol, symbolInLine]);
                 }
+            }
+            if (symbolFoundInLine) {
+                let latestSymbolCharacter = Math.max(...foundSymbols.map(symbol => symbol[1].range!.start.character));
+                let entry = foundSymbols.find((value) => {
+                    return value[1].range!.start.character === latestSymbolCharacter;
+                });
+                return new SymbolWithRange(entry![0].symbol, entry![1].range!);
             }
         }
         return undefined;

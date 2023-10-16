@@ -63,3 +63,6 @@ void incrediblyComplexFunction( int a, int b, int c )
 /*
    Test
 */
+
+
+await runTests({ extensionDevelopmentPath, extensionTestsPath, launchArgs: ["-n", "./src/test/testFile.txt"] });

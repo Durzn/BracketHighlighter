@@ -311,6 +311,33 @@ suite('The Extension will search from the scope ', () => {
         let activeRanges = bracketHighlightGlobals.activeRanges;
         assert.deepStrictEqual(activeRanges[0], expectedRange);
     });
+
+    test('highlight the correct range if there are multiple configured symbols on the same line.', () => {
+        /* Environment */
+        let editor = vscode.window.activeTextEditor!;
+        assert.notStrictEqual(editor, undefined);
+
+        /* Setup */
+        configCache.configuredSymbols = ConfiguredSymbols;
+        configCache.ignoreContent = true;
+        let selectionStart: vscode.Selection = new vscode.Selection(new vscode.Position(67, 57), new vscode.Position(67, 57));
+
+        /* Expectation setup */
+        let symbol = ConfiguredSymbols[4]; /* '{' symbol expected */
+        let rangeOpen = new vscode.Range(new vscode.Position(67, 15), new vscode.Position(67, 15 + symbol.startSymbol.symbol.length));
+        let rangeClose = new vscode.Range(new vscode.Position(67, 109), new vscode.Position(67, 109 + symbol.endSymbol.symbol.length));
+        let expectedRange: SymbolAndContentRange = new SymbolAndContentRange(
+            [rangeOpen, rangeClose],
+            undefined);
+
+        /* Execution */
+        editor.selection = selectionStart;
+        handleTextSelectionEvent();
+
+        /* Asserts */
+        let activeRanges = bracketHighlightGlobals.activeRanges;
+        assert.deepStrictEqual(activeRanges[0], expectedRange);
+    });
 });
 
 
