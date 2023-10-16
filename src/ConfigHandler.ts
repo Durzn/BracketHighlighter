@@ -143,9 +143,10 @@ export default class ConfigHandler {
     private getAcceptedSymbols(configuredSymbols: any[]): HighlightSymbol[] {
         let acceptedSymbols: HighlightSymbol[] = [];
         for (let customSymbol of configuredSymbols) {
+            let strategy = customSymbol.hasOwnProperty("jumpBetweenStrategy") ? customSymbol.jumpBetweenStrategy : this.getDefaultJumpBetweenStrategy();
+            /* New symbol syntax */
             if (customSymbol.hasOwnProperty("highlightPair")) {
                 let entries: HighlightEntry[] = [];
-                let strategy = customSymbol.hasOwnProperty("jumpBetweenStrategy") ? customSymbol.jumpBetweenStrategy : this.getDefaultJumpBetweenStrategy();
                 for (let pair of customSymbol.highlightPair) {
                     if (pair.hasOwnProperty("symbol")) {
                         let isRegex = pair.hasOwnProperty("isRegex") ? pair.isRegex : false;
@@ -160,6 +161,12 @@ export default class ConfigHandler {
                 if (entries.length === 2) {
                     acceptedSymbols.push(new HighlightSymbol(entries[0], entries[1], strategy));
                 }
+            }
+            /* Support old symbol syntax */
+            else if (customSymbol.hasOwnProperty("open") && customSymbol.hasOwnProperty("close") &&
+                customSymbol.open !== customSymbol.close) {
+                let entries = [new HighlightEntry(customSymbol.open, false, false), new HighlightEntry(customSymbol.close, false, false)];
+                acceptedSymbols.push(new HighlightSymbol(entries[0], entries[1], strategy));
             }
         }
         return acceptedSymbols;
