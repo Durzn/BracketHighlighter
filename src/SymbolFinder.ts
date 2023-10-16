@@ -19,7 +19,7 @@ export default class SymbolFinder {
      * 
      */
     public static findSymbolUpwards(activeEditor: vscode.TextEditor, selectionStart: vscode.Position, configuredSymbols: HighlightSymbol[], maxLineSearchCount: number): SymbolWithRange | undefined {
-        let text: string = activeEditor.document.getText(new vscode.Range(selectionStart.translate(-Math.min(...[maxLineSearchCount, selectionStart.line])), selectionStart));
+        let text: string = activeEditor.document.getText(new vscode.Range(selectionStart.translate(-Math.min(...[maxLineSearchCount, selectionStart.line]), -selectionStart.character), selectionStart));
         let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
         let textArray: string[] = text.split(eolCharacter);
         let reversedText = textArray.reverse(); /* Reverse the text as the expectation is that the symbol is usually closer to the cursor. */
@@ -117,10 +117,13 @@ export default class SymbolFinder {
         let tempSelection = selectionStart.translate(0, -cursorBehindSymbolOffset);
         let text: string[] = activeEditor.document.getText(new vscode.Range(tempSelection, selectionStart.translate(Math.min(...[maxLineSearchCount, activeEditor.document.lineCount])))).split(eolCharacter);
         let lineCounter = 0;
-        let currentDepth = 0;
+
+        /* Create TEMPORARY object, so the depth isn't stored globally */
+        let symbolWithDepth: SymbolWithDepth = new SymbolWithDepth(targetSymbol, 0);
+
         for (let line of text) {
-            let symbolInLine = SymbolFinder.getSymbolInLineWithDepthBehind(line, targetSymbol.endSymbol, targetSymbol.startSymbol, tempSelection, currentDepth);
-            currentDepth = symbolInLine.depth;
+            let symbolInLine = SymbolFinder.getSymbolInLineWithDepthBehind(line, targetSymbol.endSymbol, targetSymbol.startSymbol, tempSelection, symbolWithDepth.depth);
+            symbolWithDepth.depth = symbolInLine.depth;
             if (symbolInLine.range) {
                 return new EntryWithRange(symbolInLine.symbol, symbolInLine.range);
             }
