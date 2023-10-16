@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { bracketHighlightGlobals } from './GlobalsHandler';
+import { configCache } from './ConfigCache';
 
 export const enum DecorationType {
     SYMBOLS,
@@ -17,10 +17,10 @@ export default class DecorationHandler {
     public getDecorationType(): vscode.TextEditorDecorationType {
         let decorationOptions;
         if (this.decorationType === DecorationType.CONTENT) {
-            decorationOptions = bracketHighlightGlobals.contentDecorationOptions;
+            decorationOptions = configCache.contentDecorationOptions;
         }
         else {
-            decorationOptions = bracketHighlightGlobals.symbolDecorationOptions;
+            decorationOptions = configCache.symbolDecorationOptions;
         }
         let decorationType: vscode.TextEditorDecorationType = vscode.window.createTextEditorDecorationType({
             color: decorationOptions.color,

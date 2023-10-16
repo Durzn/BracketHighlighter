@@ -7,20 +7,21 @@ export enum JumpBetweenStrategy {
     TO_SYMBOL_OPPOSITE_SIDE = "toSymbolOppositeSide"
 }
 
+export class HighlightEntry {
+    constructor(public readonly symbol: string, public readonly isRegex: boolean, public readonly canBeSubstring: boolean) {
+
+    }
+}
+
+export class HighlightSymbol {
+    constructor(public readonly startSymbol: HighlightEntry, public readonly endSymbol: HighlightEntry, public readonly jumpBetweenStrategy: JumpBetweenStrategy) { }
+}
+
 export default class ConfigHandler {
     constructor() { }
 
     private getConfiguration() {
         return vscode.workspace.getConfiguration("BracketHighlighter", null);
-    }
-
-    public highlightScopeFromText(): boolean {
-        const config = this.getConfiguration();
-        let highlightScopeFromText: boolean | undefined = config.get("highlightScopeFromText");
-        if (highlightScopeFromText === undefined) {
-            highlightScopeFromText = false;
-        }
-        return highlightScopeFromText;
     }
 
     public blurOutOfScopeText(): boolean {
@@ -57,6 +58,33 @@ export default class ConfigHandler {
             maxLineSearchCount = 1000;
         }
         return maxLineSearchCount;
+    }
+
+    public highlightScopeFromText(): boolean {
+        const config = this.getConfiguration();
+        let highlightScopeFromText: boolean | undefined = config.get("highlightScopeFromText");
+        if (highlightScopeFromText === undefined) {
+            highlightScopeFromText = false;
+        }
+        return highlightScopeFromText;
+    }
+
+    public isInsideOfOpeningSymbolIgnored(): boolean {
+        const config = this.getConfiguration();
+        let isIgnored: boolean | undefined = config.get("isInsideOfOpeningSymbolIgnored");
+        if (isIgnored === undefined) {
+            isIgnored = false;
+        }
+        return isIgnored
+    }
+
+    public isInsideOfClosingSymbolIgnored(): boolean {
+        const config = this.getConfiguration();
+        let isIgnored: boolean | undefined = config.get("isInsideOfClosingSymbolIgnored");
+        if (isIgnored === undefined) {
+            isIgnored = false;
+        }
+        return isIgnored
     }
 
     public getDecorationOptions(decorationType: DecorationType): DecorationOptions {
@@ -112,88 +140,45 @@ export default class ConfigHandler {
         return allowedLanguageIds;
     }
 
-    public reverseSearchEnabled(): boolean {
-        const config = this.getConfiguration();
-        let reverseSearchEnabled: boolean | undefined = config.get("reverseSearchEnabled");
-        if (reverseSearchEnabled === undefined) {
-            reverseSearchEnabled = true;
-        }
-        return reverseSearchEnabled;
-    }
+    private getAcceptedSymbols(configuredSymbols: any[]): HighlightSymbol[] {
+        let acceptedSymbols: HighlightSymbol[] = [];
+        for (let customSymbol of configuredSymbols) {
+            let strategy = customSymbol.hasOwnProperty("jumpBetweenStrategy") ? customSymbol.jumpBetweenStrategy : this.getDefaultJumpBetweenStrategy();
+            /* New symbol syntax */
+            if (customSymbol.hasOwnProperty("highlightPair")) {
+                let entries: HighlightEntry[] = [];
+                for (let pair of customSymbol.highlightPair) {
+                    if (pair.hasOwnProperty("symbol")) {
+                        let isRegex = pair.hasOwnProperty("isRegex") ? pair.isRegex : false;
+                        let canBeSubstring = pair.hasOwnProperty("canBeSubstring") ? pair.canBeSubstring : false;
+                        if (isRegex) {
+                            canBeSubstring = false;
+                        }
 
-    private getCustomSymbols(): {
-        startSymbols: Array<string>, endSymbols: Array<string>
-    } {
-        const config = this.getConfiguration();
-        let customSymbols: any = config.get("customSymbols");
-        if (customSymbols === undefined) {
-            customSymbols = [{}];
-        }
-        let customStartSymbols: Array<string> = [];
-        let customEndSymbols: Array<string> = [];
-        for (let customSymbol of customSymbols) {
-            const isGoodSymbolPairs =
-                customSymbol.hasOwnProperty("open") &&
-                customSymbol.hasOwnProperty("close") &&
-                customSymbol.open !== customSymbol.close;
-            if (isGoodSymbolPairs) {
-                customStartSymbols.push(customSymbol.open);
-                customEndSymbols.push(customSymbol.close);
+                        entries.push(new HighlightEntry(pair.symbol, isRegex, canBeSubstring));
+                    }
+                }
+                if (entries.length === 2) {
+                    acceptedSymbols.push(new HighlightSymbol(entries[0], entries[1], strategy));
+                }
+            }
+            /* Support old symbol syntax */
+            else if (customSymbol.hasOwnProperty("open") && customSymbol.hasOwnProperty("close") &&
+                customSymbol.open !== customSymbol.close) {
+                let entries = [new HighlightEntry(customSymbol.open, false, false), new HighlightEntry(customSymbol.close, false, false)];
+                acceptedSymbols.push(new HighlightSymbol(entries[0], entries[1], strategy));
             }
         }
-        return {
-            startSymbols: customStartSymbols,
-            endSymbols: customEndSymbols
-        };
+        return acceptedSymbols;
     }
 
-    public getAllowedStartSymbols(): Array<string> {
+    public getConfiguredSymbols(): HighlightSymbol[] {
         const config = this.getConfiguration();
-        let validStartSymbols: Array<string> = [];
-        let useForSymbols: boolean | undefined;
-        useForSymbols = config.get("useParentheses");
-        if (useForSymbols === true) {
-            validStartSymbols.push("(");
+        let configuredSymbols: any[] | undefined = config.get("customSymbols");
+        if (configuredSymbols === undefined) {
+            configuredSymbols = [];
         }
-        useForSymbols = config.get("useBraces");
-        if (useForSymbols === true) {
-            validStartSymbols.push("{");
-        }
-        useForSymbols = config.get("useBrackets");
-        if (useForSymbols === true) {
-            validStartSymbols.push("[");
-        }
-        useForSymbols = config.get("useAngularBrackets");
-        if (useForSymbols === true) {
-            validStartSymbols.push("<");
-
-        }
-        validStartSymbols = validStartSymbols.concat(this.getCustomSymbols().startSymbols);
-        return validStartSymbols;
-    }
-
-    public getAllowedEndSymbols(): Array<string> {
-        const config = this.getConfiguration();
-        let validEndSymbols: Array<string> = [];
-        let useForSymbols: boolean | undefined;
-        useForSymbols = config.get("useParentheses");
-        if (useForSymbols === true) {
-            validEndSymbols.push(")");
-        }
-        useForSymbols = config.get("useBraces");
-        if (useForSymbols === true) {
-            validEndSymbols.push("}");
-        }
-        useForSymbols = config.get("useBrackets");
-        if (useForSymbols === true) {
-            validEndSymbols.push("]");
-        }
-        useForSymbols = config.get("useAngularBrackets");
-        if (useForSymbols === true) {
-            validEndSymbols.push(">");
-        }
-        validEndSymbols = validEndSymbols.concat(this.getCustomSymbols().endSymbols);
-        return validEndSymbols;
+        return this.getAcceptedSymbols(configuredSymbols);
     }
 
     public isExtensionEnabled(): boolean {
@@ -237,16 +222,7 @@ export default class ConfigHandler {
         return textColor;
     }
 
-    public regexMode(): boolean {
-        let config = this.getConfiguration();
-        let regexMode: boolean | undefined = config.get("regexMode");
-        if (regexMode === undefined) {
-            regexMode = false;
-        }
-        return regexMode;
-    }
-
-    public defaultJumpBetweenStrategy(): JumpBetweenStrategy {
+    public getDefaultJumpBetweenStrategy(): JumpBetweenStrategy {
         let config = this.getConfiguration();
         let strategy: JumpBetweenStrategy;
         let strategyStr: string | undefined = config.get("defaultJumpBetweenStrategy");

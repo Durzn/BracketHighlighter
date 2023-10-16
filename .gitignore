@@ -2,3 +2,7 @@
 /settings.json
 /node_modules/**
 /out/**
+*.js
+*.js.map
+*.vsix
+.vscode-test

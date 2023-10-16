@@ -1,351 +1,325 @@
 {
-	"name": "brackethighlighter",
-	"displayName": "Bracket Highlighter",
-	"publisher": "Durzn",
-	"repository": {
-		"url": "https://github.com/Durzn/BracketHighlighter"
-	},
-	"icon": "assets/icon.png",
-	"readme": "README.md",
-	"license": "SEE LICENSE IN LICENSE",
-	"description": "Decorates text inbetween symbols.",
-	"version": "2.4.1",
-	"engines": {
-		"vscode": "^1.40.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onStartupFinished"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"configuration": [
-			{
-				"title": "BracketHighlighter",
-				"properties": {
-					"BracketHighlighter.textColor": {
-						"type": "string",
-						"default": "#9FFF0F",
-						"description": "The color of the highlighted text.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.textColorSymbol": {
-						"type": "string",
-						"default": "#9FFF0F",
-						"description": "The color of the highlighted text.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.text": {
-						"type": "null",
-						"description": "For a good overview over CSS options for the possibilities look at the following link: https://www.w3schools.com/cssref/ \n For available language IDs please refer to the following link: https: //code.visualstudio.com/docs/languages/identifiers/ \n Note: for *.txt files use plaintext as the language identifier."
-					},
-					"BracketHighlighter.enableExtension": {
-						"type": "boolean",
-						"default": true,
-						"description": "Enables the extension.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.maxLineSearchCount": {
-						"type": "number",
-						"default": 1000,
-						"description": "The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.highlightScopeFromText": {
-						"type": "boolean",
-						"default": false,
-						"description": "Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.allowedLanguageIds": {
-						"type": "string",
-						"default": "",
-						"description": "IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java",
-						"scope": "resource"
-					},
-					"BracketHighlighter.reverseSearchEnabled": {
-						"type": "boolean",
-						"default": true,
-						"description": "Enables a backwards search by selecting a closing symbol.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.useParentheses": {
-						"type": "boolean",
-						"default": true,
-						"description": "Use extension for parentheses. '()'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.useBraces": {
-						"type": "boolean",
-						"default": true,
-						"description": "Use extension for braces. '{}'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.useBrackets": {
-						"type": "boolean",
-						"default": true,
-						"description": "Use extension for brackets. '[]'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.useAngularBrackets": {
-						"type": "boolean",
-						"default": true,
-						"description": "Use extension for angular brackets. '<>'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.fontWeight": {
-						"type": "string",
-						"default": "",
-						"description": "fontWeight in CSS style. E.g. 'bold'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.fontStyle": {
-						"type": "string",
-						"default": "",
-						"description": "fontStyle in CSS style. E.g. 'oblique'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.letterSpacing": {
-						"type": "string",
-						"default": "",
-						"description": "letterSpacing in CSS style. E.g. '1px'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.outline": {
-						"type": "string",
-						"default": "",
-						"description": "outline in CSS style. E.g. '2px dashed blue'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.border": {
-						"type": "string",
-						"default": "",
-						"description": "border in CSS style. E.g. '4px dotted blue'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.backgroundColor": {
-						"type": "string",
-						"default": "",
-						"description": "backgroundColor in CSS style. E.g. 'coral'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.textDecoration": {
-						"type": "string",
-						"default": "",
-						"description": "textDecoration in CSS style. E.g. 'underline'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.differentSymbolHighlightingUsed": {
-						"type": "boolean",
-						"default": false,
-						"description": "If enabled, separate text decorations can be used for symbols and content.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.fontWeightSymbol": {
-						"type": "string",
-						"default": "",
-						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontWeight in CSS style. E.g. 'bold'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.fontStyleSymbol": {
-						"type": "string",
-						"default": "",
-						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontStyle in CSS style. E.g. 'oblique'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.letterSpacingSymbol": {
-						"type": "string",
-						"default": "",
-						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: letterSpacing in CSS style. E.g. '1px'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.outlineSymbol": {
-						"type": "string",
-						"default": "",
-						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: outline in CSS style. E.g. '2px dashed blue'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.borderSymbol": {
-						"type": "string",
-						"default": "",
-						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: border in CSS style. E.g. '4px dotted blue'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.backgroundColorSymbol": {
-						"type": "string",
-						"default": "",
-						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: backgroundColor in CSS style. E.g. 'coral'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.textDecorationSymbol": {
-						"type": "string",
-						"default": "",
-						"description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: textDecoration in CSS style. E.g. 'underline'",
-						"scope": "resource"
-					},
-					"BracketHighlighter.activeInDebugMode": {
-						"type": "boolean",
-						"default": true,
-						"description": "Activates the extension when debugging.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.blurOutOfScopeText": {
-						"type": "boolean",
-						"default": false,
-						"description": "Blurs text that isn't part of the block.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.blurOpacity": {
-						"type": "string",
-						"default": "0.5",
-						"description": "Sets the opacity value for blurred out text.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.customSymbols": {
-						"type": "array",
-						"default": []
-					},
-					"BracketHighlighter.timeOutValue": {
-						"type": "number",
-						"default": 600,
-						"description": "Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.ignoreContent": {
-						"type": "boolean",
-						"default": true,
-						"description": "Ignores content in the scope and instead only highlights the enclosing symbols.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.regexMode": {
-						"type": "boolean",
-						"default": false,
-						"description": "If enabled, escaped symbols will be ignored.",
-						"scope": "resource"
-					},
-					"BracketHighlighter.defaultJumpBetweenStrategy": {
-						"type": "string",
-						"description": "Specify the default strategy to be used to jump between opening and closing symbols.",
-						"enum": [
-							"toSymbolStart",
-							"toSymbolOppositeSide"
-						],
-						"enumDescriptions": [
-							"Jump to the start of a symbol. This is the same as VS Code's default \"Go to Bracket\" (Ctrl+Shift+\\) behavior.",
-							"Jump to the opposite side of a symbol."
-						],
-						"default": "toSymbolStart",
-						"scope": "resource"
-					}
-				}
-			}
-		],
-		"commands": [
-			{
-				"command": "BracketHighlighter.toggleExtensionStatus",
-				"title": "Toggle the extension status.",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpOutOfOpeningSymbol",
-				"title": "Jump out of the opening symbol.",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpOutOfClosingSymbol",
-				"title": "Jump out of the closing symbol.",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpToOpeningSymbol",
-				"title": "Jump to the inside of the opening symbol.",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpToClosingSymbol",
-				"title": "Jump to the inside of the closing symbol.",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.selectTextInSymbols",
-				"title": "Selects the whole text between symbols.",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpBetweenOpeningAndClosingSymbols",
-				"title": "Jump between opening and closing symbols.",
-				"when": "editorTextFocus"
-			}
-		],
-		"keybindings": [
-			{
-				"command": "BracketHighlighter.toggleExtensionStatus",
-				"key": "ctrl+alt+l",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpOutOfOpeningSymbol",
-				"key": "ctrl+alt+ArrowUp",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpOutOfClosingSymbol",
-				"key": "ctrl+alt+ArrowDown",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpToOpeningSymbol",
-				"key": "ctrl+alt+ArrowLeft",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpToClosingSymbol",
-				"key": "ctrl+alt+ArrowRight",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.selectTextInSymbols",
-				"key": "ctrl+alt+k",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "BracketHighlighter.jumpBetweenOpeningAndClosingSymbols",
-				"key": "ctrl+alt+\\",
-				"when": "editorTextFocus"
-			}
-		]
-	},
-	"keywords": [
-		"utility",
-		"highlight",
-		"customization",
-		"blur",
-		"decoration"
-	],
-	"scripts": {
-		"vscode:prepublish": "npm run esbuild-base -- --minify",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile",
-		"test": "node ./out/test/runTest.js",
-		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
-		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^5.2.6",
-		"@types/node": "^10.12.21",
-		"@types/vscode": "^1.40.0",
-		"esbuild": "^0.19.2",
-		"glob": "^7.1.4",
-		"tslint": "^5.12.1",
-		"typescript": "^4.0.0",
-		"vscode-test": "^1.0.2"
-	},
-	"dependencies": {
-		"minimist": "^1.2.6"
-	}
+  "name": "brackethighlighter",
+  "displayName": "Bracket Highlighter",
+  "publisher": "Durzn",
+  "repository": {
+    "url": "https://github.com/Durzn/BracketHighlighter"
+  },
+  "icon": "assets/icon.png",
+  "readme": "README.md",
+  "license": "SEE LICENSE IN LICENSE",
+  "description": "Decorates text inbetween symbols.",
+  "version": "3.0.0",
+  "engines": {
+    "vscode": "^1.40.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": [
+      {
+        "title": "BracketHighlighter",
+        "properties": {
+          "BracketHighlighter.textColor": {
+            "type": "string",
+            "default": "#9FFF0F",
+            "description": "The color of the highlighted text.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.textColorSymbol": {
+            "type": "string",
+            "default": "#9FFF0F",
+            "description": "The color of the highlighted text.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.enableExtension": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enables the extension.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.isInsideOfOpeningSymbolIgnored": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disables highlighting when the cursor is on the inner side of the symbol.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.isInsideOfClosingSymbolIgnored": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disables highlighting when the cursor is on the inner side of the symbol.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.highlightScopeFromText": {
+            "type": "boolean",
+            "default": true,
+            "description": "Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.maxLineSearchCount": {
+            "type": "number",
+            "default": 1000,
+            "description": "The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.allowedLanguageIds": {
+            "type": "string",
+            "default": "",
+            "description": "IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java",
+            "scope": "resource"
+          },
+          "BracketHighlighter.fontWeight": {
+            "type": "string",
+            "default": "",
+            "description": "fontWeight in CSS style. E.g. 'bold'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.fontStyle": {
+            "type": "string",
+            "default": "",
+            "description": "fontStyle in CSS style. E.g. 'oblique'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.letterSpacing": {
+            "type": "string",
+            "default": "",
+            "description": "letterSpacing in CSS style. E.g. '1px'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.outline": {
+            "type": "string",
+            "default": "",
+            "description": "outline in CSS style. E.g. '2px dashed blue'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.border": {
+            "type": "string",
+            "default": "",
+            "description": "border in CSS style. E.g. '4px dotted blue'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.backgroundColor": {
+            "type": "string",
+            "default": "",
+            "description": "backgroundColor in CSS style. E.g. 'coral'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.textDecoration": {
+            "type": "string",
+            "default": "",
+            "description": "textDecoration in CSS style. E.g. 'underline'. If separate highlighting for symbols and content is used, this parameter is used for the content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.differentSymbolHighlightingUsed": {
+            "type": "boolean",
+            "default": false,
+            "description": "If enabled, separate text decorations can be used for symbols and content.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.fontWeightSymbol": {
+            "type": "string",
+            "default": "",
+            "description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontWeight in CSS style. E.g. 'bold'",
+            "scope": "resource"
+          },
+          "BracketHighlighter.fontStyleSymbol": {
+            "type": "string",
+            "default": "",
+            "description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: fontStyle in CSS style. E.g. 'oblique'",
+            "scope": "resource"
+          },
+          "BracketHighlighter.letterSpacingSymbol": {
+            "type": "string",
+            "default": "",
+            "description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: letterSpacing in CSS style. E.g. '1px'",
+            "scope": "resource"
+          },
+          "BracketHighlighter.outlineSymbol": {
+            "type": "string",
+            "default": "",
+            "description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: outline in CSS style. E.g. '2px dashed blue'",
+            "scope": "resource"
+          },
+          "BracketHighlighter.borderSymbol": {
+            "type": "string",
+            "default": "",
+            "description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: border in CSS style. E.g. '4px dotted blue'",
+            "scope": "resource"
+          },
+          "BracketHighlighter.backgroundColorSymbol": {
+            "type": "string",
+            "default": "",
+            "description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: backgroundColor in CSS style. E.g. 'coral'",
+            "scope": "resource"
+          },
+          "BracketHighlighter.textDecorationSymbol": {
+            "type": "string",
+            "default": "",
+            "description": "Parameter is used for symbols only if separate highlighting for symbols and content is enabled: textDecoration in CSS style. E.g. 'underline'",
+            "scope": "resource"
+          },
+          "BracketHighlighter.activeInDebugMode": {
+            "type": "boolean",
+            "default": true,
+            "description": "Activates the extension when debugging.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.blurOutOfScopeText": {
+            "type": "boolean",
+            "default": false,
+            "description": "Blurs text that isn't part of the block.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.blurOpacity": {
+            "type": "string",
+            "default": "0.5",
+            "description": "Sets the opacity value for blurred out text.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.customSymbols": {
+            "type": "array",
+            "default": []
+          },
+          "BracketHighlighter.timeOutValue": {
+            "type": "number",
+            "default": 600,
+            "description": "Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.ignoreContent": {
+            "type": "boolean",
+            "default": true,
+            "description": "Ignores content in the scope and instead only highlights the enclosing symbols.",
+            "scope": "resource"
+          },
+          "BracketHighlighter.defaultJumpBetweenStrategy": {
+            "type": "string",
+            "description": "Specify the default strategy to be used to jump between opening and closing symbols.",
+            "enum": [
+              "toSymbolStart",
+              "toSymbolOppositeSide"
+            ],
+            "enumDescriptions": [
+              "Jump to the start of a symbol. This is the same as VS Code's default \"Go to Bracket\" (Ctrl+Shift+\\) behavior.",
+              "Jump to the opposite side of a symbol."
+            ],
+            "default": "toSymbolStart",
+            "scope": "resource"
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "BracketHighlighter.toggleExtensionStatus",
+        "title": "Toggle the extension status.",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpOutOfOpeningSymbol",
+        "title": "Jump out of the opening symbol.",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpOutOfClosingSymbol",
+        "title": "Jump out of the closing symbol.",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpToOpeningSymbol",
+        "title": "Jump to the inside of the opening symbol.",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpToClosingSymbol",
+        "title": "Jump to the inside of the closing symbol.",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.selectTextInSymbols",
+        "title": "Selects the whole text between symbols.",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpBetweenOpeningAndClosingSymbols",
+        "title": "Jump between opening and closing symbols.",
+        "when": "editorTextFocus"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "BracketHighlighter.toggleExtensionStatus",
+        "key": "ctrl+alt+l",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpOutOfOpeningSymbol",
+        "key": "ctrl+alt+ArrowUp",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpOutOfClosingSymbol",
+        "key": "ctrl+alt+ArrowDown",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpToOpeningSymbol",
+        "key": "ctrl+alt+ArrowLeft",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpToClosingSymbol",
+        "key": "ctrl+alt+ArrowRight",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.selectTextInSymbols",
+        "key": "ctrl+alt+k",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "BracketHighlighter.jumpBetweenOpeningAndClosingSymbols",
+        "key": "ctrl+alt+\\",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "keywords": [
+    "brackets",
+    "regex",
+    "utility",
+    "highlight",
+    "customization",
+    "blur",
+    "decoration"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.1",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^10.12.21",
+    "@types/vscode": "^1.40.0",
+    "@vscode/test-electron": "^2.3.5",
+    "esbuild": "^0.19.2",
+    "glob": "^7.1.4",
+    "minimist": "^1.2.8",
+    "mocha": "^10.2.0",
+    "tslint": "^5.12.1",
+    "typescript": "^4.0.0",
+    "vscode-test": "^1.0.2"
+  }
 }

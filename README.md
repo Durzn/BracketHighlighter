@@ -7,7 +7,17 @@ There are preset options for all kinds of brackets.
 
 # Features
 
-Finds the corresponding symbol for the currently selected configured symbol and adds decorations to the text inbetween or only to the symbols themselves. 
+- Highlights pairs of symbols that are at the cursor or if the cursor is in the scope of the pair
+- Symbols can be configured and support regular expressions
+- Multiple cursors support
+- Hotkey actions to jump to the highlight pairs
+- Hotkey action to select all text between a highlight pair
+
+# Upgrade to version 3.0.0
+- Please refer to chapter [custom symbols](#custom-symbols) for information how the new syntax for highlight symbols looks like
+- The extension will try to use symbols with the old syntax
+- Some settings were removed, which means there are no more symbols available via checkboxes => All symbols must now be configured within custom symbols. You can find a minimal example in the [custom symbols](#custom-symbols) chapter.
+
 
 **Decoration examples:**
 
@@ -73,11 +83,6 @@ This extension contributes the following settings:
 * `BracketHighlighter.maxLineSearchCount`: The maximum amount of lines to search for a matching symbol. If nothing is found by this number, nothing will be highlighted.
 * `BracketHighlighter.highlightScopeFromText`: Allows highlighting when clicking inside of a scope. It will search for the scope of all enabled symbols.
 * `BracketHighlighter.allowedLanguageIds`: IDs which this extension will work on. Leaving this blank will enable it globally. Identifiers have to be separated by a comma. E.g. c,cpp,java
-* `BracketHighlighter.reverseSearchEnabled`: Enables searching from closing symbols.
-* `BracketHighlighter.useParentheses`: enables highlighting between parentheses '()'.
-* `BracketHighlighter.useBraces`: enables highlighting between braces '{}'.
-* `BracketHighlighter.useBrackets`: enables highlighting between brackets '[]'.
-* `BracketHighlighter.useAngularBrackets`: enables highlighting between angular brackets '<>'.
 * `BracketHighlighter.fontWeight`: fontWeight in CSS style. E.g. 'bold'. If separate highlighting for symbols and content is used, this parameter is used for the content
 * `BracketHighlighter.fontStyle`: fontStyle in CSS style. E.g. 'oblique'. If separate highlighting for symbols and content is used, this parameter is used for the content
 * `BracketHighlighter.letterSpacing`: letterSpacing in CSS style. E.g. '1px'. If separate highlighting for symbols and content is used, this parameter is used for the content
@@ -95,23 +100,50 @@ This extension contributes the following settings:
 * `BracketHighlighter.activeInDebugMode`: Enables the extension when debugging. 
 * `BracketHighlighter.blurOutOfScopeText`: Enables a blur effect on non-highlighted text. (Opacity depends on blurOpacity value)
 * `BracketHighlighter.blurOpacity`: Sets the opacity of the blurred out text. E.g. 0.5
-* `BracketHighlighter.customSymbols`: User defined symbols which have to have a defined "open" and "close" value. Open and close values must not be the same. Symbols don't have to be unique, however the first entry in this list will always have priority.
-E.g.
-```
-"BracketHighlighter.customSymbols": [
-    {
-        "open": "do",
-        "close": "end"
-    },
-    {
-        "open": "/*",
-        "close": "*/"
-    }
-]
-```
 * `BracketHighlighter.timeOutValue`: Sets a value in milliseconds how often highlighting can be triggered. A higher value will increase performance when writing, however highlighting may be delayed in some cases. Setting this to 0 will make the extension behave as it did before this option existed.
 * `BracketHighlighter.ignoreContent`: Ignores content in the scope and instead only highlights the enclosing symbols.
 * `BracketHighlighter.textColor`: Sets the color of the highlighted text.
+* `BracketHighlighter.customSymbols`: User defined symbols which have to have a defined "open" and "close" value. Open and close values must not be the same. Symbols don't have to be unique, however the first entry in this list will always have priority.
+
+# Custom symbols
+A minimal example for custom symbols - if you don't want to get into the details - looks like the following:
+
+```json
+    "BracketHighlighter.customSymbols": [
+        {
+            "highlightPair": [
+                {
+                    "symbol": "/*",
+                },
+                {
+                    "symbol": "*/",
+                }
+            ]
+        }
+    ]
+```
+Note that the order of the highlight pair actually matters. The first entry of the highlight pair will be the opening symbol, the second one the closing symbol.
+
+This configuration can be extended to the following for a more fine-grained control:
+```json
+    "BracketHighlighter.customSymbols": [
+        {
+            "highlightPair": [
+                {
+                    "symbol": "/*",
+                    "isRegex": false,
+                    "canBeSubstring": true
+                },
+                {
+                    "symbol": "*/",
+                    "isRegex": false,
+                    "canBeSubstring": true
+                }
+            ],
+            "jumpBetweenStrategy": "toSymbolOppositeSide"
+        }
+    ]
+```
 
 # Hotkeys provided by extension
 
@@ -157,6 +189,6 @@ for using this extension :)
 I'm working on projects like this extension in my free time. 
 If you want to buy me a coffee to keep me awake for more work on my projects, I'd greatly appreciate it.
 
-<a href="https://www.buymeacoffee.com/Durzn" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+<a href='https://ko-fi.com/H2H4Q3C6N' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
-I also gladly accept ``Cardano`` over this address: ``addr1qyz4hp9a5m844c5dn7nz56vget0lcx2lxg9eg02x9nyg82m7306tyvjqygl08grv79tm2jw0sh9lg8nr5u0g0qvf2nlsw376z4``
+I also gladly accept ``Ada`` over this address: ``addr1qyz4hp9a5m844c5dn7nz56vget0lcx2lxg9eg02x9nyg82m7306tyvjqygl08grv79tm2jw0sh9lg8nr5u0g0qvf2nlsw376z4``

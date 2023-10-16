@@ -1,0 +1,65 @@
+asd/*asd
+   sdf*/asd
+
+
+do
+    asd
+    {
+      
+    }
+end
+
+
+cat
+   This is a highlight example for user defined 
+   opening and closing symbols.
+dog
+
+pthread_mutex_lock
+   pthread_mutex_lock
+      asd
+   pthread_mutex_wait
+pthread_mutex_unlock
+
+start
+   multi
+stop
+
+{
+   Not you
+}
+
+cat 
+   line
+dog
+
+[
+   test
+]
+
+do
+   this
+   content
+   isn't
+   highlighted
+end
+
+{
+   content
+}
+
+void incrediblyComplexFunction( int a, int b, int c )
+{
+   if (b == 0 && (isValid(a) && (isValid(b) || isValid(c))))
+   {
+      doA();
+   }
+   else
+   {
+      doB();
+   }
+}
+
+/*
+   Test
+*/
