@@ -312,3 +312,42 @@ suite('The Extension will search from the scope ', () => {
         assert.deepStrictEqual(activeRanges[0], expectedRange);
     });
 });
+
+
+
+suite('The Extension will work with multiple cursors ', () => {
+
+    test('and highlight each range', () => {
+        /* Environment */
+        let editor = vscode.window.activeTextEditor!;
+        assert.notStrictEqual(editor, undefined);
+
+        /* Setup */
+        configCache.configuredSymbols = ConfiguredSymbols;
+        configCache.ignoreContent = true;
+        let selectionStart1: vscode.Selection = new vscode.Selection(new vscode.Position(41, 10), new vscode.Position(41, 10));
+        let selectionStart2: vscode.Selection = new vscode.Selection(new vscode.Position(47, 10), new vscode.Position(47, 10));
+
+        /* Expectation setup */
+        let symbol1 = ConfiguredSymbols[3]; /* 'do' symbol expected */
+        let symbol2 = ConfiguredSymbols[4]; /* '{' symbol expected */
+        let rangeOpen1 = new vscode.Range(new vscode.Position(39, 0), new vscode.Position(39, symbol1.startSymbol.symbol.length));
+        let rangeClose1 = new vscode.Range(new vscode.Position(44, 0), new vscode.Position(44, symbol1.endSymbol.symbol.length));
+        let expectedRange1: SymbolAndContentRange = new SymbolAndContentRange(
+            [rangeOpen1, rangeClose1],
+            undefined);
+        let rangeOpen2 = new vscode.Range(new vscode.Position(46, 0), new vscode.Position(46, symbol2.startSymbol.symbol.length));
+        let rangeClose2 = new vscode.Range(new vscode.Position(48, 0), new vscode.Position(48, symbol2.endSymbol.symbol.length));
+        let expectedRange2: SymbolAndContentRange = new SymbolAndContentRange(
+            [rangeOpen2, rangeClose2],
+            undefined);
+
+        /* Execution */
+        editor.selections = [selectionStart1, selectionStart2];
+        handleTextSelectionEvent();
+
+        /* Asserts */
+        let activeRanges = bracketHighlightGlobals.activeRanges;
+        assert.deepStrictEqual(activeRanges, [expectedRange1, expectedRange2]);
+    });
+});
