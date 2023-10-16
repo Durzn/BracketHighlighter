@@ -13,6 +13,11 @@ There are preset options for all kinds of brackets.
 - Hotkey actions to jump to the highlight pairs
 - Hotkey action to select all text between a highlight pair
 
+# Upgrade to version 3.0.0
+- Please refer to chapter [custom symbols](#custom-symbols) for information how the new syntax for highlight symbols looks like
+- The extension will try to use symbols with the old syntax
+- Some settings were removed, which means there are no more symbols available via checkboxes => All symbols must now be configured within custom symbols. You can find a minimal example in the [custom symbols](#custom-symbols) chapter.
+
 
 **Decoration examples:**
 
