@@ -6,16 +6,7 @@ import * as vscode from 'vscode';
 import SymbolFinder from '../../SymbolFinder';
 import { EntryWithRange, SymbolWithIndex, SymbolWithRange, Util } from '../../Util';
 import { HighlightEntry, HighlightSymbol, JumpBetweenStrategy } from '../../ConfigHandler';
-
-
-let configuredSymbols: HighlightSymbol[] = [
-    new HighlightSymbol(new HighlightEntry("/*", false, true), new HighlightEntry("*/", false, true), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-    new HighlightSymbol(new HighlightEntry("cat", false, false), new HighlightEntry("dog", false, false), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-    new HighlightSymbol(new HighlightEntry("start", false, false), new HighlightEntry("stop", false, false), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-    new HighlightSymbol(new HighlightEntry("do", false, false), new HighlightEntry("end", false, false), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-    new HighlightSymbol(new HighlightEntry("{", false, true), new HighlightEntry("}", false, true), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-    new HighlightSymbol(new HighlightEntry("(", false, true), new HighlightEntry(")", false, true), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE),
-    new HighlightSymbol(new HighlightEntry("[", false, true), new HighlightEntry("]", false, true), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE)];
+import { ConfiguredSymbols } from './ConfiguredSymbols';
 
 suite('SymbolFinder will correctly', () => {
     test('find all indices of a RegExp in a given string.', () => {
@@ -56,7 +47,7 @@ suite('SymbolFinder upwards search will correctly', () => {
         );
 
         /* Execution */
-        let result: SymbolWithRange | undefined = SymbolFinder.findSymbolUpwards(editor, selectionStart, configuredSymbols, maxLineSearchCount);
+        let result: SymbolWithRange | undefined = SymbolFinder.findSymbolUpwards(editor, selectionStart, ConfiguredSymbols, maxLineSearchCount);
 
         /* Asserts */
         assert.notStrictEqual(result, undefined);
@@ -81,7 +72,7 @@ suite('SymbolFinder upwards search will correctly', () => {
         );
 
         /* Execution */
-        let result: SymbolWithRange | undefined = SymbolFinder.findSymbolUpwards(editor, selectionStart, configuredSymbols, maxLineSearchCount);
+        let result: SymbolWithRange | undefined = SymbolFinder.findSymbolUpwards(editor, selectionStart, ConfiguredSymbols, maxLineSearchCount);
 
         /* Asserts */
         assert.notStrictEqual(result, undefined);
