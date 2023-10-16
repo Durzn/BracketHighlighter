@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import ActionHandler from '../../ActionHandler';
 import { SymbolAndContentRange } from '../../GlobalsHandler';
 import { HighlightEntry, HighlightSymbol, JumpBetweenStrategy } from '../../ConfigHandler';
+import { ConfiguredSymbols } from './ConfiguredSymbols';
 // import * as myExtension from '../extension';
 
 suite('ActionHandler will correctly', () => {
@@ -179,18 +180,17 @@ suite('ActionHandler will correctly', () => {
         assert.notStrictEqual(editor, undefined);
 
         /* Setup */
-        let symbolStartRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 2));
-        let symbolEndRange = new vscode.Range(new vscode.Position(1, 0), new vscode.Position(1, 2));
+        let symbolStartRange = new vscode.Range(new vscode.Position(0, 3), new vscode.Position(0, 5));
+        let symbolEndRange = new vscode.Range(new vscode.Position(1, 3), new vscode.Position(1, 5));
         let contentRange = new vscode.Range(symbolStartRange.end, symbolEndRange.start);
         let ranges = [new SymbolAndContentRange([symbolStartRange, symbolEndRange], contentRange)];
-        let configuredSymbols: HighlightSymbol[] = [new HighlightSymbol(new HighlightEntry("/*", false, true), new HighlightEntry("*/", false, true), JumpBetweenStrategy.TO_SYMBOL_OPPOSITE_SIDE)];
 
         /* Expectation setup */
         let expectedSelection = new vscode.Selection(symbolEndRange.end, symbolEndRange.end);
 
         /* Execution */
         editor.selection = new vscode.Selection(symbolStartRange.start, symbolStartRange.start);
-        handler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor, ranges, configuredSymbols);
+        handler.onjumpBetweenOpeningAndClosingSymbolsHotkey(editor, ranges, ConfiguredSymbols);
 
         /* Asserts */
         assert.deepStrictEqual(editor.selections[0], expectedSelection);
