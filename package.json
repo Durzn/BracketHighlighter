@@ -9,7 +9,7 @@
   "readme": "README.md",
   "license": "SEE LICENSE IN LICENSE",
   "description": "Decorates text inbetween symbols.",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "engines": {
     "vscode": "^1.63.0"
   },
