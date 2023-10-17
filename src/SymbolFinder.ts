@@ -123,9 +123,7 @@ export default class SymbolFinder {
      */
     public static findSymbolDownwards(activeEditor: vscode.TextEditor, targetSymbol: HighlightSymbol, selectionStart: vscode.Position, maxLineSearchCount: number): EntryWithRange | undefined {
         let eolCharacter = activeEditor.document.eol === vscode.EndOfLine.LF ? '\n' : '\r\n';
-        /* If the cursor is on the right of the symbol, it would not be found without this offset! */
-        let cursorBehindSymbolOffset = targetSymbol.endSymbol.symbol.length < selectionStart.character ? targetSymbol.endSymbol.symbol.length : 0;
-        let tempSelection = selectionStart.translate(0, -cursorBehindSymbolOffset);
+        let tempSelection = selectionStart;
         let text: string[] = activeEditor.document.getText(new vscode.Range(tempSelection, selectionStart.translate(Math.min(...[maxLineSearchCount, activeEditor.document.lineCount])))).split(eolCharacter);
         let lineCounter = 0;
 
