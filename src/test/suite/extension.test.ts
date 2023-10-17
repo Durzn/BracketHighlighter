@@ -48,6 +48,34 @@ suite('The Extension will search at the cursor and ', () => {
         executeContentTest(cache);
     });
 
+    test('highlight the correct range, even if the symbols are directly behind each other', () => {
+        /* Environment */
+        let editor = vscode.window.activeTextEditor!;
+        assert.notStrictEqual(editor, undefined);
+
+        /* Setup */
+        configCache.configuredSymbols = ConfiguredSymbols;
+        configCache.ignoreContent = true;
+        let selectionStart: vscode.Selection = new vscode.Selection(new vscode.Position(76, 0), new vscode.Position(76, 0));
+
+        /* Expectation setup */
+        let symbol = ConfiguredSymbols[4]; /* '(' symbol expected */
+        assert(symbol.startSymbol.canBeSubstring);
+        let rangeOpen = new vscode.Range(new vscode.Position(76, 0), new vscode.Position(76, 0 + symbol.startSymbol.symbol.length));
+        let rangeClose = new vscode.Range(new vscode.Position(76, 1), new vscode.Position(76, 1 + symbol.endSymbol.symbol.length));
+        let expectedRange: SymbolAndContentRange = new SymbolAndContentRange(
+            [rangeOpen, rangeClose],
+            undefined);
+
+        /* Execution */
+        editor.selection = selectionStart;
+        handleTextSelectionEvent();
+
+        /* Asserts */
+        let activeRanges = bracketHighlightGlobals.activeRanges;
+        assert.deepStrictEqual(activeRanges[0], expectedRange);
+    });
+
 
     test('highlight the correct range without its content in a normal scope.', () => {
         let cache = new ConfigCache();
