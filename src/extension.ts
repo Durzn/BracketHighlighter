@@ -143,8 +143,7 @@ export function handleTextSelectionEvent() {
 			}
 		}
 		if (symbolStart) {
-			/* Move the selection BEHIND the cursor, so the start symbol is not accounted for twice! */
-			activeSelection = symbolStart.range.end.translate(0, 1);
+			activeSelection = symbolStart.range.end;
 			let symbolEnd = SymbolFinder.findSymbolDownwards(activeEditor, symbolStart.symbol, activeSelection, configCache.maxLineSearchCount);
 			if (symbolEnd) {
 				let symbolsToHighlight = [symbolStart.range, symbolEnd.range];
