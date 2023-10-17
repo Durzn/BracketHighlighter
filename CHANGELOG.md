@@ -1,5 +1,8 @@
 # Change Log
 
+## [3.0.1]
+  Fixed issue where the correct scope could not be found under certain conditions
+
 ## [3.0.0]
   Major update with breaking changes to the configuration. \
   It is now possible to configure highlight pairs with more fine-grained control. Symbols can be a regular expression and symbols have a switch, which enables them to be substrings in the search.
