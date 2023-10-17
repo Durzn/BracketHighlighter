@@ -123,6 +123,7 @@ A minimal example for custom symbols - if you don't want to get into the details
     ]
 ```
 Note that the order of the highlight pair actually matters. The first entry of the highlight pair will be the opening symbol, the second one the closing symbol.
+Also note that multiple symbols with the same starting or closing symbols can cause weird or unexpected behavior. Consider using a regular expression, which combines the symbols instead.
 
 This configuration can be extended to the following for a more fine-grained control:
 ```json
