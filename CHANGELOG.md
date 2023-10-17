@@ -1,5 +1,11 @@
 # Change Log
 
+## [3.0.3]
+  Reworked README
+
+## [3.0.2]
+  Fixed issue where symbols could not be right next to each other when they have a length of 1
+
 ## [3.0.1]
   Fixed issue where the correct scope could not be found under certain conditions
 
