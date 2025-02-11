@@ -314,7 +314,7 @@
     "@types/node": "^10.12.21",
     "@types/vscode": "^1.40.0",
     "@vscode/test-electron": "^2.3.5",
-    "esbuild": "^0.19.2",
+    "esbuild": "^0.25.0",
     "glob": "^7.1.4",
     "minimist": "^1.2.8",
     "mocha": "^10.2.0",
