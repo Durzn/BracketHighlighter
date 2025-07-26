@@ -13,6 +13,12 @@ There are preset options for all kinds of brackets.
 - Hotkey actions to jump to the highlight pairs
 - Hotkey action to select all text between a highlight pair
 
+# Support
+If you find this extension helpful, please consider supporting its development with a donation.  
+Your contributions help me maintain and improve the extension over time. Every bit is appreciated and keeps this project going.
+
+<a href='https://ko-fi.com/H2H4Q3C6N' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 # Upgrade to version 3.0.0
 - Please refer to the chapter [quick setup](#quick-setup-of-old-parameters) if you want to quickly get started with basic symbol support
 - Please refer to the chapter [custom symbols](#custom-symbols) for more information how the new syntax for highlight symbols looks like
@@ -228,11 +234,3 @@ Thanks to everyone reporting issues and requesting new features. The extension w
 for the great extension icon. See more from her on her instagram page https://www.instagram.com/art_of_bini/
 ## You
 for using this extension :)
-
-# Support
-I'm working on projects like this extension in my free time. 
-If you want to buy me a coffee to keep me awake for more work on my projects, I'd greatly appreciate it.
-
-<a href='https://ko-fi.com/H2H4Q3C6N' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
-
-I also gladly accept ``Ada`` over this address: ``addr1qyz4hp9a5m844c5dn7nz56vget0lcx2lxg9eg02x9nyg82m7306tyvjqygl08grv79tm2jw0sh9lg8nr5u0g0qvf2nlsw376z4``
